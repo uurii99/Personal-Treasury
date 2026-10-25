@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { Card, CardHeader, EmptyState, SkeletonCard } from '@/components/ui';
-import { formatCurrency, centsToEuros } from '@/lib/money';
+import { centsToEuros } from '@/lib/money';
 import { getMonthNameShort, getCurrentMonthYear } from '@/lib/dates';
 import { BarChart3, TrendingUp, PieChart } from 'lucide-react';
 import {

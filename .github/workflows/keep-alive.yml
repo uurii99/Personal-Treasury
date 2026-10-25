@@ -1,0 +1,26 @@
+name: Keep Alive Supabase & Vercel
+
+on:
+  schedule:
+    # Runs every 3 days at 07:00 UTC to prevent Supabase free tier inactivity pause
+    - cron: '0 7 */3 * *'
+  workflow_dispatch: # Allows manual trigger from GitHub UI
+
+jobs:
+  ping:
+    name: Ping Services
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase REST API
+        run: |
+          echo "Pinging Supabase to prevent project pause..."
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpxcnp4YmdubWJpaWFpZmZhd3FmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI5NDYyNDksImV4cCI6MjEwODUyMjI0OX0.flQYJIPbyiYZCnPlMejUG2UfbawFBbNE46wm9Tn3FMY' }}" \
+            "https://zqrzxbgnmbiiaiffawqf.supabase.co/rest/v1/profiles?select=id&limit=1")
+          echo "Supabase responded with HTTP $STATUS"
+
+      - name: Ping Vercel Frontend
+        run: |
+          echo "Pinging Vercel site..."
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://personal-treasury.vercel.app")
+          echo "Vercel responded with HTTP $STATUS"

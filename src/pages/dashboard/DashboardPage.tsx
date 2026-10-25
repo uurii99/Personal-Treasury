@@ -10,12 +10,11 @@ import {
   ChevronLeft,
   ChevronRight,
   Receipt,
-  Target,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { Card, CardHeader, Button, Badge, ProgressBar, EmptyState, SkeletonCard } from '@/components/ui';
-import { formatCurrency, distributeByPercentage, calculateBudgetStatus } from '@/lib/money';
+import { formatCurrency, distributeByPercentage } from '@/lib/money';
 import { getMonthName, getCurrentMonthYear, prevMonth, nextMonth } from '@/lib/dates';
 import type { BudgetSection, MonthlySummary } from '@/types';
 import { BUDGET_SECTION_LABELS } from '@/types';
@@ -272,7 +271,6 @@ export function DashboardPage() {
       {/* Section cards */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {sectionData.map(({ key, budget, spent }) => {
-          const status = calculateBudgetStatus(budget, spent);
           const available = budget - spent;
 
           return (

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Repeat, Check, Clock } from 'lucide-react';
+import { Plus, Repeat } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
 import { supabase } from '@/lib/supabase';
@@ -171,6 +171,17 @@ export function RecurringExpensesPage() {
             options={Object.entries(BUDGET_SECTION_LABELS).map(([v, l]) => ({ value: v, label: l }))}
             value={section}
             onChange={(e) => setSection(e.target.value)}
+          />
+          <Select
+            label="Categoría (opcional)"
+            options={[
+              { value: '', label: 'Sin categoría' },
+              ...categories
+                .filter((c) => c.section === section)
+                .map((c) => ({ value: c.id, label: c.name })),
+            ]}
+            value={categoryId}
+            onChange={(e) => setCategoryId(e.target.value)}
           />
           <Input label="Notas (opcional)" placeholder="Notas..." value={notes} onChange={(e) => setNotes(e.target.value)} />
 

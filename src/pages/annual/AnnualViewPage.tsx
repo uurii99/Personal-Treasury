@@ -42,9 +42,6 @@ export function AnnualViewPage() {
         const expenses = (transactions ?? [])
           .filter((t) => t.type === 'expense')
           .reduce((s, t) => s + t.amount, 0);
-        const savings = (transactions ?? [])
-          .filter((t) => t.section === 'savings' && t.type === 'expense')
-          .reduce((s, t) => s + t.amount, 0);
 
         result.push({
           month: m,

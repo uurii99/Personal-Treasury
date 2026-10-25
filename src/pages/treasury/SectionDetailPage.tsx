@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Pencil, Trash2, Receipt, Search } from 'lucide-react';
+import { ArrowLeft, Trash2, Receipt, Search } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
 import { supabase } from '@/lib/supabase';
-import { Card, Button, Badge, ProgressBar, EmptyState, ConfirmDialog, Input } from '@/components/ui';
-import { formatCurrency, distributeByPercentage, centsToEuros } from '@/lib/money';
+import { Card, Badge, ProgressBar, EmptyState, ConfirmDialog, Input, SkeletonCard } from '@/components/ui';
+import { formatCurrency, distributeByPercentage } from '@/lib/money';
 import { getMonthName, formatDateShort, getCurrentMonthYear } from '@/lib/dates';
 import type { BudgetSection, Transaction, Category } from '@/types';
 import { BUDGET_SECTION_LABELS } from '@/types';
@@ -94,7 +94,6 @@ export function SectionDetailPage() {
   const expenses = transactions.filter((t) => t.type === 'expense');
   const totalSpent = expenses.reduce((s, t) => s + t.amount, 0);
   const available = sectionBudget - totalSpent;
-  const pctUsed = sectionBudget > 0 ? (totalSpent / sectionBudget) * 100 : 0;
 
   // Category breakdown
   const categoryBreakdown = categories.map((cat) => {
@@ -127,6 +126,15 @@ export function SectionDetailPage() {
       setDeleteTarget(null);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <SkeletonCard />
+        <SkeletonCard />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
