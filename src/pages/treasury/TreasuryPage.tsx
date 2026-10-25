@@ -9,8 +9,6 @@ import {
   PiggyBank,
   ArrowRight,
   TrendingUp,
-  Download,
-  Filter,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
@@ -77,7 +75,6 @@ export function TreasuryPage() {
   // Calculations
   const totalIncome = incomes.reduce((sum, i) => sum + i.amount, 0);
   const salaryIncome = incomes.filter((i) => i.income_type === 'salary').reduce((sum, i) => sum + i.amount, 0);
-  const extraIncome = totalIncome - salaryIncome;
 
   const fp = settings?.fixed_percentage ?? 40;
   const lp = settings?.leisure_percentage ?? 30;
