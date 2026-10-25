@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* ===== DESIGN TOKENS ===== */
 @theme {
   /* Brand Colors */

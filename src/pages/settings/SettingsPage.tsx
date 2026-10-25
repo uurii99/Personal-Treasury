@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { useToast } from '@/contexts/ToastContext';
 import { Card, CardHeader, Button, Input } from '@/components/ui';
-import { Settings, Percent, Wallet } from 'lucide-react';
+import { Percent, Wallet, Palette, Sun, Moon, Monitor } from 'lucide-react';
 import { formatCurrency, eurosToCents, validatePercentages, distributeByPercentage } from '@/lib/money';
 
 export function SettingsPage() {
   const { settings, updateSettings } = useAuth();
+  const { theme, setTheme } = useTheme();
   const { success, error: showError } = useToast();
   const [saving, setSaving] = useState(false);
 
@@ -49,6 +51,36 @@ export function SettingsPage() {
   return (
     <div className="space-y-6 max-w-2xl">
       <h1 className="text-xl font-bold text-surface-900 dark:text-surface-100">Configuración</h1>
+
+      {/* Theme / Appearance */}
+      <Card>
+        <CardHeader
+          title="Apariencia"
+          description="Personaliza el tema visual de la aplicación."
+          icon={<Palette className="h-5 w-5" />}
+        />
+        <div className="grid grid-cols-3 gap-3">
+          {[
+            { value: 'light' as const, label: 'Claro', icon: <Sun className="h-5 w-5" /> },
+            { value: 'dark' as const, label: 'Oscuro', icon: <Moon className="h-5 w-5" /> },
+            { value: 'system' as const, label: 'Sistema', icon: <Monitor className="h-5 w-5" /> },
+          ].map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => setTheme(opt.value)}
+              className={`flex flex-col items-center justify-center gap-2 p-4 rounded-xl border transition-all text-sm font-medium ${
+                theme === opt.value
+                  ? 'border-brand-500 bg-brand-50/50 dark:bg-brand-950/30 text-brand-700 dark:text-brand-300 shadow-sm ring-2 ring-brand-500/20'
+                  : 'border-surface-200 dark:border-surface-800 hover:bg-surface-50 dark:hover:bg-surface-800/50 text-surface-600 dark:text-surface-400'
+              }`}
+            >
+              {opt.icon}
+              <span>{opt.label}</span>
+            </button>
+          ))}
+        </div>
+      </Card>
 
       {/* Percentages */}
       <Card>

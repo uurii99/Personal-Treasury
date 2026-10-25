@@ -35,6 +35,12 @@ export function TreasuryPage() {
   const [showAddMovement, setShowAddMovement] = useState(searchParams.get('action') === 'add');
   const [showAddIncome, setShowAddIncome] = useState(false);
 
+  useEffect(() => {
+    if (searchParams.get('action') === 'add') {
+      setShowAddMovement(true);
+    }
+  }, [searchParams]);
+
   const loadData = useCallback(async () => {
     if (!user) return;
     setLoading(true);
