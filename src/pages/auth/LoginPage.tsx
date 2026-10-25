@@ -65,15 +65,20 @@ export function LoginPage() {
     try {
       const { error } = await signUpWithEmail(data.email, data.password);
       if (error) {
+        console.error('Registration error:', error);
         setError(translateAuthError(error.message));
       } else {
-        setSuccess('Cuenta creada correctamente. Revisa tu correo para confirmar tu cuenta.');
-        setMode('login');
+        // Email confirmation disabled - user is auto-logged in
+        navigate('/onboarding');
       }
+    } catch (e) {
+      console.error('Unexpected registration error:', e);
+      setError('Ha ocurrido un error inesperado. Inténtalo de nuevo.');
     } finally {
       setLoading(false);
     }
   };
+
 
   const handleGoogleLogin = async () => {
     setError(null);
