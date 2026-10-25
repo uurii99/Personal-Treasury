@@ -12,14 +12,26 @@ export function AuthCallbackPage() {
   useEffect(() => {
     const handleCallback = async () => {
       try {
-        const { error } = await supabase.auth.getSession();
-        if (error) {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error || !session) {
           console.error('Error en callback de autenticación:', error);
           navigate('/login?error=auth_callback_failed');
           return;
         }
-        navigate('/dashboard');
-      } catch {
+
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('onboarding_completed')
+          .eq('id', session.user.id)
+          .single();
+
+        if (profile && !profile.onboarding_completed) {
+          navigate('/onboarding');
+        } else {
+          navigate('/dashboard');
+        }
+      } catch (e) {
+        console.error('Error procesando callback:', e);
         navigate('/login?error=auth_callback_failed');
       }
     };
