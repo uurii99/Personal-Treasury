@@ -1,0 +1,246 @@
+@import "tailwindcss";
+
+/* ===== DESIGN TOKENS ===== */
+@theme {
+  /* Brand Colors */
+  --color-brand-50: oklch(0.97 0.02 250);
+  --color-brand-100: oklch(0.94 0.04 250);
+  --color-brand-200: oklch(0.88 0.07 250);
+  --color-brand-300: oklch(0.80 0.11 250);
+  --color-brand-400: oklch(0.70 0.15 250);
+  --color-brand-500: oklch(0.60 0.18 250);
+  --color-brand-600: oklch(0.52 0.18 250);
+  --color-brand-700: oklch(0.44 0.16 250);
+  --color-brand-800: oklch(0.37 0.13 250);
+  --color-brand-900: oklch(0.30 0.10 250);
+
+  /* Success (Green - for income/positive) */
+  --color-success-50: oklch(0.97 0.03 155);
+  --color-success-100: oklch(0.93 0.05 155);
+  --color-success-200: oklch(0.87 0.09 155);
+  --color-success-300: oklch(0.78 0.13 155);
+  --color-success-400: oklch(0.68 0.16 155);
+  --color-success-500: oklch(0.58 0.17 155);
+  --color-success-600: oklch(0.50 0.15 155);
+  --color-success-700: oklch(0.42 0.13 155);
+
+  /* Warning (Amber - for caution/budget alerts) */
+  --color-warning-50: oklch(0.97 0.03 85);
+  --color-warning-100: oklch(0.93 0.06 85);
+  --color-warning-200: oklch(0.87 0.10 85);
+  --color-warning-300: oklch(0.80 0.14 85);
+  --color-warning-400: oklch(0.73 0.16 85);
+  --color-warning-500: oklch(0.65 0.16 85);
+
+  /* Danger (Red - for expenses/negative) */
+  --color-danger-50: oklch(0.97 0.02 25);
+  --color-danger-100: oklch(0.93 0.04 25);
+  --color-danger-200: oklch(0.87 0.08 25);
+  --color-danger-300: oklch(0.78 0.13 25);
+  --color-danger-400: oklch(0.68 0.16 25);
+  --color-danger-500: oklch(0.58 0.18 25);
+  --color-danger-600: oklch(0.50 0.17 25);
+
+  /* Savings (Purple - for savings/investments) */
+  --color-savings-50: oklch(0.97 0.02 300);
+  --color-savings-100: oklch(0.93 0.04 300);
+  --color-savings-200: oklch(0.87 0.08 300);
+  --color-savings-300: oklch(0.78 0.12 300);
+  --color-savings-400: oklch(0.68 0.15 300);
+  --color-savings-500: oklch(0.58 0.17 300);
+  --color-savings-600: oklch(0.50 0.16 300);
+
+  /* Neutral */
+  --color-surface-50: oklch(0.985 0.002 250);
+  --color-surface-100: oklch(0.97 0.004 250);
+  --color-surface-200: oklch(0.93 0.006 250);
+  --color-surface-300: oklch(0.88 0.008 250);
+  --color-surface-400: oklch(0.72 0.01 250);
+  --color-surface-500: oklch(0.55 0.01 250);
+  --color-surface-600: oklch(0.44 0.01 250);
+  --color-surface-700: oklch(0.37 0.01 250);
+  --color-surface-800: oklch(0.27 0.01 250);
+  --color-surface-900: oklch(0.20 0.01 250);
+  --color-surface-950: oklch(0.14 0.01 250);
+
+  /* Typography */
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'Cascadia Code', monospace;
+
+  /* Shadows */
+  --shadow-card: 0 1px 3px 0 oklch(0 0 0 / 0.06), 0 1px 2px -1px oklch(0 0 0 / 0.06);
+  --shadow-card-hover: 0 4px 6px -1px oklch(0 0 0 / 0.08), 0 2px 4px -2px oklch(0 0 0 / 0.06);
+  --shadow-dropdown: 0 10px 15px -3px oklch(0 0 0 / 0.1), 0 4px 6px -4px oklch(0 0 0 / 0.1);
+  --shadow-modal: 0 25px 50px -12px oklch(0 0 0 / 0.25);
+
+  /* Border Radius */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+
+  /* Animations */
+  --animate-fade-in: fade-in 0.2s ease-out;
+  --animate-slide-up: slide-up 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-slide-down: slide-down 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-scale-in: scale-in 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-shimmer: shimmer 2s infinite linear;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-down {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* ===== BASE STYLES ===== */
+html {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  @apply bg-surface-50 text-surface-900 transition-colors duration-200;
+}
+
+.dark body {
+  @apply bg-surface-950 text-surface-100;
+}
+
+/* Focus ring */
+*:focus-visible {
+  @apply outline-2 outline-offset-2 outline-brand-500 rounded-sm;
+}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-surface-300 rounded-full;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  @apply bg-surface-700;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-surface-400;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  @apply bg-surface-600;
+}
+
+/* ===== SKELETON LOADING ===== */
+.skeleton {
+  @apply bg-surface-200 rounded-md;
+  background: linear-gradient(
+    90deg,
+    oklch(0.93 0.006 250) 25%,
+    oklch(0.96 0.004 250) 50%,
+    oklch(0.93 0.006 250) 75%
+  );
+  background-size: 200% 100%;
+  animation: var(--animate-shimmer);
+}
+
+.dark .skeleton {
+  background: linear-gradient(
+    90deg,
+    oklch(0.27 0.01 250) 25%,
+    oklch(0.32 0.01 250) 50%,
+    oklch(0.27 0.01 250) 75%
+  );
+  background-size: 200% 100%;
+}
+
+/* ===== NUMBER FORMATTING ===== */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ===== TABLE STYLES ===== */
+.treasury-table {
+  @apply w-full border-collapse;
+}
+
+.treasury-table th {
+  @apply text-left text-xs font-semibold uppercase tracking-wider text-surface-500 px-4 py-3 border-b border-surface-200;
+}
+
+.dark .treasury-table th {
+  @apply text-surface-400 border-surface-800;
+}
+
+.treasury-table td {
+  @apply px-4 py-3 text-sm border-b border-surface-100;
+}
+
+.dark .treasury-table td {
+  @apply border-surface-800/50;
+}
+
+.treasury-table tr:hover td {
+  @apply bg-surface-50;
+}
+
+.dark .treasury-table tr:hover td {
+  @apply bg-surface-900/50;
+}
+
+/* ===== CURRENCY ALIGNMENT ===== */
+.amount-cell {
+  @apply text-right font-mono tabular-nums;
+}
+
+.amount-positive {
+  @apply text-success-600;
+}
+
+.dark .amount-positive {
+  @apply text-success-400;
+}
+
+.amount-negative {
+  @apply text-danger-600;
+}
+
+.dark .amount-negative {
+  @apply text-danger-400;
+}
+
+/* ===== GLASSMORPHISM CARD ===== */
+.glass-card {
+  @apply bg-white/80 backdrop-blur-xl border border-surface-200/60 rounded-xl shadow-card;
+}
+
+.dark .glass-card {
+  @apply bg-surface-900/80 border-surface-800/60;
+}
