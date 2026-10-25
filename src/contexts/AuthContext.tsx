@@ -169,9 +169,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const { error } = await supabase
       .from('profiles')
-      .upsert({ id: user.id, ...data, updated_at: new Date().toISOString() });
+      .upsert(
+        { id: user.id, ...data, updated_at: new Date().toISOString() },
+        { onConflict: 'id' }
+      );
 
-    if (!error) await fetchProfile(user.id);
+    if (error) {
+      console.error('Error updating profile:', error);
+    } else {
+      await fetchProfile(user.id);
+    }
     return { error: error ? new Error(error.message) : null };
   };
 
@@ -180,9 +187,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const { error } = await supabase
       .from('user_settings')
-      .upsert({ user_id: user.id, ...data, updated_at: new Date().toISOString() });
+      .upsert(
+        { user_id: user.id, ...data, updated_at: new Date().toISOString() },
+        { onConflict: 'user_id' }
+      );
 
-    if (!error) await fetchSettings(user.id);
+    if (error) {
+      console.error('Error updating settings:', error);
+    } else {
+      await fetchSettings(user.id);
+    }
     return { error: error ? new Error(error.message) : null };
   };
 

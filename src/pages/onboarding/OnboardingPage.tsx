@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
 import { Button, Input, Card } from '@/components/ui';
 import { eurosToCents, formatCurrency, validatePercentages, distributeByPercentage } from '@/lib/money';
+import { supabase } from '@/lib/supabase';
 import type { BudgetSection } from '@/types';
 
 interface OnboardingData {
@@ -141,7 +142,7 @@ export function OnboardingPage() {
           };
         });
 
-        const { error: catError } = await (await import('@/lib/supabase')).supabase
+        const { error: catError } = await supabase
           .from('categories')
           .insert(categories);
 
