@@ -52,6 +52,20 @@ export const DEFAULT_BANKS: Omit<BankAccount, 'user_id'>[] = [
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   },
+  {
+    id: 'b-efectivo',
+    name: 'Efectivo',
+    balance: 6000, // 60,00 €
+    purpose: 'cash',
+    interest_rate: 'Físico',
+    color: '#16A34A',
+    notes: 'Dinero en efectivo / cartera. Solo para tenerlo presente, no computa en cuentas bancarias ni en el cuadre.',
+    is_cash: true,
+    exclude_from_calculations: true,
+    last_reconciled_at: new Date().toISOString(),
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
 ];
 
 export const DEFAULT_SCHEDULED_DEBITS: BankScheduledDebit[] = [
@@ -85,7 +99,30 @@ export function getBankAccounts(userId: string): BankAccount[] {
       saveBankAccounts(userId, initial);
       return initial;
     }
-    return JSON.parse(raw);
+    const list: BankAccount[] = JSON.parse(raw);
+    // Ensure Efectivo exists for existing users
+    const hasCash = list.some(
+      (b) => b.is_cash || b.id === 'b-efectivo' || b.name.trim().toLowerCase() === 'efectivo'
+    );
+    if (!hasCash) {
+      list.push({
+        id: 'b-efectivo',
+        user_id: userId,
+        name: 'Efectivo',
+        balance: 6000,
+        purpose: 'cash',
+        interest_rate: 'Físico',
+        color: '#16A34A',
+        notes: 'Dinero en efectivo / cartera. Solo para tenerlo presente, no computa en cuentas bancarias ni en el cuadre.',
+        is_cash: true,
+        exclude_from_calculations: true,
+        last_reconciled_at: new Date().toISOString(),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
+      saveBankAccounts(userId, list);
+    }
+    return list;
   } catch {
     return DEFAULT_BANKS.map((b) => ({ ...b, user_id: userId }));
   }

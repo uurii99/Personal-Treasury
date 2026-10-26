@@ -256,18 +256,20 @@ export interface ToastMessage {
 }
 
 // === Banks & Accounts ===
-export type BankAccountPurpose = 'fixed' | 'leisure' | 'savings' | 'mixed';
+export type BankAccountPurpose = 'fixed' | 'leisure' | 'savings' | 'mixed' | 'cash';
 
 export interface BankAccount {
   id: string;
   user_id: string;
-  name: string; // e.g. Banc Sabadell, Revolut, Trade Republic
+  name: string; // e.g. Banc Sabadell, Revolut, Trade Republic, Efectivo
   balance: number; // in cents
-  interest_rate?: string | null; // e.g. "2% TAE"
+  interest_rate?: string | null; // e.g. "2% TAE", "Físico"
   purpose: BankAccountPurpose;
   color?: string | null;
   account_number?: string | null;
   notes?: string | null;
+  is_cash?: boolean;
+  exclude_from_calculations?: boolean;
   last_reconciled_at?: string | null;
   created_at: string;
   updated_at: string;

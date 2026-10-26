@@ -40,6 +40,9 @@ export interface Translations {
     purposeLeisure: string;
     purposeSavings: string;
     purposeMixed: string;
+    purposeCash: string;
+    cashOnlyInformative: string;
+    cashTitle: string;
   };
   goals: {
     title: string;
@@ -156,6 +159,9 @@ const DICTIONARY: Record<Language, Translations> = {
       purposeLeisure: 'Ocio y Variables',
       purposeSavings: 'Ahorro e Inversión',
       purposeMixed: 'Cuenta Mixta',
+      purposeCash: 'Efectivo (Informativo)',
+      cashOnlyInformative: 'Solo informativo · No cuenta para cálculos ni cuadre',
+      cashTitle: 'Dinero en Efectivo',
     },
     goals: {
       title: 'Metas y Objetivos Anuales',
@@ -270,6 +276,9 @@ const DICTIONARY: Record<Language, Translations> = {
       purposeLeisure: 'Opcional i Variables',
       purposeSavings: 'Estalvi i Inversió',
       purposeMixed: 'Compte Mixt',
+      purposeCash: 'Efectiu (Informatiu)',
+      cashOnlyInformative: 'Només informatiu · No compta per a càlculs ni quadratura',
+      cashTitle: 'Diners en Efectiu',
     },
     goals: {
       title: 'Metes i Objectius Anuals',

@@ -10,6 +10,7 @@ import {
   Trash2,
   Sparkles,
   ShieldCheck,
+  Banknote,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
@@ -68,14 +69,23 @@ export function BanksPage() {
     loadData();
   }, [loadData]);
 
-  // Total balance in all banks
+  // Total balance in bank accounts (Excludes cash: "que ese no contara para nada, solo para tenerlo presente")
   const totalBalanceCents = useMemo(() => {
-    return accounts.reduce((sum, acc) => sum + (acc.balance || 0), 0);
+    return accounts
+      .filter((acc) => !acc.is_cash && !acc.exclude_from_calculations && acc.purpose !== 'cash' && acc.name.trim().toLowerCase() !== 'efectivo')
+      .reduce((sum, acc) => sum + (acc.balance || 0), 0);
+  }, [accounts]);
+
+  // Cash balance specifically for tracking physical money without counting in bank totals
+  const cashBalanceCents = useMemo(() => {
+    return accounts
+      .filter((acc) => acc.is_cash || acc.exclude_from_calculations || acc.purpose === 'cash' || acc.name.trim().toLowerCase() === 'efectivo')
+      .reduce((sum, acc) => sum + (acc.balance || 0), 0);
   }, [accounts]);
 
   // Balance by purpose
   const balanceByPurpose = useMemo(() => {
-    const res: Record<BankAccountPurpose, number> = { fixed: 0, leisure: 0, savings: 0, mixed: 0 };
+    const res: Record<BankAccountPurpose, number> = { fixed: 0, leisure: 0, savings: 0, mixed: 0, cash: 0 };
     accounts.forEach((a) => {
       res[a.purpose] = (res[a.purpose] || 0) + a.balance;
     });
@@ -94,6 +104,7 @@ export function BanksPage() {
 
     const parsed = parseFloat(accountBalance.replace(',', '.'));
     const cents = isNaN(parsed) || parsed < 0 ? 0 : eurosToCents(parsed);
+    const isCashAccount = accountPurpose === 'cash' || trimmed.toLowerCase() === 'efectivo';
 
     let updated: BankAccount[];
     if (editingAccount) {
@@ -104,8 +115,10 @@ export function BanksPage() {
               name: trimmed,
               balance: cents,
               purpose: accountPurpose,
-              interest_rate: accountInterest.trim() || null,
+              interest_rate: accountInterest.trim() || (isCashAccount ? 'Físico' : null),
               notes: accountNotes.trim() || null,
+              is_cash: isCashAccount,
+              exclude_from_calculations: isCashAccount,
               updated_at: new Date().toISOString(),
             }
           : a
@@ -113,19 +126,21 @@ export function BanksPage() {
       success('Cuenta actualizada', trimmed);
     } else {
       const newAcc: BankAccount = {
-        id: 'bank_' + Date.now(),
+        id: isCashAccount ? 'b-efectivo' : 'bank_' + Date.now(),
         user_id: user.id,
         name: trimmed,
         balance: cents,
         purpose: accountPurpose,
-        interest_rate: accountInterest.trim() || null,
+        interest_rate: accountInterest.trim() || (isCashAccount ? 'Físico' : null),
         notes: accountNotes.trim() || null,
+        is_cash: isCashAccount,
+        exclude_from_calculations: isCashAccount,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         last_reconciled_at: new Date().toISOString(),
       };
       updated = [...accounts, newAcc];
-      success('Cuenta bancaria añadida', trimmed);
+      success('Cuenta añadida', trimmed);
     }
 
     saveBankAccounts(user.id, updated);
@@ -241,7 +256,13 @@ export function BanksPage() {
   };
 
   // Helper purpose label
-  const getPurposeBadge = (purpose: BankAccountPurpose) => {
+  const getPurposeBadge = (purpose: BankAccountPurpose, isCash?: boolean) => {
+    if (purpose === 'cash' || isCash) {
+      return {
+        label: t.banks.purposeCash,
+        color: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 font-semibold',
+      };
+    }
     switch (purpose) {
       case 'fixed':
         return { label: t.banks.purposeFixed, color: 'bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300' };
@@ -280,20 +301,22 @@ export function BanksPage() {
       </div>
 
       {/* Global wealth banner */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="md:col-span-2 bg-gradient-to-br from-[#107c41] to-emerald-800 text-white p-5 rounded-2xl shadow-md relative overflow-hidden">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-gradient-to-br from-[#107c41] to-emerald-800 text-white p-5 rounded-2xl shadow-md relative overflow-hidden flex flex-col justify-between">
           <div className="absolute right-0 top-0 translate-x-4 -translate-y-4 opacity-10 pointer-events-none">
-            <Building2 className="w-36 h-36" />
+            <Building2 className="w-32 h-32" />
           </div>
-          <span className="text-xs font-semibold uppercase tracking-wider text-emerald-200">
-            {t.banks.totalBalance}
-          </span>
-          <p className="text-3xl font-extrabold font-mono tabular-nums mt-1 tracking-tight">
-            {formatCurrency(totalBalanceCents)}
-          </p>
+          <div>
+            <span className="text-xs font-semibold uppercase tracking-wider text-emerald-200">
+              {t.banks.totalBalance}
+            </span>
+            <p className="text-3xl font-extrabold font-mono tabular-nums mt-1 tracking-tight">
+              {formatCurrency(totalBalanceCents)}
+            </p>
+          </div>
           <p className="text-xs text-emerald-100 mt-2 flex items-center gap-1.5">
-            <ShieldCheck className="h-4 w-4 text-emerald-300" />
-            <span>Suma total de dinero disponible si abres tus aplicaciones bancarias.</span>
+            <ShieldCheck className="h-4 w-4 text-emerald-300 shrink-0" />
+            <span>Suma de cuentas bancarias (no incluye efectivo).</span>
           </p>
         </div>
 
@@ -322,7 +345,27 @@ export function BanksPage() {
             </p>
           </div>
           <p className="text-xs text-surface-500 mt-2 flex items-center gap-1">
-            <Sparkles className="h-3 w-3 text-amber-500" /> Trade Republic (2% TAE) + MyInversor
+            <Sparkles className="h-3 w-3 text-amber-500 shrink-0" /> Trade Republic + MyInversor
+          </p>
+        </div>
+
+        <div className="bg-white dark:bg-surface-900 p-5 rounded-2xl border border-dashed border-emerald-300 dark:border-emerald-700/80 shadow-sm flex flex-col justify-between bg-emerald-50/25 dark:bg-emerald-950/20">
+          <div>
+            <div className="flex items-center justify-between gap-1">
+              <span className="text-xs text-emerald-800 dark:text-emerald-300 font-bold uppercase tracking-wider flex items-center gap-1">
+                <Banknote className="h-4 w-4 text-emerald-600" />
+                {t.banks.cashTitle}
+              </span>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-200">
+                Informativo
+              </span>
+            </div>
+            <p className="text-2xl font-bold font-mono text-emerald-700 dark:text-emerald-400 mt-1 tabular-nums">
+              {formatCurrency(cashBalanceCents)}
+            </p>
+          </div>
+          <p className="text-[11px] text-surface-500 dark:text-surface-400 mt-2">
+            {t.banks.cashOnlyInformative}
           </p>
         </div>
       </div>
@@ -340,22 +383,27 @@ export function BanksPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {accounts.map((acc) => {
-            const badge = getPurposeBadge(acc.purpose);
+            const isCash = acc.is_cash || acc.exclude_from_calculations || acc.purpose === 'cash' || acc.name.trim().toLowerCase() === 'efectivo';
+            const badge = getPurposeBadge(acc.purpose, isCash);
             const isEditing = inlineEditingId === acc.id;
 
             return (
               <div
                 key={acc.id}
-                className="bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-800 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow relative flex flex-col justify-between"
+                className={`bg-white dark:bg-surface-900 border rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow relative flex flex-col justify-between ${
+                  isCash
+                    ? 'border-dashed border-emerald-300 dark:border-emerald-700/80 bg-emerald-50/15 dark:bg-emerald-950/10'
+                    : 'border-surface-200 dark:border-surface-800'
+                }`}
               >
                 <div>
                   <div className="flex items-center justify-between gap-2 mb-2">
                     <div className="flex items-center gap-2">
                       <div
                         className="w-7 h-7 rounded-lg flex items-center justify-center font-bold text-white text-xs shadow-sm"
-                        style={{ backgroundColor: acc.color || '#107c41' }}
+                        style={{ backgroundColor: isCash ? '#059669' : acc.color || '#107c41' }}
                       >
-                        {acc.name.charAt(0)}
+                        {isCash ? <Banknote className="h-4 w-4 text-white" /> : acc.name.charAt(0)}
                       </div>
                       <h3 className="text-sm font-bold text-surface-900 dark:text-surface-100 truncate">
                         {acc.name}
@@ -375,7 +423,7 @@ export function BanksPage() {
                   {/* Balance box */}
                   <div className="my-3 p-2.5 rounded-xl bg-surface-50 dark:bg-surface-800/60 border border-surface-200/60 dark:border-surface-700/60">
                     <span className="text-[10px] text-surface-500 uppercase tracking-wide font-medium block mb-0.5">
-                      Saldo disponible real
+                      {isCash ? 'Efectivo en mano (no computa)' : 'Saldo disponible real'}
                     </span>
 
                     {isEditing ? (
@@ -563,6 +611,7 @@ export function BanksPage() {
                 { value: 'leisure', label: 'Ocio y Variables (30%)' },
                 { value: 'savings', label: 'Ahorro e Inversión (30%)' },
                 { value: 'mixed', label: 'Cuenta Mixta' },
+                { value: 'cash', label: `💵 ${t.banks.purposeCash}` },
               ]}
             />
           </div>
