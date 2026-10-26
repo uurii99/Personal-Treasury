@@ -777,9 +777,9 @@ export function ExcelAnnualPage() {
                     const rowNum = idx + 4;
 
                     return (
-                      <tr key={concept} className="hover:bg-emerald-50/40 dark:hover:bg-emerald-950/20 group">
+                      <tr key={concept} className="hover:bg-emerald-100/60 dark:hover:bg-emerald-950/40 group">
                         <td className="excel-row-num">{rowNum}</td>
-                        <td className="excel-cell excel-sticky-col left-[2.25rem] bg-white dark:bg-surface-900 font-semibold text-surface-800 dark:text-surface-200">
+                        <td className="excel-cell excel-sticky-col left-[2.25rem] bg-[#E2F0D9] dark:bg-emerald-950/70 font-semibold text-emerald-950 dark:text-emerald-100">
                           <div className="flex items-center justify-between gap-1">
                             <span className="truncate">{concept}</span>
                             <button
@@ -792,7 +792,7 @@ export function ExcelAnnualPage() {
                                   currentAmountCents: row[currentMY.month] || 0,
                                 });
                               }}
-                              className="opacity-0 group-hover:opacity-100 p-0.5 rounded text-surface-400 hover:text-emerald-600 transition-opacity"
+                              className="opacity-0 group-hover:opacity-100 p-0.5 rounded text-emerald-700 hover:text-emerald-950 dark:hover:text-emerald-100 transition-opacity"
                               title="Editar en aquest mes"
                             >
                               <Edit2 className="h-3 w-3" />
@@ -814,10 +814,14 @@ export function ExcelAnnualPage() {
                               onDoubleClick={() => handleCellDoubleClick('income', concept, m, amount)}
                               className={`excel-cell text-right font-mono tabular-nums cursor-pointer transition-colors ${
                                 isSelected ? 'excel-cell-active' : ''
-                              } ${isCurrent ? 'bg-emerald-50/40 dark:bg-emerald-950/20' : ''} ${
+                              } ${
+                                isCurrent
+                                  ? 'bg-[#C6E0B4] dark:bg-emerald-900/60 font-bold'
+                                  : 'bg-[#E2F0D9]/80 dark:bg-emerald-950/40'
+                              } ${
                                 amount > 0
-                                  ? 'text-surface-900 dark:text-surface-100 font-medium'
-                                  : 'text-surface-300 dark:text-surface-600'
+                                  ? 'text-emerald-950 dark:text-emerald-100 font-semibold'
+                                  : 'text-emerald-700/60 dark:text-emerald-400/50'
                               }`}
                               title="Fes doble clic per editar el valor"
                             >
@@ -826,10 +830,10 @@ export function ExcelAnnualPage() {
                           );
                         })}
 
-                        <td className="excel-cell text-right font-mono font-bold text-success-600 dark:text-success-400 bg-surface-50 dark:bg-surface-800/40 tabular-nums">
+                        <td className="excel-cell text-right font-mono font-bold text-emerald-950 dark:text-emerald-50 bg-[#A9D18E] dark:bg-emerald-900/80 tabular-nums">
                           {formatCurrency(rowTotal)}
                         </td>
-                        <td className="excel-cell text-right font-mono text-surface-600 dark:text-surface-400 bg-surface-50 dark:bg-surface-800/40 tabular-nums text-xs">
+                        <td className="excel-cell text-right font-mono text-emerald-900 dark:text-emerald-200 bg-[#C6E0B4] dark:bg-emerald-900/50 tabular-nums text-xs">
                           {formatCurrency(rowAvg)}
                         </td>
                       </tr>
@@ -901,9 +905,9 @@ export function ExcelAnnualPage() {
                     const rowNum = idx + 11;
 
                     return (
-                      <tr key={rowItem.catId || rowItem.name} className="hover:bg-blue-50/50 dark:hover:bg-slate-800/30 group">
+                      <tr key={rowItem.catId || rowItem.name} className="hover:bg-blue-100/60 dark:hover:bg-blue-950/40 group">
                         <td className="excel-row-num">{rowNum}</td>
-                        <td className="excel-cell excel-sticky-col left-[2.25rem] bg-white dark:bg-surface-900 font-semibold text-surface-800 dark:text-surface-200">
+                        <td className="excel-cell excel-sticky-col left-[2.25rem] bg-[#D9E1F2] dark:bg-blue-950/70 font-semibold text-blue-950 dark:text-blue-100">
                           <div className="flex items-center justify-between gap-1">
                             <span className="truncate">{rowItem.name}</span>
                             <button
@@ -918,7 +922,7 @@ export function ExcelAnnualPage() {
                                   currentAmountCents: rowItem.months[currentMY.month] || 0,
                                 });
                               }}
-                              className="opacity-0 group-hover:opacity-100 p-0.5 rounded text-surface-400 hover:text-blue-600 transition-opacity"
+                              className="opacity-0 group-hover:opacity-100 p-0.5 rounded text-blue-700 hover:text-blue-950 dark:hover:text-blue-100 transition-opacity"
                               title="Editar en aquest mes"
                             >
                               <Edit2 className="h-3 w-3" />
@@ -944,10 +948,14 @@ export function ExcelAnnualPage() {
                               }
                               className={`excel-cell text-right font-mono tabular-nums cursor-pointer transition-colors ${
                                 isSelected ? 'excel-cell-active' : ''
-                              } ${isCurrent ? 'bg-blue-50/40 dark:bg-slate-800/30' : ''} ${
+                              } ${
+                                isCurrent
+                                  ? 'bg-[#B4C6E7] dark:bg-blue-900/60 font-bold'
+                                  : 'bg-[#ECEFF7] dark:bg-blue-950/30'
+                              } ${
                                 amount > 0
-                                  ? 'text-surface-900 dark:text-surface-100 font-medium'
-                                  : 'text-surface-300 dark:text-surface-600'
+                                  ? 'text-red-700 dark:text-red-300 font-semibold'
+                                  : 'text-slate-400/60 dark:text-slate-500/50'
                               }`}
                               title="Fes doble clic per editar el valor"
                             >
@@ -956,10 +964,10 @@ export function ExcelAnnualPage() {
                           );
                         })}
 
-                        <td className="excel-cell text-right font-mono font-bold text-surface-900 dark:text-surface-100 bg-surface-50 dark:bg-surface-800/40 tabular-nums">
+                        <td className="excel-cell text-right font-mono font-bold text-blue-950 dark:text-blue-50 bg-[#8EA9DB] dark:bg-blue-900/80 tabular-nums">
                           {formatCurrency(rowTotal)}
                         </td>
-                        <td className="excel-cell text-right font-mono text-surface-600 dark:text-surface-400 bg-surface-50 dark:bg-surface-800/40 tabular-nums text-xs">
+                        <td className="excel-cell text-right font-mono text-blue-900 dark:text-blue-200 bg-[#B4C6E7] dark:bg-blue-900/50 tabular-nums text-xs">
                           {formatCurrency(rowAvg)}
                         </td>
                       </tr>
@@ -1081,9 +1089,9 @@ export function ExcelAnnualPage() {
                     const rowNum = idx + 28;
 
                     return (
-                      <tr key={rowItem.catId || rowItem.name} className="hover:bg-amber-50/50 dark:hover:bg-amber-950/20 group">
+                      <tr key={rowItem.catId || rowItem.name} className="hover:bg-amber-100/60 dark:hover:bg-amber-950/40 group">
                         <td className="excel-row-num">{rowNum}</td>
-                        <td className="excel-cell excel-sticky-col left-[2.25rem] bg-white dark:bg-surface-900 font-semibold text-surface-800 dark:text-surface-200">
+                        <td className="excel-cell excel-sticky-col left-[2.25rem] bg-[#FFF2CC] dark:bg-amber-950/70 font-semibold text-amber-950 dark:text-amber-100">
                           <div className="flex items-center justify-between gap-1">
                             <span className="truncate">{rowItem.name}</span>
                             <button
@@ -1098,7 +1106,7 @@ export function ExcelAnnualPage() {
                                   currentAmountCents: rowItem.months[currentMY.month] || 0,
                                 });
                               }}
-                              className="opacity-0 group-hover:opacity-100 p-0.5 rounded text-surface-400 hover:text-amber-600 transition-opacity"
+                              className="opacity-0 group-hover:opacity-100 p-0.5 rounded text-amber-700 hover:text-amber-950 dark:hover:text-amber-100 transition-opacity"
                               title="Editar en aquest mes"
                             >
                               <Edit2 className="h-3 w-3" />
@@ -1124,10 +1132,14 @@ export function ExcelAnnualPage() {
                               }
                               className={`excel-cell text-right font-mono tabular-nums cursor-pointer transition-colors ${
                                 isSelected ? 'excel-cell-active' : ''
-                              } ${isCurrent ? 'bg-amber-50/40 dark:bg-amber-950/20' : ''} ${
+                              } ${
+                                isCurrent
+                                  ? 'bg-[#FFE599] dark:bg-amber-900/60 font-bold'
+                                  : 'bg-[#FFF8E7] dark:bg-amber-950/30'
+                              } ${
                                 amount > 0
-                                  ? 'text-surface-900 dark:text-surface-100 font-medium'
-                                  : 'text-surface-300 dark:text-surface-600'
+                                  ? 'text-amber-950 dark:text-amber-100 font-semibold'
+                                  : 'text-amber-700/50 dark:text-amber-500/50'
                               }`}
                               title="Fes doble clic per editar el valor"
                             >
@@ -1136,10 +1148,10 @@ export function ExcelAnnualPage() {
                           );
                         })}
 
-                        <td className="excel-cell text-right font-mono font-bold text-surface-900 dark:text-surface-100 bg-surface-50 dark:bg-surface-800/40 tabular-nums">
+                        <td className="excel-cell text-right font-mono font-bold text-amber-950 dark:text-amber-50 bg-[#F9CB9C] dark:bg-amber-900/80 tabular-nums">
                           {formatCurrency(rowTotal)}
                         </td>
-                        <td className="excel-cell text-right font-mono text-surface-600 dark:text-surface-400 bg-surface-50 dark:bg-surface-800/40 tabular-nums text-xs">
+                        <td className="excel-cell text-right font-mono text-amber-900 dark:text-amber-200 bg-[#FFE599] dark:bg-amber-900/50 tabular-nums text-xs">
                           {formatCurrency(rowAvg)}
                         </td>
                       </tr>
@@ -1261,9 +1273,9 @@ export function ExcelAnnualPage() {
                     const rowNum = idx + 43;
 
                     return (
-                      <tr key={rowItem.catId || rowItem.name} className="hover:bg-purple-50/40 dark:hover:bg-purple-950/20 group">
+                      <tr key={rowItem.catId || rowItem.name} className="hover:bg-purple-100/60 dark:hover:bg-purple-950/40 group">
                         <td className="excel-row-num">{rowNum}</td>
-                        <td className="excel-cell excel-sticky-col left-[2.25rem] bg-white dark:bg-surface-900 font-semibold text-surface-800 dark:text-surface-200">
+                        <td className="excel-cell excel-sticky-col left-[2.25rem] bg-[#EAD1DC] dark:bg-purple-950/70 font-semibold text-purple-950 dark:text-purple-100">
                           <div className="flex items-center justify-between gap-1">
                             <span className="truncate">{rowItem.name}</span>
                             <button
@@ -1278,7 +1290,7 @@ export function ExcelAnnualPage() {
                                   currentAmountCents: rowItem.months[currentMY.month] || 0,
                                 });
                               }}
-                              className="opacity-0 group-hover:opacity-100 p-0.5 rounded text-surface-400 hover:text-purple-600 transition-opacity"
+                              className="opacity-0 group-hover:opacity-100 p-0.5 rounded text-purple-700 hover:text-purple-950 dark:hover:text-purple-100 transition-opacity"
                               title="Editar en aquest mes"
                             >
                               <Edit2 className="h-3 w-3" />
@@ -1304,10 +1316,14 @@ export function ExcelAnnualPage() {
                               }
                               className={`excel-cell text-right font-mono tabular-nums cursor-pointer transition-colors ${
                                 isSelected ? 'excel-cell-active' : ''
-                              } ${isCurrent ? 'bg-purple-50/30 dark:bg-purple-950/20' : ''} ${
+                              } ${
+                                isCurrent
+                                  ? 'bg-[#D5A6BD] dark:bg-purple-900/60 font-bold'
+                                  : 'bg-[#F4E8EE] dark:bg-purple-950/30'
+                              } ${
                                 amount > 0
-                                  ? 'text-surface-900 dark:text-surface-100 font-medium'
-                                  : 'text-surface-300 dark:text-surface-600'
+                                  ? 'text-purple-950 dark:text-purple-100 font-semibold'
+                                  : 'text-purple-700/50 dark:text-purple-400/50'
                               }`}
                               title="Fes doble clic per editar el valor"
                             >
@@ -1316,10 +1332,10 @@ export function ExcelAnnualPage() {
                           );
                         })}
 
-                        <td className="excel-cell text-right font-mono font-bold text-savings-600 dark:text-savings-400 bg-surface-50 dark:bg-surface-800/40 tabular-nums">
+                        <td className="excel-cell text-right font-mono font-bold text-purple-950 dark:text-purple-50 bg-[#C27BA0] dark:bg-purple-900/80 tabular-nums">
                           {formatCurrency(rowTotal)}
                         </td>
-                        <td className="excel-cell text-right font-mono text-surface-600 dark:text-surface-400 bg-surface-50 dark:bg-surface-800/40 tabular-nums text-xs">
+                        <td className="excel-cell text-right font-mono text-purple-900 dark:text-purple-200 bg-[#D5A6BD] dark:bg-purple-900/50 tabular-nums text-xs">
                           {formatCurrency(rowAvg)}
                         </td>
                       </tr>
