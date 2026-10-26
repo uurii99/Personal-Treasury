@@ -14,6 +14,8 @@ import {
   Mail,
   Send,
   Bell,
+  Loader2,
+  ExternalLink,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
@@ -306,17 +308,83 @@ export function BanksPage() {
     }
   };
 
-  const handleSendTestAlert = () => {
-    if (!emailAlerts.email.trim()) {
+  const [sendingTestEmail, setSendingTestEmail] = useState(false);
+
+  const handleSendTestAlert = async (mode: 'direct' | 'client' = 'direct') => {
+    const destEmail = emailAlerts.email.trim();
+    if (!destEmail || !destEmail.includes('@')) {
       showError('Introduce un correo electrónico válido');
       return;
     }
     const sample = debits[0] || { title: 'Seguro moto', amount: 5000, due_day: 15 };
     const bAcc = accounts.find((a) => a.id === sample.bank_id) || accounts[0];
-    success(
-      `Aviso de prueba enviado a ${emailAlerts.email}`,
-      `"${sample.title}" vence en ${emailAlerts.daysAdvance} días (${formatCurrency(sample.amount)} en ${bAcc?.name || 'Banc Sabadell'}). Saldo suficiente.`
-    );
+    const amountStr = formatCurrency(sample.amount);
+    const bankName = bAcc?.name || 'Banc Sabadell';
+    const balanceStr = formatCurrency(bAcc?.balance || 0);
+
+    const subject = `🔔 [Personal Treasury] Aviso de Vencimiento: ${sample.title} (${amountStr})`;
+    const body = `Hola!
+
+Este es un aviso automático de tu sistema Personal Treasury:
+
+• Recibo / Cobro: ${sample.title}
+• Importe previsto: ${amountStr}
+• Cuenta de cargo: ${bankName}
+• Saldo actual en cuenta: ${balanceStr}
+• Día previsto de cobro: Día ${sample.due_day}
+• Antelación configurada: ${emailAlerts.daysAdvance} días antes
+
+Tu cuenta dispone de saldo suficiente para atender el cargo sin descubiertos.
+
+--
+Personal Treasury · 2026`;
+
+    if (mode === 'client') {
+      window.open(`mailto:${encodeURIComponent(destEmail)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
+      success(`Abierto en tu gestor de correo`, `Comprueba el borrador para enviar a ${destEmail}`);
+      return;
+    }
+
+    setSendingTestEmail(true);
+
+    try {
+      // Direct email dispatch using FormSubmit API
+      const res = await fetch(`https://formsubmit.co/ajax/${encodeURIComponent(destEmail)}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          _subject: subject,
+          Aplicación: 'Personal Treasury',
+          Aviso: `Vencimiento de recibo previsto: ${sample.title}`,
+          Importe: amountStr,
+          Banco_de_cargo: bankName,
+          Saldo_Disponible: balanceStr,
+          Día_de_cobro: `Día ${sample.due_day}`,
+          Antelación_aviso: `${emailAlerts.daysAdvance} días`,
+          Mensaje: body,
+          _template: 'box',
+        }),
+      });
+
+      if (res.ok) {
+        success(
+          `¡Correo de prueba enviado con éxito a ${destEmail}!`,
+          `Revisa tu bandeja de entrada o carpeta de spam si es la primera vez que recibes un aviso.`
+        );
+      } else {
+        // Fallback to mail client
+        window.open(`mailto:${encodeURIComponent(destEmail)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
+        success(`Aviso preparado en tu cliente de correo para ${destEmail}`);
+      }
+    } catch {
+      window.open(`mailto:${encodeURIComponent(destEmail)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
+      success(`Aviso preparado en tu gestor de correo para ${destEmail}`);
+    } finally {
+      setSendingTestEmail(false);
+    }
   };
 
   // Helper purpose label
@@ -769,15 +837,33 @@ export function BanksPage() {
                 </select>
               </div>
 
-              <div className="shrink-0">
+              <div className="flex flex-wrap items-center gap-2 shrink-0">
                 <Button
                   size="sm"
                   variant="secondary"
-                  onClick={handleSendTestAlert}
-                  className="h-8 text-xs w-full md:w-auto font-medium"
-                  icon={<Send className="w-3.5 h-3.5" />}
+                  onClick={() => handleSendTestAlert('direct')}
+                  disabled={sendingTestEmail}
+                  className="h-8 text-xs font-medium"
+                  icon={
+                    sendingTestEmail ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <Send className="w-3.5 h-3.5" />
+                    )
+                  }
                 >
-                  Enviar aviso de prueba
+                  {sendingTestEmail ? 'Enviando email...' : 'Enviar correo de prueba'}
+                </Button>
+
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleSendTestAlert('client')}
+                  className="h-8 text-xs font-medium"
+                  title="Abrir borrador en tu cliente de correo (Gmail, Outlook...)"
+                  icon={<ExternalLink className="w-3.5 h-3.5" />}
+                >
+                  Abrir en mi correo
                 </Button>
               </div>
             </div>

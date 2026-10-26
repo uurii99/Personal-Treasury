@@ -3,7 +3,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Plus,
-  Download,
   Percent,
   Search,
   CheckCircle2,
@@ -589,53 +588,7 @@ export function ExcelAnnualPage() {
     });
   };
 
-  // Export to CSV
-  const handleExportCSV = () => {
-    const headers = [language === 'ca' ? 'Taula' : 'Tabla', t.common.concept, ...t.months, t.tables.totalAnnual, t.tables.monthlyAverage];
-    const rows: (string | number)[][] = [headers];
 
-    const addRow = (tabla: string, concepto: string, monthsData: Record<number, number>) => {
-      const monthVals = MONTHS.map((m) => centsToEuros(monthsData[m] || 0).toFixed(2));
-      const total = centsToEuros(MONTHS.reduce((s, m) => s + (monthsData[m] || 0), 0)).toFixed(2);
-      const media = (parseFloat(total) / 12).toFixed(2);
-      rows.push([tabla, `"${concepto.replace(/"/g, '""')}"`, ...monthVals, total, media]);
-    };
-
-    // 1. Ingresos
-    incomeConcepts.forEach((c) => addRow(t.tables.incomeTitle, c, incomeMatrix[c] || {}));
-    addRow(t.tables.incomeTitle, t.tables.totalEarned, monthlyTotalIncome);
-
-    // 2. Fijos
-    Object.values(fixedMatrix).forEach((r) => addRow(t.tables.fixedTitle, r.name, r.months));
-    addRow(t.tables.fixedTitle, t.tables.totalSpent, monthlyTotalFixed);
-    addRow(t.tables.fixedTitle, `${t.tables.availableBudget} (${fp}%):`, monthlyAllocatedFixed);
-    addRow(t.tables.fixedTitle, t.tables.remaining, monthlyRemainingFixed);
-
-    // 3. Ocio
-    Object.values(leisureMatrix).forEach((r) => addRow(t.tables.leisureTitle, r.name, r.months));
-    addRow(t.tables.leisureTitle, t.tables.totalSpent, monthlyTotalLeisure);
-    addRow(t.tables.leisureTitle, `${t.tables.availableBudget} (${lp}%):`, monthlyAllocatedLeisure);
-    addRow(t.tables.leisureTitle, t.tables.remaining, monthlyRemainingLeisure);
-
-    // 4. Ahorro
-    Object.values(savingsMatrix).forEach((r) => addRow(t.tables.savingsTitle, r.name, r.months));
-    addRow(t.tables.savingsTitle, `${t.tables.availableBudget} (${sp}%):`, monthlyAllocatedSavings);
-
-    // Resumen
-    addRow(t.tables.generalSummary, t.tables.totalSpent, monthlyTotalExpenses);
-    addRow(t.tables.generalSummary, t.tables.netBalance, monthlyNetBalance);
-
-    const csvContent = '\uFEFF' + rows.map((r) => r.join(';')).join('\r\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', `PRESSUPOST_ANUAL_TRESORERIA_${year}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    success('Descarga iniciada', `PRESSUPOST_ANUAL_TRESORERIA_${year}.csv generado correctamente.`);
-  };
 
   return (
     <div className="space-y-4">
@@ -844,15 +797,6 @@ export function ExcelAnnualPage() {
               }}
             >
               {language === 'ca' ? 'Nova fila' : 'Nueva fila'}
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              icon={<Download className="h-3.5 w-3.5" />}
-              onClick={handleExportCSV}
-              title={t.common.exportCSV}
-            >
-              CSV
             </Button>
           </div>
         </div>

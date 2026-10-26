@@ -50,121 +50,178 @@ export function StatisticsPage() {
   const [bankLiquidityData, setBankLiquidityData] = useState<any>(null);
 
   const currentYear = getCurrentMonthYear().year;
+  const cacheKey = user ? `pt_stats_cache_${user.id}_${currentYear}` : null;
+
+  // Instant cache preload: loads immediately with 0 delay upon entering the page
+  useEffect(() => {
+    if (!cacheKey) return;
+    try {
+      const saved = localStorage.getItem(cacheKey);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.monthlyData) setMonthlyData(parsed.monthlyData);
+        if (parsed.categoryData) setCategoryData(parsed.categoryData);
+        if (parsed.sectionDistribution) setSectionDistribution(parsed.sectionDistribution);
+        if (parsed.bankDistribution) setBankDistribution(parsed.bankDistribution);
+        if (parsed.bankLiquidityData) setBankLiquidityData(parsed.bankLiquidityData);
+        setLoading(false);
+      }
+    } catch (e) {
+      console.warn('Could not read stats cache:', e);
+    }
+  }, [cacheKey]);
 
   useEffect(() => {
     if (!user) return;
-    setLoading(true);
 
     const loadStats = async () => {
-      // 1. Monthly income/expenses and cumulative savings calculation
-      const monthly: any[] = [];
-      let runningCumulative = 0;
-
-      for (let m = 1; m <= 12; m++) {
-        const [{ data: incomes }, { data: transactions }] = await Promise.all([
-          supabase.from('income_entries').select('amount').eq('user_id', user.id).eq('budget_month', m).eq('budget_year', currentYear),
-          supabase.from('transactions').select('amount, type, section').eq('user_id', user.id).eq('budget_month', m).eq('budget_year', currentYear),
+      try {
+        // Fast single parallel query for the entire year (1 network roundtrip instead of 12 sequential requests)
+        const [{ data: allIncomes }, { data: allTransactions }] = await Promise.all([
+          supabase
+            .from('income_entries')
+            .select('amount, budget_month')
+            .eq('user_id', user.id)
+            .eq('budget_year', currentYear),
+          supabase
+            .from('transactions')
+            .select('amount, type, section, budget_month, category:categories(name), description')
+            .eq('user_id', user.id)
+            .eq('budget_year', currentYear),
         ]);
 
-        const income = (incomes ?? []).reduce((s, i) => s + i.amount, 0);
-        const expenses = (transactions ?? []).filter((t) => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
-        const net = income - expenses;
-        runningCumulative += net;
-
-        monthly.push({
-          month: t.monthsShort[m - 1],
-          ingresos: centsToEuros(income),
-          gastos: centsToEuros(expenses),
-          superavit: centsToEuros(net),
-          ahorroAcumulado: centsToEuros(runningCumulative),
+        // Aggregate by month in memory instantaneously (< 1ms)
+        const incomeByMonth = new Array(13).fill(0);
+        (allIncomes ?? []).forEach((inc) => {
+          if (inc.budget_month >= 1 && inc.budget_month <= 12) {
+            incomeByMonth[inc.budget_month] += inc.amount || 0;
+          }
         });
+
+        const expenseByMonth = new Array(13).fill(0);
+        (allTransactions ?? [])
+          .filter((t) => t.type === 'expense')
+          .forEach((tr) => {
+            if (tr.budget_month >= 1 && tr.budget_month <= 12) {
+              expenseByMonth[tr.budget_month] += tr.amount || 0;
+            }
+          });
+
+        const monthly: any[] = [];
+        let runningCumulative = 0;
+        for (let m = 1; m <= 12; m++) {
+          const income = incomeByMonth[m];
+          const expenses = expenseByMonth[m];
+          const net = income - expenses;
+          runningCumulative += net;
+
+          monthly.push({
+            month: t.monthsShort[m - 1],
+            ingresos: centsToEuros(income),
+            gastos: centsToEuros(expenses),
+            superavit: centsToEuros(net),
+            ahorroAcumulado: centsToEuros(runningCumulative),
+          });
+        }
+        setMonthlyData(monthly);
+
+        // Category breakdown & section distribution
+        const catMap = new Map<string, number>();
+        let fixedTotal = 0;
+        let leisureTotal = 0;
+        let savingsTotal = 0;
+
+        (allTransactions ?? [])
+          .filter((t) => t.type === 'expense')
+          .forEach((tItem: any) => {
+            const name = tItem.category?.name || tItem.description || (language === 'ca' ? 'Sense categoria' : 'Sin categoría');
+            catMap.set(name, (catMap.get(name) ?? 0) + tItem.amount);
+
+            if (tItem.section === 'fixed') fixedTotal += tItem.amount;
+            else if (tItem.section === 'leisure') leisureTotal += tItem.amount;
+            else if (tItem.section === 'savings') savingsTotal += tItem.amount;
+          });
+
+        const catArr = Array.from(catMap.entries())
+          .map(([name, amount]) => ({ name, value: centsToEuros(amount) }))
+          .sort((a, b) => b.value - a.value)
+          .slice(0, 7);
+        setCategoryData(catArr);
+
+        // Rule 40 / 30 / 30 Section Distribution
+        const totalExpenseAll = fixedTotal + leisureTotal + savingsTotal;
+        let secDist: any[] = [];
+        if (totalExpenseAll > 0) {
+          secDist = [
+            {
+              name: language === 'ca' ? 'Fixos (Objectiu 40%)' : 'Fijos (Objetivo 40%)',
+              value: centsToEuros(fixedTotal),
+              color: '#0284c7', // Sky Blue
+              target: 40,
+            },
+            {
+              name: language === 'ca' ? 'Oci / Variable (Objectiu 30%)' : 'Ocio / Variable (Objetivo 30%)',
+              value: centsToEuros(leisureTotal),
+              color: '#f59e0b', // Amber
+              target: 30,
+            },
+            {
+              name: language === 'ca' ? 'Estalvi / Inversió (Objectiu 30%)' : 'Ahorro / Inversión (Objetivo 30%)',
+              value: centsToEuros(savingsTotal),
+              color: '#8b5cf6', // Purple
+              target: 30,
+            },
+          ];
+          setSectionDistribution(secDist);
+        } else {
+          setSectionDistribution([]);
+        }
+
+        // Bank Accounts & Liquidity Distribution
+        const accounts = getBankAccounts(user.id);
+        const liq = calculateBankLiquidity(accounts);
+        setBankLiquidityData(liq);
+
+        const bankArr = accounts
+          .filter((a) => !a.is_cash && !a.exclude_from_calculations && a.purpose !== 'cash')
+          .map((a) => {
+            let bColor = '#0284c7';
+            if (a.id.includes('revolut')) bColor = '#06b6d4';
+            else if (a.id.includes('trade')) bColor = '#f59e0b';
+            else if (a.id.includes('myinvestor') || a.id.includes('myinversor')) bColor = '#8b5cf6';
+            return {
+              name: a.name,
+              value: centsToEuros(a.balance),
+              color: bColor,
+              isLiquidity: a.id.includes('sabadell') || a.id.includes('revolut'),
+            };
+          })
+          .filter((b) => b.value > 0);
+
+        setBankDistribution(bankArr);
+
+        // Persist to local cache for instantaneous future loads
+        if (cacheKey) {
+          localStorage.setItem(
+            cacheKey,
+            JSON.stringify({
+              monthlyData: monthly,
+              categoryData: catArr,
+              sectionDistribution: secDist,
+              bankDistribution: bankArr,
+              bankLiquidityData: liq,
+            })
+          );
+        }
+      } catch (err) {
+        console.error('Error loading stats:', err);
+      } finally {
+        setLoading(false);
       }
-      setMonthlyData(monthly);
-
-      // 2. All-time transactions for current year
-      const { data: allTransactions } = await supabase
-        .from('transactions')
-        .select('amount, section, category:categories(name), description')
-        .eq('user_id', user.id)
-        .eq('type', 'expense')
-        .eq('budget_year', currentYear);
-
-      // 3. Category breakdown
-      const catMap = new Map<string, number>();
-      let fixedTotal = 0;
-      let leisureTotal = 0;
-      let savingsTotal = 0;
-
-      (allTransactions ?? []).forEach((tItem: any) => {
-        const name = tItem.category?.name || tItem.description || (language === 'ca' ? 'Sense categoria' : 'Sin categoría');
-        catMap.set(name, (catMap.get(name) ?? 0) + tItem.amount);
-
-        if (tItem.section === 'fixed') fixedTotal += tItem.amount;
-        else if (tItem.section === 'leisure') leisureTotal += tItem.amount;
-        else if (tItem.section === 'savings') savingsTotal += tItem.amount;
-      });
-
-      const catArr = Array.from(catMap.entries())
-        .map(([name, amount]) => ({ name, value: centsToEuros(amount) }))
-        .sort((a, b) => b.value - a.value)
-        .slice(0, 7);
-      setCategoryData(catArr);
-
-      // 4. Rule 40 / 30 / 30 Section Distribution
-      const totalExpenseAll = fixedTotal + leisureTotal + savingsTotal;
-      if (totalExpenseAll > 0) {
-        setSectionDistribution([
-          {
-            name: language === 'ca' ? 'Fixos (Objectiu 40%)' : 'Fijos (Objetivo 40%)',
-            value: centsToEuros(fixedTotal),
-            color: '#0284c7', // Sky Blue
-            target: 40,
-          },
-          {
-            name: language === 'ca' ? 'Oci / Variable (Objectiu 30%)' : 'Ocio / Variable (Objetivo 30%)',
-            value: centsToEuros(leisureTotal),
-            color: '#f59e0b', // Amber
-            target: 30,
-          },
-          {
-            name: language === 'ca' ? 'Estalvi / Inversió (Objectiu 30%)' : 'Ahorro / Inversión (Objetivo 30%)',
-            value: centsToEuros(savingsTotal),
-            color: '#8b5cf6', // Purple
-            target: 30,
-          },
-        ]);
-      } else {
-        setSectionDistribution([]);
-      }
-
-      // 5. Bank Accounts & Liquidity Distribution
-      const accounts = getBankAccounts(user.id);
-      const liq = calculateBankLiquidity(accounts);
-      setBankLiquidityData(liq);
-
-      const bankArr = accounts
-        .filter((a) => !a.is_cash && !a.exclude_from_calculations && a.purpose !== 'cash')
-        .map((a) => {
-          let bColor = '#0284c7';
-          if (a.id.includes('revolut')) bColor = '#06b6d4';
-          else if (a.id.includes('trade')) bColor = '#f59e0b';
-          else if (a.id.includes('myinversor')) bColor = '#8b5cf6';
-          return {
-            name: a.name,
-            value: centsToEuros(a.balance),
-            color: bColor,
-            isLiquidity: a.id.includes('sabadell') || a.id.includes('revolut'),
-          };
-        })
-        .filter((b) => b.value > 0);
-
-      setBankDistribution(bankArr);
-
-      setLoading(false);
     };
 
     loadStats();
-  }, [user, currentYear, language, t.monthsShort]);
+  }, [user, currentYear, language, t.monthsShort, cacheKey]);
 
   const hasData = monthlyData.some((m) => m.ingresos > 0 || m.gastos > 0) || bankDistribution.length > 0;
 
