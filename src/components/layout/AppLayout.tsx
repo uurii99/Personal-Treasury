@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import {
-  LayoutDashboard,
   Receipt,
   CalendarDays,
   PiggyBank,
@@ -20,6 +19,7 @@ import {
   Wallet,
   ChevronDown,
   User,
+  FileSpreadsheet,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -32,8 +32,8 @@ interface NavItem {
 }
 
 const mainNavItems: NavItem[] = [
-  { to: '/dashboard', label: 'Dashboard', icon: <LayoutDashboard className="h-4 w-4" /> },
-  { to: '/treasury', label: 'Tesorería', icon: <Receipt className="h-4 w-4" /> },
+  { to: '/dashboard', label: 'Hoja Excel Anual', icon: <FileSpreadsheet className="h-4 w-4 text-[#107c41]" /> },
+  { to: '/treasury', label: 'Mes actual', icon: <Receipt className="h-4 w-4" /> },
   { to: '/annual', label: 'Vista anual', icon: <CalendarDays className="h-4 w-4" /> },
   { to: '/history', label: 'Historial', icon: <History className="h-4 w-4" /> },
 ];
