@@ -316,7 +316,14 @@ export function BanksPage() {
       showError('Introduce un correo electrónico válido');
       return;
     }
-    const sample = debits[0] || { title: 'Seguro moto', amount: 5000, due_day: 15 };
+    const sample: BankScheduledDebit = debits[0] || {
+      id: 'sample_debit',
+      bank_id: accounts[0]?.id || 'banc_sabadell',
+      title: 'Seguro moto',
+      amount: 5000,
+      due_day: 15,
+      recurrence: 'monthly',
+    };
     const bAcc = accounts.find((a) => a.id === sample.bank_id) || accounts[0];
     const amountStr = formatCurrency(sample.amount);
     const bankName = bAcc?.name || 'Banc Sabadell';
