@@ -19,7 +19,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/lib/supabase';
-import { formatCurrency, centsToEuros } from '@/lib/money';
+import { formatCurrency } from '@/lib/money';
 import { getCurrentMonthYear } from '@/lib/dates';
 import { Button, Modal, Input } from '@/components/ui';
 import { PercentageModal } from '@/components/excel/PercentageModal';

@@ -329,22 +329,37 @@ export function BanksPage() {
     const bankName = bAcc?.name || 'Banc Sabadell';
     const balanceStr = formatCurrency(bAcc?.balance || 0);
 
-    const subject = `🔔 [Personal Treasury] Aviso de Vencimiento: ${sample.title} (${amountStr})`;
-    const body = `Hola!
+    const hasSufficientBalance = (bAcc?.balance ?? 0) >= sample.amount;
+    const balanceStatusText = hasSufficientBalance
+      ? 'Fondos suficientes disponibles (Garantizado)'
+      : 'Atención requerida: Fondos insuficientes o ajustados';
 
-Este es un aviso automático de tu sistema Personal Treasury:
+    const subject = `Personal Treasury | Aviso de Vencimiento: ${sample.title} (${amountStr})`;
+    const body = `Estimado/a usuario/a,
 
-• Recibo / Cobro: ${sample.title}
-• Importe previsto: ${amountStr}
-• Cuenta de cargo: ${bankName}
-• Saldo actual en cuenta: ${balanceStr}
-• Día previsto de cobro: Día ${sample.due_day}
-• Antelación configurada: ${emailAlerts.daysAdvance} días antes
+Le notificamos la programación de un próximo cargo bancario domiciliado en su tesorería personal:
 
-Tu cuenta dispone de saldo suficiente para atender el cargo sin descubiertos.
+══════════════════════════════════════════════════════════
+DETALLE DEL VENCIMIENTO PROGRAMADO
+══════════════════════════════════════════════════════════
+• Concepto / Recibo:        ${sample.title}
+• Importe previsto:         ${amountStr}
+• Cuenta de cargo:          ${bankName}
+• Saldo actual disponible:  ${balanceStr}
+• Día previsto de cobro:    Día ${sample.due_day} del mes
+• Antelación configurada:   ${emailAlerts.daysAdvance} días de antelación
+• Estado de cobertura:      ${balanceStatusText}
+══════════════════════════════════════════════════════════
 
---
-Personal Treasury · 2026`;
+RECOMENDACIÓN DE TESORERÍA:
+Por favor, asegúrese de mantener la provisión de fondos en ${bankName} antes del día ${sample.due_day} para atender el adeudo sin incurrir en descubiertos bancarios ni recargos por impago.
+
+Este aviso ha sido emitido automáticamente por su sistema de gestión financiera Personal Treasury.
+Fecha de notificación: ${new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })}.
+
+Atentamente,
+Departamento de Alertas y Tesorería
+Personal Treasury · Sistema Integral de Gestión Financiera`;
 
     if (mode === 'client') {
       window.open(`mailto:${encodeURIComponent(destEmail)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
@@ -364,14 +379,16 @@ Personal Treasury · 2026`;
         },
         body: JSON.stringify({
           _subject: subject,
-          Aplicación: 'Personal Treasury',
-          Aviso: `Vencimiento de recibo previsto: ${sample.title}`,
-          Importe: amountStr,
-          Banco_de_cargo: bankName,
-          Saldo_Disponible: balanceStr,
-          Día_de_cobro: `Día ${sample.due_day}`,
-          Antelación_aviso: `${emailAlerts.daysAdvance} días`,
-          Mensaje: body,
+          Sistema: 'Personal Treasury · Control de Tesorería',
+          Concepto_Recibo: sample.title,
+          Importe_Previsto: amountStr,
+          Entidad_Bancaria: bankName,
+          Saldo_Actual_Disponible: balanceStr,
+          Fecha_Estimada_Cobro: `Día ${sample.due_day} del mes`,
+          Antelacion_Configurada: `${emailAlerts.daysAdvance} días de antelación`,
+          Estado_de_Cobertura: balanceStatusText,
+          Recomendacion: `Verificar saldo disponible en ${bankName} antes del vencimiento.`,
+          Notificacion_Detallada: body,
           _template: 'box',
         }),
       });
