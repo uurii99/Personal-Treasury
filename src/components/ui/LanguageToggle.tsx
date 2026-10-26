@@ -10,7 +10,7 @@ export function LanguageToggle() {
       <button
         type="button"
         onClick={() => setLanguage('es')}
-        className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-bold transition-all ${
+        className={`flex items-center gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded text-[11px] sm:text-xs font-bold transition-all ${
           language === 'es'
             ? 'bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 shadow-sm'
             : 'text-surface-500 hover:text-surface-800 dark:hover:text-surface-200'
@@ -24,7 +24,7 @@ export function LanguageToggle() {
       <button
         type="button"
         onClick={() => setLanguage('ca')}
-        className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-bold transition-all ${
+        className={`flex items-center gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded text-[11px] sm:text-xs font-bold transition-all ${
           language === 'ca'
             ? 'bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 shadow-sm'
             : 'text-surface-500 hover:text-surface-800 dark:hover:text-surface-200'

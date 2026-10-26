@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Plus, Trash2, Edit2, Calendar, Building2, Tag, Check, ArrowRight, Receipt } from 'lucide-react';
+import { Plus, Trash2, Edit2, Calendar, Building2 } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { Button, Input, Select } from '@/components/ui';
 import { useAuth } from '@/contexts/AuthContext';
@@ -8,7 +8,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/lib/supabase';
 import { formatCurrency, eurosToCents, centsToEuros } from '@/lib/money';
 import { getBankAccounts } from '@/lib/banks';
-import type { BudgetSection, Transaction, IncomeEntry } from '@/types';
+import type { BudgetSection } from '@/types';
 
 export interface CellDetailTarget {
   type: 'income' | 'expense';

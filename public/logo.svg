@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#169b52" />
+      <stop offset="40%" stop-color="#107c41" />
+      <stop offset="100%" stop-color="#084222" />
+    </linearGradient>
+
+    <!-- Subtle Top Shine -->
+    <linearGradient id="shineGrad" x1="0%" y1="0%" x2="100%" y2="60%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.35" />
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+    </linearGradient>
+
+    <!-- Gold Accent Gradient -->
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FCD34D" />
+      <stop offset="50%" stop-color="#F59E0B" />
+      <stop offset="100%" stop-color="#D97706" />
+    </linearGradient>
+
+    <!-- Drop Shadows -->
+    <filter id="iconShadow" x="-10%" y="-10%" width="125%" height="125%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#042614" flood-opacity="0.4" />
+    </filter>
+    <filter id="coinShadow" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#000000" flood-opacity="0.35" />
+    </filter>
+  </defs>
+
+  <!-- App Icon Squircle Background -->
+  <rect x="16" y="16" width="480" height="480" rx="110" fill="url(#bgGrad)" />
+  <rect x="16" y="16" width="480" height="480" rx="110" fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="4" />
+  
+  <!-- Subtle Top Shine Overlay -->
+  <path d="M 16 126 C 16 75, 75 16, 126 16 L 386 16 C 437 16, 496 75, 496 126 L 496 220 L 16 290 Z" fill="url(#shineGrad)" />
+
+  <!-- Main Spreadsheet Card -->
+  <g filter="url(#iconShadow)">
+    <!-- Sheet Container -->
+    <rect x="80" y="88" width="352" height="336" rx="36" fill="rgba(255, 255, 255, 0.12)" stroke="#ffffff" stroke-width="12" />
+
+    <!-- Sheet Header Bar -->
+    <path d="M 86 164 L 426 164" stroke="#ffffff" stroke-width="12" stroke-linecap="round" />
+
+    <!-- Excel Column Divider -->
+    <path d="M 186 168 L 186 414" stroke="rgba(255, 255, 255, 0.45)" stroke-width="8" stroke-dasharray="14 10" />
+
+    <!-- Spreadsheet Row Dividers -->
+    <line x1="86" y1="248" x2="426" y2="248" stroke="rgba(255, 255, 255, 0.25)" stroke-width="6" />
+    <line x1="86" y1="332" x2="426" y2="332" stroke="rgba(255, 255, 255, 0.25)" stroke-width="6" />
+
+    <!-- Growth Line Graph -->
+    <path d="M 120 360 L 210 290 L 280 320 L 390 200" fill="none" stroke="#6EE7B7" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" />
+    <path d="M 390 200 L 350 200 M 390 200 L 390 240" stroke="#6EE7B7" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" />
+  </g>
+
+  <!-- Golden Treasury Coin Badge -->
+  <g filter="url(#coinShadow)">
+    <circle cx="372" cy="372" r="76" fill="url(#goldGrad)" stroke="#FEF3C7" stroke-width="8" />
+    <circle cx="372" cy="372" r="62" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="3" stroke-dasharray="8 6" />
+    <text x="372" y="398" font-family="system-ui, -apple-system, sans-serif" font-size="76" font-weight="900" fill="#ffffff" text-anchor="middle" dominant-baseline="alphabetic">€</text>
+  </g>
+</svg>

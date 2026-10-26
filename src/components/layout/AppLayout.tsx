@@ -18,7 +18,6 @@ import {
   FileSpreadsheet,
   Landmark,
   Target,
-  PanelLeftClose,
   PanelLeft,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -214,7 +213,7 @@ export function AppLayout() {
       {/* Main Workspace (Top Header + Content) */}
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
         {/* Top Header */}
-        <header className="sticky top-0 z-30 h-14 bg-white/90 dark:bg-surface-900/90 backdrop-blur-md border-b border-surface-200 dark:border-surface-800 px-3 sm:px-5 flex items-center justify-between shrink-0">
+        <header className="sticky top-0 z-30 h-14 bg-white/90 dark:bg-surface-900/90 backdrop-blur-md border-b border-surface-200 dark:border-surface-800 px-2.5 sm:px-5 flex items-center justify-between shrink-0">
           {/* Top-left: ONLY Sidebar Toggle button and logo when collapsed */}
           <div className="flex items-center gap-2">
             <button
@@ -241,7 +240,7 @@ export function AppLayout() {
           </div>
 
           {/* Top-right: EXACTLY Idioma, Tema, Perfil in order from left to right */}
-          <div className="ml-auto flex items-center gap-2.5">
+          <div className="ml-auto flex items-center gap-1.5 sm:gap-2.5">
             {/* 1. Idioma */}
             <LanguageToggle />
 
