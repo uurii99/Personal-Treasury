@@ -196,6 +196,7 @@ export function CellDetailModal({ target, onClose, onUpdated }: CellDetailModalP
       setDescription('');
       setAmountStr('');
       await loadSubMovements();
+      window.dispatchEvent(new CustomEvent('bank-accounts-updated'));
       onUpdated();
     } catch (err) {
       console.error('Error saving movement:', err);
@@ -232,6 +233,7 @@ export function CellDetailModal({ target, onClose, onUpdated }: CellDetailModalP
       }
       success('Movimiento eliminado');
       await loadSubMovements();
+      window.dispatchEvent(new CustomEvent('bank-accounts-updated'));
       onUpdated();
     } catch {
       showError('Error al eliminar');
@@ -306,6 +308,7 @@ export function CellDetailModal({ target, onClose, onUpdated }: CellDetailModalP
       success('Movimiento actualizado');
       setEditingId(null);
       await loadSubMovements();
+      window.dispatchEvent(new CustomEvent('bank-accounts-updated'));
       onUpdated();
     } catch {
       showError('Error al actualizar');

@@ -74,7 +74,7 @@ export const UURII_EXCEL_OCTOBER_2026 = {
       categoryName: 'OTROS',
       section: 'fixed' as BudgetSection,
       amountEuros: 12.00,
-      notes: 'Otros fijos',
+      notes: 'Otros',
     },
 
     // 2. Gastos Opcionales / Ocio (30%)
@@ -82,50 +82,31 @@ export const UURII_EXCEL_OCTOBER_2026 = {
       categoryName: 'COMIDAS',
       section: 'leisure' as BudgetSection,
       amountEuros: 18.58,
-      notes: 'Desglose: 6 + 3.88 + 1.7 + 7',
-      items: [
-        { amountEuros: 6.00, description: 'Comida 1' },
-        { amountEuros: 3.88, description: 'Comida 2' },
-        { amountEuros: 1.70, description: 'Comida 3' },
-        { amountEuros: 7.00, description: 'Comida 4' },
-      ],
+      notes: 'Comidas',
     },
     {
       categoryName: 'REGALS',
       section: 'leisure' as BudgetSection,
       amountEuros: 30.27,
-      notes: 'Regalos octubre',
+      notes: 'Regalos',
     },
     {
       categoryName: 'PIEZAS MOTO',
       section: 'leisure' as BudgetSection,
       amountEuros: 200.08,
-      notes: 'Desglose: 110.58 + 89.5',
-      items: [
-        { amountEuros: 110.58, description: 'Piezas moto 1' },
-        { amountEuros: 89.50, description: 'Piezas moto 2' },
-      ],
+      notes: 'Piezas moto',
     },
     {
       categoryName: 'GASOLINA MOTO',
       section: 'leisure' as BudgetSection,
       amountEuros: 13.41,
-      notes: 'Desglose: 13.05 + 0.36',
-      items: [
-        { amountEuros: 13.05, description: 'Gasolina moto' },
-        { amountEuros: 0.36, description: 'Ajuste gasolina' },
-      ],
+      notes: 'Gasolina moto',
     },
     {
       categoryName: 'HOTWHEELS',
       section: 'leisure' as BudgetSection,
       amountEuros: 75.60,
-      notes: 'Desglose: 1.5 + 68.1 + 6',
-      items: [
-        { amountEuros: 1.50, description: 'Hot Wheels 1' },
-        { amountEuros: 68.10, description: 'Hot Wheels pack' },
-        { amountEuros: 6.00, description: 'Hot Wheels 3' },
-      ],
+      notes: 'Hotwheels',
     },
 
     // 3. Inversión y Ahorro (30%)
@@ -182,9 +163,26 @@ export async function syncUuriiExcelData(
       .select('*')
       .eq('user_id', user.id);
 
+    // Purge unwanted mock items (Hot Wheels 1, Hot Wheels pack, Hot Wheels 3, Otros fijos)
+    const unwantedDescriptions = ['Hot Wheels 1', 'Hot Wheels pack', 'Hot Wheels 3', 'Otros fijos', 'Hot Wheels 2'];
+    for (const desc of unwantedDescriptions) {
+      await supabase
+        .from('transactions')
+        .delete()
+        .eq('user_id', user.id)
+        .ilike('description', desc);
+    }
+    await supabase
+      .from('categories')
+      .delete()
+      .eq('user_id', user.id)
+      .ilike('name', 'Otros fijos');
+
     const categoryMap = new Map<string, string>(); // lowercase name -> category id
     existingCategories?.forEach((c) => {
-      categoryMap.set(c.name.trim().toLowerCase(), c.id);
+      if (c.name.trim().toLowerCase() !== 'otros fijos') {
+        categoryMap.set(c.name.trim().toLowerCase(), c.id);
+      }
     });
 
     // Create any missing categories specifically for this user
@@ -259,39 +257,19 @@ export async function syncUuriiExcelData(
       const { data: existingTx } = await query;
 
       if (!existingTx || existingTx.length === 0) {
-        // If it has sub-items (like COMIDAS, PIEZAS MOTO, etc.), insert individual items
-        // so the CellDetailModal displays the exact itemized breakdown
-        if (exp.items && exp.items.length > 0) {
-          const txRows = exp.items.map((item, idx) => ({
-            user_id: user.id,
-            type: 'expense' as const,
-            amount: eurosToCents(item.amountEuros),
-            description: exp.categoryName,
-            category_id: catId,
-            section: exp.section,
-            budget_month: month,
-            budget_year: year,
-            date: `2026-10-${String(Math.min(idx + 1, 28)).padStart(2, '0')}`,
-            notes: item.description,
-          }));
-          await supabase.from('transactions').insert(txRows);
-          insertedCount += txRows.length;
-        } else {
-          // Single transaction
-          await supabase.from('transactions').insert({
-            user_id: user.id,
-            type: 'expense',
-            amount: eurosToCents(exp.amountEuros),
-            description: exp.categoryName,
-            category_id: catId,
-            section: exp.section,
-            budget_month: month,
-            budget_year: year,
-            date: '2026-10-01',
-            notes: exp.notes || 'Importado de TRESORERIA URI.xlsx',
-          });
-          insertedCount++;
-        }
+        await supabase.from('transactions').insert({
+          user_id: user.id,
+          type: 'expense',
+          amount: eurosToCents(exp.amountEuros),
+          description: exp.categoryName,
+          category_id: catId,
+          section: exp.section,
+          budget_month: month,
+          budget_year: year,
+          date: '2026-10-15',
+          notes: exp.notes,
+        });
+        insertedCount++;
       }
     }
 

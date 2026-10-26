@@ -11,7 +11,10 @@ import {
   TrendingUp,
   Receipt,
   Edit2,
+  Trash2,
   Loader2,
+  Calendar,
+  Sparkles,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
@@ -19,7 +22,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/lib/supabase';
 import { formatCurrency, centsToEuros } from '@/lib/money';
 import { getCurrentMonthYear } from '@/lib/dates';
-import { Button } from '@/components/ui';
+import { Button, Modal, Input } from '@/components/ui';
 import { PercentageModal } from '@/components/excel/PercentageModal';
 import { CellEditModal, type CellEditData } from '@/components/excel/CellEditModal';
 import { CellDetailModal, type CellDetailTarget } from '@/components/excel/CellDetailModal';
@@ -28,7 +31,7 @@ import { AddMovementModal } from '@/components/modals/AddMovementModal';
 import { AddIncomeModal } from '@/components/modals/AddIncomeModal';
 import { MobileMonthlyView } from '@/components/excel/MobileMonthlyView';
 import { isUuriiProfile, syncUuriiExcelData } from '@/lib/syncUuriiExcel';
-import { Calendar, Sparkles } from 'lucide-react';
+import { recordMovementInBank } from '@/lib/banks';
 import type { Category, BudgetSection, IncomeEntry, Transaction } from '@/types';
 
 // Default categories extracted exactly from TRESORERIA URI.xlsx
@@ -119,6 +122,21 @@ export function ExcelAnnualPage() {
   const [showAddMovement, setShowAddMovement] = useState(false);
   const [showAddIncome, setShowAddIncome] = useState(false);
 
+  // Rename concept modal state
+  const [renameTarget, setRenameTarget] = useState<{
+    open: boolean;
+    type: 'category' | 'income';
+    id?: string;
+    oldName: string;
+    newName: string;
+    section?: BudgetSection;
+  }>({
+    open: false,
+    type: 'category',
+    oldName: '',
+    newName: '',
+  });
+
   // Search filter
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState<'month' | 'annual'>(() =>
@@ -186,8 +204,19 @@ export function ExcelAnnualPage() {
           .eq('type', 'expense'),
       ]);
 
+      // Purge unwanted legacy mock items if found in transactions or categories
+      const unwantedMock = ['Hot Wheels 1', 'Hot Wheels pack', 'Hot Wheels 3', 'Otros fijos', 'Hot Wheels 2'];
+      const hasMock = transData?.some((t) => unwantedMock.some((u) => t.description?.toLowerCase().includes(u.toLowerCase()))) ||
+        cats?.some((c) => c.name.toLowerCase() === 'otros fijos');
+      if (hasMock) {
+        for (const u of unwantedMock) {
+          await supabase.from('transactions').delete().eq('user_id', user.id).ilike('description', u);
+        }
+        await supabase.from('categories').delete().eq('user_id', user.id).ilike('name', 'Otros fijos');
+      }
+
       setIncomes(incData ?? []);
-      setTransactions(transData ?? []);
+      setTransactions((transData ?? []).filter((t) => !unwantedMock.some((u) => t.description?.toLowerCase().includes(u.toLowerCase()))));
     } catch (e) {
       console.error('Error loading annual excel data:', e);
       showError('Error al cargar datos del año ' + year);
@@ -199,6 +228,107 @@ export function ExcelAnnualPage() {
   useEffect(() => {
     loadYearData();
   }, [loadYearData]);
+
+  const handleSaveRename = async () => {
+    if (!user || !renameTarget.newName.trim()) return;
+    const trimmed = renameTarget.newName.trim();
+    try {
+      if (renameTarget.type === 'category' && renameTarget.id) {
+        await supabase
+          .from('categories')
+          .update({ name: trimmed })
+          .eq('id', renameTarget.id);
+        await supabase
+          .from('transactions')
+          .update({ description: trimmed })
+          .eq('user_id', user.id)
+          .eq('category_id', renameTarget.id);
+        success('Categoría renombrada', trimmed);
+      } else if (renameTarget.type === 'income') {
+        await supabase
+          .from('income_entries')
+          .update({ description: trimmed })
+          .eq('user_id', user.id)
+          .eq('description', renameTarget.oldName);
+        success('Concepto de ingreso renombrado', trimmed);
+      }
+      setRenameTarget({ open: false, type: 'category', oldName: '', newName: '' });
+      loadYearData();
+      window.dispatchEvent(new CustomEvent('excel-data-updated'));
+    } catch (err) {
+      console.error(err);
+      showError('Error al renombrar el concepto');
+    }
+  };
+
+  const handleDeleteConceptRow = async (
+    type: 'category' | 'income',
+    name: string,
+    catId?: string,
+    section?: BudgetSection
+  ) => {
+    if (!user) return;
+    if (!window.confirm(`¿Seguro que deseas eliminar "${name}" y todos sus movimientos asociados? Se actualizarán los saldos bancarios correspondientes.`)) {
+      return;
+    }
+    try {
+      if (type === 'income') {
+        const { data: incs } = await supabase
+          .from('income_entries')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('description', name);
+        if (incs && incs.length > 0) {
+          for (const inc of incs) {
+            recordMovementInBank(user.id, {
+              type: 'income',
+              amountCents: inc.amount,
+              description: inc.description,
+              operation: 'remove',
+            });
+          }
+          await supabase
+            .from('income_entries')
+            .delete()
+            .eq('user_id', user.id)
+            .eq('description', name);
+        }
+      } else {
+        let query = supabase.from('transactions').select('*').eq('user_id', user.id);
+        if (catId) {
+          query = query.eq('category_id', catId);
+        } else {
+          query = query.eq('description', name);
+        }
+        const { data: txs } = await query;
+        if (txs && txs.length > 0) {
+          for (const tx of txs) {
+            recordMovementInBank(user.id, {
+              type: 'expense',
+              amountCents: tx.amount,
+              section: (tx.section || section) as BudgetSection,
+              description: tx.description,
+              operation: 'remove',
+            });
+          }
+        }
+        if (catId) {
+          await supabase.from('transactions').delete().eq('category_id', catId);
+          await supabase.from('categories').delete().eq('id', catId);
+        } else {
+          await supabase.from('transactions').delete().eq('user_id', user.id).eq('description', name);
+        }
+      }
+
+      success('Concepto y movimientos eliminados', name);
+      window.dispatchEvent(new CustomEvent('excel-data-updated'));
+      window.dispatchEvent(new CustomEvent('bank-accounts-updated'));
+      loadYearData();
+    } catch (err) {
+      console.error(err);
+      showError('Error al eliminar el concepto');
+    }
+  };
 
   // Settings percentages (default 40/30/30 matching TRESORERIA URI)
   const fp = settings?.fixed_percentage ?? 40;
@@ -621,20 +751,29 @@ export function ExcelAnnualPage() {
 
         {/* Excel Action Ribbon */}
         <div className="px-4 py-3 bg-surface-50 dark:bg-surface-900 border-b border-surface-200 dark:border-surface-800 flex flex-wrap items-center justify-between gap-3">
-          {/* Porcentajes selector - allows modifying anytime */}
+          {/* Porcentajes selector - high contrast in light & dark */}
           <div className="flex items-center gap-2">
             <button
               onClick={() => setShowPercentageModal(true)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-brand-200 dark:border-brand-800/80 bg-brand-50/70 dark:bg-brand-950/40 hover:bg-brand-100/70 dark:hover:bg-brand-900/40 text-brand-700 dark:text-brand-300 transition-all text-xs font-semibold shadow-sm group"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-800 hover:bg-surface-100 dark:hover:bg-surface-700 text-surface-900 dark:text-surface-100 transition-all text-xs font-semibold shadow-sm group"
               title={t.common.adjustPercentages}
             >
               <Percent className="h-3.5 w-3.5 text-brand-600 dark:text-brand-400" />
-              <span>
-                {language === 'ca' ? 'Repartiment:' : 'Reparto:'} <strong className="text-surface-900 dark:text-surface-100">{fp}%</strong> {language === 'ca' ? 'Fixes' : 'Fijo'} ·{' '}
-                <strong className="text-surface-900 dark:text-surface-100">{lp}%</strong> {language === 'ca' ? 'Opcional' : 'Ocio'} ·{' '}
-                <strong className="text-surface-900 dark:text-surface-100">{sp}%</strong> {language === 'ca' ? 'Estalvi' : 'Ahorro'}
+              <span className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-surface-600 dark:text-surface-300">
+                  {language === 'ca' ? 'Repartiment:' : 'Reparto:'}
+                </span>
+                <span className="px-1.5 py-0.5 rounded bg-sky-100 dark:bg-sky-950/80 text-sky-800 dark:text-sky-300 font-bold border border-sky-200 dark:border-sky-800/80">
+                  {fp}% {language === 'ca' ? 'Fixes' : 'Fijo'}
+                </span>
+                <span className="px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 font-bold border border-amber-200 dark:border-amber-800/80">
+                  {lp}% {language === 'ca' ? 'Opcional' : 'Ocio'}
+                </span>
+                <span className="px-1.5 py-0.5 rounded bg-purple-100 dark:bg-purple-950/80 text-purple-800 dark:text-purple-300 font-bold border border-purple-200 dark:border-purple-800/80">
+                  {sp}% {language === 'ca' ? 'Estalvi' : 'Ahorro'}
+                </span>
               </span>
-              <span className="text-[11px] underline opacity-80 group-hover:opacity-100 ml-1">
+              <span className="ml-1 text-[11px] font-bold px-2 py-0.5 rounded-md bg-emerald-600 hover:bg-emerald-500 text-white shadow-xs transition-colors">
                 {language === 'ca' ? 'Canviar %' : 'Cambiar %'}
               </span>
             </button>
@@ -934,21 +1073,29 @@ export function ExcelAnnualPage() {
                         <td className="excel-cell excel-sticky-concept bg-[#E2F0D9] dark:bg-emerald-950/70 font-semibold text-emerald-950 dark:text-emerald-100">
                           <div className="flex items-center justify-between gap-1">
                             <span className="truncate">{concept}</span>
-                            <button
-                              onClick={() => {
-                                setCellEditData({
-                                  type: 'income',
-                                  conceptName: concept,
-                                  month: currentMY.month,
-                                  year,
-                                  currentAmountCents: row[currentMY.month] || 0,
-                                });
-                              }}
-                              className="opacity-0 group-hover:opacity-100 p-0.5 rounded text-emerald-700 hover:text-emerald-950 dark:hover:text-emerald-100 transition-opacity"
-                              title="Editar en aquest mes"
-                            >
-                              <Edit2 className="h-3 w-3" />
-                            </button>
+                            <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button
+                                onClick={() => {
+                                  setRenameTarget({
+                                    open: true,
+                                    type: 'income',
+                                    oldName: concept,
+                                    newName: concept,
+                                  });
+                                }}
+                                className="p-0.5 rounded text-emerald-700 hover:text-emerald-950 dark:hover:text-emerald-100 transition-colors"
+                                title="Renombrar concepto"
+                              >
+                                <Edit2 className="h-3 w-3" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteConceptRow('income', concept)}
+                                className="p-0.5 rounded text-danger-500 hover:text-danger-700 transition-colors"
+                                title="Eliminar concepto e ingresos"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </button>
+                            </div>
                           </div>
                         </td>
 
@@ -1062,23 +1209,31 @@ export function ExcelAnnualPage() {
                         <td className="excel-cell excel-sticky-concept bg-[#D9E1F2] dark:bg-blue-950/70 font-semibold text-blue-950 dark:text-blue-100">
                           <div className="flex items-center justify-between gap-1">
                             <span className="truncate">{rowItem.name}</span>
-                            <button
-                              onClick={() => {
-                                setCellEditData({
-                                  type: 'expense',
-                                  section: 'fixed',
-                                  categoryId: rowItem.catId,
-                                  conceptName: rowItem.name,
-                                  month: currentMY.month,
-                                  year,
-                                  currentAmountCents: rowItem.months[currentMY.month] || 0,
-                                });
-                              }}
-                              className="opacity-0 group-hover:opacity-100 p-0.5 rounded text-blue-700 hover:text-blue-950 dark:hover:text-blue-100 transition-opacity"
-                              title="Editar en aquest mes"
-                            >
-                              <Edit2 className="h-3 w-3" />
-                            </button>
+                            <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button
+                                onClick={() => {
+                                  setRenameTarget({
+                                    open: true,
+                                    type: 'category',
+                                    id: rowItem.catId,
+                                    oldName: rowItem.name,
+                                    newName: rowItem.name,
+                                    section: 'fixed',
+                                  });
+                                }}
+                                className="p-0.5 rounded text-blue-700 hover:text-blue-950 dark:hover:text-blue-100 transition-colors"
+                                title="Renombrar categoría"
+                              >
+                                <Edit2 className="h-3 w-3" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteConceptRow('category', rowItem.name, rowItem.catId, 'fixed')}
+                                className="p-0.5 rounded text-danger-500 hover:text-danger-700 transition-colors"
+                                title="Eliminar categoría y gastos"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </button>
+                            </div>
                           </div>
                         </td>
 
@@ -1161,8 +1316,8 @@ export function ExcelAnnualPage() {
                         key={m}
                         className={`excel-cell text-right font-mono font-bold tabular-nums ${
                           rem >= 0
-                            ? 'text-emerald-700 dark:text-emerald-400 bg-emerald-50/40'
-                            : 'text-red-700 dark:text-red-400 bg-red-50/40'
+                            ? 'text-emerald-800 dark:text-emerald-300 bg-emerald-100/70 dark:bg-emerald-950/70'
+                            : 'text-rose-800 dark:text-rose-300 bg-rose-100/70 dark:bg-rose-950/70'
                         }`}
                       >
                         {formatCurrency(rem)}
@@ -1246,23 +1401,31 @@ export function ExcelAnnualPage() {
                         <td className="excel-cell excel-sticky-concept bg-[#FFF2CC] dark:bg-amber-950/70 font-semibold text-amber-950 dark:text-amber-100">
                           <div className="flex items-center justify-between gap-1">
                             <span className="truncate">{rowItem.name}</span>
-                            <button
-                              onClick={() => {
-                                setCellEditData({
-                                  type: 'expense',
-                                  section: 'leisure',
-                                  categoryId: rowItem.catId,
-                                  conceptName: rowItem.name,
-                                  month: currentMY.month,
-                                  year,
-                                  currentAmountCents: rowItem.months[currentMY.month] || 0,
-                                });
-                              }}
-                              className="opacity-0 group-hover:opacity-100 p-0.5 rounded text-amber-700 hover:text-amber-950 dark:hover:text-amber-100 transition-opacity"
-                              title="Editar en aquest mes"
-                            >
-                              <Edit2 className="h-3 w-3" />
-                            </button>
+                            <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button
+                                onClick={() => {
+                                  setRenameTarget({
+                                    open: true,
+                                    type: 'category',
+                                    id: rowItem.catId,
+                                    oldName: rowItem.name,
+                                    newName: rowItem.name,
+                                    section: 'leisure',
+                                  });
+                                }}
+                                className="p-0.5 rounded text-amber-700 hover:text-amber-950 dark:hover:text-amber-100 transition-colors"
+                                title="Renombrar categoría"
+                              >
+                                <Edit2 className="h-3 w-3" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteConceptRow('category', rowItem.name, rowItem.catId, 'leisure')}
+                                className="p-0.5 rounded text-danger-500 hover:text-danger-700 transition-colors"
+                                title="Eliminar categoría y gastos"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </button>
+                            </div>
                           </div>
                         </td>
 
@@ -1345,8 +1508,8 @@ export function ExcelAnnualPage() {
                         key={m}
                         className={`excel-cell text-right font-mono font-bold tabular-nums ${
                           rem >= 0
-                            ? 'text-emerald-700 dark:text-emerald-400 bg-emerald-50/40'
-                            : 'text-red-700 dark:text-red-400 bg-red-50/40'
+                            ? 'text-emerald-800 dark:text-emerald-300 bg-emerald-100/70 dark:bg-emerald-950/70'
+                            : 'text-rose-800 dark:text-rose-300 bg-rose-100/70 dark:bg-rose-950/70'
                         }`}
                       >
                         {formatCurrency(rem)}
@@ -1430,23 +1593,31 @@ export function ExcelAnnualPage() {
                         <td className="excel-cell excel-sticky-concept bg-[#EAD1DC] dark:bg-purple-950/70 font-semibold text-purple-950 dark:text-purple-100">
                           <div className="flex items-center justify-between gap-1">
                             <span className="truncate">{rowItem.name}</span>
-                            <button
-                              onClick={() => {
-                                setCellEditData({
-                                  type: 'expense',
-                                  section: 'savings',
-                                  categoryId: rowItem.catId,
-                                  conceptName: rowItem.name,
-                                  month: currentMY.month,
-                                  year,
-                                  currentAmountCents: rowItem.months[currentMY.month] || 0,
-                                });
-                              }}
-                              className="opacity-0 group-hover:opacity-100 p-0.5 rounded text-purple-700 hover:text-purple-950 dark:hover:text-purple-100 transition-opacity"
-                              title="Editar en aquest mes"
-                            >
-                              <Edit2 className="h-3 w-3" />
-                            </button>
+                            <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button
+                                onClick={() => {
+                                  setRenameTarget({
+                                    open: true,
+                                    type: 'category',
+                                    id: rowItem.catId,
+                                    oldName: rowItem.name,
+                                    newName: rowItem.name,
+                                    section: 'savings',
+                                  });
+                                }}
+                                className="p-0.5 rounded text-purple-700 hover:text-purple-950 dark:hover:text-purple-100 transition-colors"
+                                title="Renombrar categoría"
+                              >
+                                <Edit2 className="h-3 w-3" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteConceptRow('category', rowItem.name, rowItem.catId, 'savings')}
+                                className="p-0.5 rounded text-danger-500 hover:text-danger-700 transition-colors"
+                                title="Eliminar categoría y ahorros"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </button>
+                            </div>
                           </div>
                         </td>
 
@@ -1529,8 +1700,8 @@ export function ExcelAnnualPage() {
                         key={m}
                         className={`excel-cell text-right font-mono font-bold tabular-nums ${
                           rem >= 0
-                            ? 'text-emerald-700 dark:text-emerald-400 bg-emerald-50/40'
-                            : 'text-red-700 dark:text-red-400 bg-red-50/40'
+                            ? 'text-emerald-800 dark:text-emerald-300 bg-emerald-100/70 dark:bg-emerald-950/70'
+                            : 'text-rose-800 dark:text-rose-300 bg-rose-100/70 dark:bg-rose-950/70'
                         }`}
                       >
                         {formatCurrency(rem)}
@@ -1547,7 +1718,7 @@ export function ExcelAnnualPage() {
                   </td>
                 </tr>
 
-                {/* MY INVERSOR / Trade Republic (Tabla 4) - C6 * 30 / 100 */}
+                {/* MyInvestor / Trade Republic (Tabla 4) - C6 * 30 / 100 */}
                 <tr className="bg-[#FAF5FF] dark:bg-purple-950/40 font-semibold text-xs border-b-2 border-purple-200 dark:border-purple-800">
                   <td className="excel-row-num bg-purple-100 dark:bg-purple-900/60 text-purple-900 dark:text-purple-200">46</td>
                   <td className="excel-cell excel-sticky-concept bg-[#FAF5FF] dark:bg-purple-950/60 font-semibold text-purple-950 dark:text-purple-200 text-right pr-4">
@@ -1787,6 +1958,40 @@ export function ExcelAnnualPage() {
         year={year}
         onSaved={loadYearData}
       />
+
+      <Modal
+        open={renameTarget.open}
+        onOpenChange={(open) => setRenameTarget((prev) => ({ ...prev, open }))}
+        title={renameTarget.type === 'income' ? 'Renombrar Concepto de Ingreso' : 'Renombrar Categoría'}
+        description={`Modifica el nombre de "${renameTarget.oldName}" en tu hoja Excel.`}
+        size="sm"
+      >
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSaveRename();
+          }}
+          className="space-y-4"
+        >
+          <Input
+            label="Nuevo Nombre"
+            value={renameTarget.newName}
+            onChange={(e) => setRenameTarget((prev) => ({ ...prev, newName: e.target.value }))}
+            required
+            autoFocus
+          />
+          <div className="flex justify-end gap-2 pt-2 border-t border-surface-200 dark:border-surface-800">
+            <Button
+              variant="ghost"
+              type="button"
+              onClick={() => setRenameTarget((prev) => ({ ...prev, open: false }))}
+            >
+              Cancelar
+            </Button>
+            <Button type="submit">Guardar</Button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }

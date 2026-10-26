@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import {
   BarChart3,
@@ -22,6 +22,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button, Logo, LanguageToggle } from '@/components/ui';
+import { AddMovementModal } from '@/components/modals/AddMovementModal';
 
 interface NavItem {
   to: string;
@@ -116,6 +117,17 @@ export function AppLayout() {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   // Profile dropdown open state
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [showAddMovementModal, setShowAddMovementModal] = useState(false);
+
+  const now = new Date();
+  const currentMonth = now.getMonth() + 1;
+  const currentYear = now.getFullYear();
+
+  useEffect(() => {
+    const handleOpen = () => setShowAddMovementModal(true);
+    window.addEventListener('open-add-movement', handleOpen);
+    return () => window.removeEventListener('open-add-movement', handleOpen);
+  }, []);
 
   // Clean navigation: removed Historial, Mes actual, /annual, /recurring, /savings as requested
   const mainNavItems: NavItem[] = [
@@ -131,7 +143,7 @@ export function AppLayout() {
   ];
 
   const handleAddMovement = () => {
-    navigate('/dashboard');
+    setShowAddMovementModal(true);
   };
 
   const closeMobileSidebar = () => setMobileSidebarOpen(false);
@@ -298,6 +310,19 @@ export function AppLayout() {
           </div>
         </main>
       </div>
+
+      {showAddMovementModal && (
+        <AddMovementModal
+          open={showAddMovementModal}
+          onOpenChange={setShowAddMovementModal}
+          month={currentMonth}
+          year={currentYear}
+          onSaved={() => {
+            window.dispatchEvent(new CustomEvent('excel-data-updated'));
+            window.dispatchEvent(new CustomEvent('bank-accounts-updated'));
+          }}
+        />
+      )}
     </div>
   );
 }

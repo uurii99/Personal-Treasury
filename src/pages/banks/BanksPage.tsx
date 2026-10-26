@@ -11,6 +11,9 @@ import {
   ShieldCheck,
   Banknote,
   Droplets,
+  Mail,
+  Send,
+  Bell,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
@@ -23,7 +26,9 @@ import {
   getScheduledDebits,
   saveScheduledDebits,
   calculateBankLiquidity,
-  BANK_CONCEPTS_MAP,
+  getEmailAlertSettings,
+  saveEmailAlertSettings,
+  type CalendarEmailAlertSettings,
 } from '@/lib/banks';
 import { BankLogo } from '@/components/banks/BankLogo';
 import type { BankAccount, BankScheduledDebit, BankAccountPurpose } from '@/types';
@@ -57,12 +62,25 @@ export function BanksPage() {
   const [inlineEditingId, setInlineEditingId] = useState<string | null>(null);
   const [inlineAmount, setInlineAmount] = useState('');
 
+  // Bank purpose / notes inline edit
+  const [editingNotesAccId, setEditingNotesAccId] = useState<string | null>(null);
+  const [inlineNote, setInlineNote] = useState('');
+
+  // Email alert settings for calendar debits
+  const [emailAlerts, setEmailAlerts] = useState<CalendarEmailAlertSettings>({
+    enabled: true,
+    email: user?.email || '',
+    daysAdvance: 3,
+  });
+
   const loadData = useCallback(() => {
     if (!user) return;
     const b = getBankAccounts(user.id);
     const d = getScheduledDebits(user.id);
+    const em = getEmailAlertSettings(user.id, user.email || '');
     setAccounts(b);
     setDebits(d);
+    setEmailAlerts(em);
     if (b.length > 0 && !debitBankId) {
       setDebitBankId(b[0].id);
     }
@@ -257,6 +275,50 @@ export function BanksPage() {
     success('Aviso eliminado');
   };
 
+  const handleSaveInlineNote = (acc: BankAccount) => {
+    if (!user) return;
+    const updated = accounts.map((a) =>
+      a.id === acc.id
+        ? {
+            ...a,
+            notes: inlineNote.trim() || null,
+            updated_at: new Date().toISOString(),
+          }
+        : a
+    );
+    saveBankAccounts(user.id, updated);
+    setAccounts(updated);
+    setEditingNotesAccId(null);
+    success('Finalidad del banco guardada');
+  };
+
+  const handleUpdateEmailAlerts = (patch: Partial<CalendarEmailAlertSettings>) => {
+    if (!user) return;
+    const updated = { ...emailAlerts, ...patch };
+    setEmailAlerts(updated);
+    saveEmailAlertSettings(user.id, updated);
+    if ('enabled' in patch) {
+      if (patch.enabled) {
+        success('Avisos por correo activados');
+      } else {
+        success('Avisos por correo desactivados');
+      }
+    }
+  };
+
+  const handleSendTestAlert = () => {
+    if (!emailAlerts.email.trim()) {
+      showError('Introduce un correo electrónico válido');
+      return;
+    }
+    const sample = debits[0] || { title: 'Seguro moto', amount: 5000, due_day: 15 };
+    const bAcc = accounts.find((a) => a.id === sample.bank_id) || accounts[0];
+    success(
+      `Aviso de prueba enviado a ${emailAlerts.email}`,
+      `"${sample.title}" vence en ${emailAlerts.daysAdvance} días (${formatCurrency(sample.amount)} en ${bAcc?.name || 'Banc Sabadell'}). Saldo suficiente.`
+    );
+  };
+
   // Helper purpose label
   const getPurposeBadge = (purpose: BankAccountPurpose, isCash?: boolean) => {
     if (purpose === 'cash' || isCash) {
@@ -396,7 +458,7 @@ export function BanksPage() {
               </p>
             </div>
             <p className="text-xs text-surface-500 mt-2 flex items-center gap-1">
-              <Sparkles className="h-3 w-3 text-purple-500 shrink-0" /> MyInversor Fondos
+              <Sparkles className="h-3 w-3 text-purple-500 shrink-0" /> MyInvestor Carteras / Fondos
             </p>
           </div>
 
@@ -429,7 +491,7 @@ export function BanksPage() {
             Tus Cuentas Bancarias ({accounts.length})
           </h2>
           <span className="text-xs text-surface-500">
-            💡 Haz clic en el saldo de cualquier banco para actualizarlo con lo que ves en tu móvil.
+            💡 Haz clic en el saldo o finalidad de cualquier banco para ajustarlo a tu medida.
           </span>
         </div>
 
@@ -437,11 +499,11 @@ export function BanksPage() {
           {accounts.map((acc) => {
             const isCash = acc.is_cash || acc.exclude_from_calculations || acc.purpose === 'cash' || acc.name.trim().toLowerCase() === 'efectivo';
             const badge = getPurposeBadge(acc.purpose, isCash);
-            const isEditing = inlineEditingId === acc.id;
-            const conceptInfo = BANK_CONCEPTS_MAP[acc.id];
+            const isEditingBalance = inlineEditingId === acc.id;
+            const isEditingNote = editingNotesAccId === acc.id;
             const isLiquidity = acc.id === 'b-sabadell' || acc.id === 'b-revolut';
-            const isEmergency = acc.id === 'b-trade-republic';
-            const isInvestment = acc.id === 'b-myinversor';
+            const isEmergency = acc.id === 'b-trade-republic' || acc.name.toLowerCase().includes('trade republic');
+            const isInvestment = acc.id === 'b-myinvestor' || acc.id === 'b-myinversor' || acc.name.toLowerCase().includes('myinvestor');
 
             return (
               <div
@@ -503,7 +565,7 @@ export function BanksPage() {
                       {isCash ? 'Efectivo en mano (no computa)' : 'Saldo disponible real'}
                     </span>
 
-                    {isEditing ? (
+                    {isEditingBalance ? (
                       <div className="flex items-center gap-1.5 mt-1">
                         <Input
                           value={inlineAmount}
@@ -533,39 +595,61 @@ export function BanksPage() {
                     )}
                   </div>
 
-                  {/* Concepts belonging to this bank */}
-                  {conceptInfo && (
-                    <div className="mt-2 mb-3 pt-2 border-t border-surface-100 dark:border-surface-800">
-                      <div className="flex items-center justify-between mb-1.5">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-surface-500 dark:text-surface-400">
-                          Conceptos de este banco:
-                        </span>
-                        <span className="text-[9px] text-surface-400 font-mono">
-                          {conceptInfo.concepts.length} conceptos
-                        </span>
-                      </div>
-                      <div className="flex flex-wrap gap-1 max-h-28 overflow-y-auto pr-1">
-                        {conceptInfo.concepts.map((c) => (
-                          <span
-                            key={c}
-                            className={`text-[9.5px] px-1.5 py-0.5 rounded font-medium ${
-                              isLiquidity
-                                ? 'bg-sky-50 dark:bg-sky-950/40 text-sky-800 dark:text-sky-300 border border-sky-100 dark:border-sky-900/40'
-                                : isEmergency
-                                ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-100 dark:border-amber-900/40'
-                                : isInvestment
-                                ? 'bg-purple-50 dark:bg-purple-950/40 text-purple-800 dark:text-purple-300 border border-purple-100 dark:border-purple-900/40'
-                                : 'bg-surface-100 dark:bg-surface-800 text-surface-700 dark:text-surface-300'
-                            }`}
-                          >
-                            {c}
-                          </span>
-                        ))}
-                      </div>
+                  {/* Purpose & Role: Fully user defined */}
+                  <div className="mt-2 mb-3 p-2.5 rounded-xl bg-surface-50/80 dark:bg-surface-800/70 border border-surface-200/70 dark:border-surface-700/70">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-surface-500 dark:text-surface-400">
+                        📌 Finalidad / Uso:
+                      </span>
+                      {!isEditingNote && (
+                        <button
+                          onClick={() => {
+                            setEditingNotesAccId(acc.id);
+                            setInlineNote(acc.notes || '');
+                          }}
+                          className="text-[10px] text-brand-600 dark:text-brand-400 hover:underline flex items-center gap-0.5 font-medium"
+                          title="Editar finalidad del banco"
+                        >
+                          <Edit2 className="w-2.5 h-2.5" /> Editar
+                        </button>
+                      )}
                     </div>
-                  )}
 
-                  {acc.notes && <p className="text-xs text-surface-500 line-clamp-2 mb-3">{acc.notes}</p>}
+                    {isEditingNote ? (
+                      <div className="space-y-1.5 mt-1">
+                        <textarea
+                          value={inlineNote}
+                          onChange={(e) => setInlineNote(e.target.value)}
+                          rows={2}
+                          placeholder="Para qué utilizas este banco..."
+                          className="w-full text-xs p-1.5 rounded-lg border border-brand-400 dark:border-brand-600 bg-white dark:bg-surface-900 text-surface-900 dark:text-surface-100 focus:outline-none"
+                          autoFocus
+                        />
+                        <div className="flex justify-end gap-1.5">
+                          <button
+                            onClick={() => setEditingNotesAccId(null)}
+                            className="px-2 py-0.5 rounded text-[11px] text-surface-500 hover:bg-surface-200 dark:hover:bg-surface-700"
+                          >
+                            Cancelar
+                          </button>
+                          <button
+                            onClick={() => handleSaveInlineNote(acc)}
+                            className="px-2.5 py-0.5 rounded text-[11px] bg-brand-600 hover:bg-brand-500 text-white font-medium"
+                          >
+                            Guardar
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-xs text-surface-700 dark:text-surface-200 leading-snug">
+                        {acc.notes ? (
+                          <span>{acc.notes}</span>
+                        ) : (
+                          <span className="text-surface-400 italic">Sin especificar. Pulsa editar para definir para qué tienes esta cuenta.</span>
+                        )}
+                      </p>
+                    )}
+                  </div>
                 </div>
 
                 <div className="pt-2 border-t border-surface-100 dark:border-surface-800 flex items-center justify-between text-[11px] text-surface-400">
@@ -597,7 +681,7 @@ export function BanksPage() {
         </div>
       </div>
 
-      {/* Calendar of Scheduled debits & Minimum balance alerts */}
+      {/* Calendar of Scheduled debits & Email alert notifications */}
       <div className="bg-white dark:bg-surface-900 rounded-2xl border border-surface-200 dark:border-surface-800 p-5 shadow-sm space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
@@ -606,13 +690,98 @@ export function BanksPage() {
               {t.banks.calendarAlerts}
             </h2>
             <p className="text-xs text-surface-500 mt-0.5">
-              Avisos automáticos de saldo mínimo requerido para no quedarte en descubierto ante recibos importantes (ej. Seguro moto).
+              Control de vencimientos con avisos por correo para asegurar que dispones del saldo mínimo en cada banco antes del cargo.
             </p>
           </div>
 
           <Button size="sm" variant="outline" icon={<Plus className="h-4 w-4" />} onClick={() => setShowDebitModal(true)}>
             + Añadir vencimiento
           </Button>
+        </div>
+
+        {/* Email Alerts configuration card */}
+        <div className="bg-gradient-to-br from-brand-50/70 to-indigo-50/70 dark:from-surface-950 dark:to-surface-900 rounded-2xl border border-brand-200/80 dark:border-brand-900/60 p-4 sm:p-5 shadow-sm space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-start gap-3">
+              <div className="p-2.5 rounded-xl bg-brand-600 text-white shrink-0 shadow-sm">
+                <Mail className="h-5 w-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-sm font-bold text-surface-900 dark:text-surface-100">
+                    Avisos por Correo Electrónico ante Vencimientos
+                  </h3>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-brand-100 text-brand-800 dark:bg-brand-950 dark:text-brand-300">
+                    {emailAlerts.enabled ? 'Activo' : 'Pausado'}
+                  </span>
+                </div>
+                <p className="text-xs text-surface-600 dark:text-surface-400 mt-0.5">
+                  El sistema te avisa por correo electrónico {emailAlerts.daysAdvance} días antes del vencimiento para evitar descubiertos.
+                </p>
+              </div>
+            </div>
+
+            {/* Enable/Disable Toggle */}
+            <div className="flex items-center gap-2 shrink-0">
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={emailAlerts.enabled}
+                  onChange={(e) => handleUpdateEmailAlerts({ enabled: e.target.checked })}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-surface-200 peer-focus:outline-none rounded-full peer dark:bg-surface-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-surface-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-surface-600 peer-checked:bg-brand-600"></div>
+              </label>
+              <span className="text-xs font-semibold text-surface-700 dark:text-surface-300">
+                {emailAlerts.enabled ? 'Activado' : 'Desactivado'}
+              </span>
+            </div>
+          </div>
+
+          {emailAlerts.enabled && (
+            <div className="pt-3 border-t border-brand-200/50 dark:border-surface-800 flex flex-col md:flex-row items-stretch md:items-end gap-3">
+              <div className="flex-1">
+                <label className="text-[11px] font-semibold text-surface-600 dark:text-surface-400 block mb-1">
+                  Dirección de correo para los avisos:
+                </label>
+                <Input
+                  type="email"
+                  value={emailAlerts.email}
+                  onChange={(e) => handleUpdateEmailAlerts({ email: e.target.value })}
+                  placeholder="tu-correo@ejemplo.com"
+                  className="h-8 text-xs bg-white dark:bg-surface-900"
+                />
+              </div>
+
+              <div className="w-full md:w-56">
+                <label className="text-[11px] font-semibold text-surface-600 dark:text-surface-400 block mb-1">
+                  Antelación de aviso:
+                </label>
+                <select
+                  value={emailAlerts.daysAdvance}
+                  onChange={(e) => handleUpdateEmailAlerts({ daysAdvance: parseInt(e.target.value) || 3 })}
+                  className="w-full h-8 text-xs px-2.5 rounded-lg border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-900 text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                >
+                  <option value={1}>1 día antes del vencimiento</option>
+                  <option value={3}>3 días antes del vencimiento (Recomendado)</option>
+                  <option value={5}>5 días antes del vencimiento</option>
+                  <option value={7}>7 días antes del vencimiento (1 semana)</option>
+                </select>
+              </div>
+
+              <div className="shrink-0">
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={handleSendTestAlert}
+                  className="h-8 text-xs w-full md:w-auto font-medium"
+                  icon={<Send className="w-3.5 h-3.5" />}
+                >
+                  Enviar aviso de prueba
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -660,25 +829,31 @@ export function BanksPage() {
                   </div>
                 </div>
 
-                {/* Status Alert */}
-                <div className="mt-3 pt-2.5 border-t border-surface-200/60 dark:border-surface-700/60 flex items-center justify-between text-xs">
+                {/* Status Alert & Email Badge */}
+                <div className="mt-3 pt-2.5 border-t border-surface-200/60 dark:border-surface-700/60 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 text-xs">
                   <div className="flex items-center gap-1.5">
                     {isSufficient ? (
                       <>
-                        <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                        <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
                         <span className="text-emerald-700 dark:text-emerald-300 font-medium">
                           Saldo suficiente (Margen: +{formatCurrency(diff)})
                         </span>
                       </>
                     ) : (
                       <>
-                        <AlertTriangle className="h-4 w-4 text-red-600 animate-pulse" />
+                        <AlertTriangle className="h-4 w-4 text-red-600 animate-pulse shrink-0" />
                         <span className="text-red-700 dark:text-red-300 font-bold">
                           ⚠️ Faltan {formatCurrency(Math.abs(diff))} en {bankAcc?.name} antes del día {deb.due_day}
                         </span>
                       </>
                     )}
                   </div>
+
+                  {emailAlerts.enabled && (
+                    <span className="inline-flex items-center gap-1 text-[10px] text-surface-500 font-medium bg-surface-100 dark:bg-surface-800 px-2 py-0.5 rounded-full shrink-0">
+                      <Bell className="w-3 h-3 text-brand-600" /> Aviso email: {emailAlerts.daysAdvance} días antes
+                    </span>
+                  )}
                 </div>
               </div>
             );
@@ -697,7 +872,7 @@ export function BanksPage() {
         <form onSubmit={handleSaveAccount} className="space-y-4">
           <Input
             label="Nombre del Banco o Entidad"
-            placeholder="Ej: Banc Sabadell, Revolut, Trade Republic..."
+            placeholder="Ej: Banc Sabadell, Revolut, Trade Republic, MyInvestor..."
             value={accountName}
             onChange={(e) => setAccountName(e.target.value)}
             required
@@ -718,11 +893,11 @@ export function BanksPage() {
               value={accountPurpose}
               onChange={(e) => setAccountPurpose(e.target.value as BankAccountPurpose)}
               options={[
-                { value: 'fixed', label: 'Gastos Fijos (40%)' },
-                { value: 'leisure', label: 'Ocio y Variables (30%)' },
-                { value: 'savings', label: 'Ahorro e Inversión (30%)' },
+                { value: 'fixed', label: 'Gastos Fijos y Nómina (Computa en Liquidez)' },
+                { value: 'leisure', label: 'Ocio y Gastos Variables (Computa en Liquidez)' },
+                { value: 'savings', label: 'Cuenta Emergencia / Inversiones (Excluido)' },
                 { value: 'mixed', label: 'Cuenta Mixta' },
-                { value: 'cash', label: `💵 ${t.banks.purposeCash}` },
+                { value: 'cash', label: `💵 Efectivo Físico (No computa en liquidez)` },
               ]}
             />
           </div>
@@ -734,12 +909,18 @@ export function BanksPage() {
             onChange={(e) => setAccountInterest(e.target.value)}
           />
 
-          <Input
-            label="Notas"
-            placeholder="Ej: Tarjeta de débito para compras habituales..."
-            value={accountNotes}
-            onChange={(e) => setAccountNotes(e.target.value)}
-          />
+          <div>
+            <label className="text-xs font-semibold text-surface-700 dark:text-surface-300 block mb-1">
+              ¿Para qué utilizas este banco? (Finalidad y uso personalizado)
+            </label>
+            <textarea
+              className="w-full text-xs p-2.5 rounded-lg border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-900 text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              rows={2}
+              placeholder="Ej: Donde entra la nómina y de donde se cobra el gym y todo lo fijo."
+              value={accountNotes}
+              onChange={(e) => setAccountNotes(e.target.value)}
+            />
+          </div>
 
           <div className="flex justify-end gap-2 pt-3 border-t border-surface-200 dark:border-surface-800">
             <Button variant="ghost" type="button" onClick={() => setShowAccountModal(false)}>

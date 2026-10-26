@@ -11,19 +11,7 @@ export const DEFAULT_BANKS: Omit<BankAccount, 'user_id'>[] = [
     purpose: 'fixed',
     interest_rate: '0% TAE',
     color: '#0066B3',
-    notes: 'Cuenta principal para nómina y gastos fijos (alquiler, seguros, suministros)',
-    last_reconciled_at: new Date().toISOString(),
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: 'b-revolut',
-    name: 'Revolut',
-    balance: 42000, // 420,00 €
-    purpose: 'leisure',
-    interest_rate: '0% TAE',
-    color: '#0075EB',
-    notes: 'Tarjeta para ocio, restaurantes, compras, viajes y gasolina',
+    notes: 'Donde entra la nómina y extras, y de donde se cobra el gym y todo lo fijo.',
     last_reconciled_at: new Date().toISOString(),
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
@@ -35,19 +23,31 @@ export const DEFAULT_BANKS: Omit<BankAccount, 'user_id'>[] = [
     purpose: 'savings',
     interest_rate: '2% TAE',
     color: '#121212',
-    notes: 'Cuenta remunerada de ahorro y liquidez al 2% TAE',
+    notes: 'Donde tengo la cuenta de emergencia.',
     last_reconciled_at: new Date().toISOString(),
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   },
   {
-    id: 'b-myinversor',
-    name: 'MyInversor',
+    id: 'b-revolut',
+    name: 'Revolut',
+    balance: 42000, // 420,00 €
+    purpose: 'leisure',
+    interest_rate: '0% TAE',
+    color: '#0075EB',
+    notes: 'Donde pagaré todos los gastos no fijos.',
+    last_reconciled_at: new Date().toISOString(),
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: 'b-myinvestor',
+    name: 'MyInvestor',
     balance: 150000, // 1.500,00 €
     purpose: 'savings',
     interest_rate: 'Fondos Indexados',
     color: '#8A2BE2',
-    notes: 'Aportación mensual para inversión a largo plazo',
+    notes: 'Donde tengo las inversiones/carteras inversión.',
     last_reconciled_at: new Date().toISOString(),
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
@@ -59,7 +59,7 @@ export const DEFAULT_BANKS: Omit<BankAccount, 'user_id'>[] = [
     purpose: 'cash',
     interest_rate: 'Físico',
     color: '#16A34A',
-    notes: 'Dinero en efectivo / cartera. Solo para tenerlo presente, no computa en cuentas bancarias ni en el cuadre.',
+    notes: 'Efectivo que no cuenta.',
     is_cash: true,
     exclude_from_calculations: true,
     last_reconciled_at: new Date().toISOString(),
@@ -167,7 +167,13 @@ export function calculateBankLiquidity(accounts: BankAccount[]): {
 
     totalWealthCents += acc.balance || 0;
 
-    if (bId.includes('myinversor') || bName.includes('myinversor') || bName.includes('invers')) {
+    if (
+      bId.includes('myinvestor') ||
+      bId.includes('myinversor') ||
+      bName.includes('myinvestor') ||
+      bName.includes('myinversor') ||
+      bName.includes('invers')
+    ) {
       investmentsCents += acc.balance || 0;
     } else if (bId.includes('trade') || bName.includes('trade') || bName.includes('emergencia')) {
       emergencyFundCents += acc.balance || 0;
@@ -311,7 +317,40 @@ export function getBankAccounts(userId: string): BankAccount[] {
       saveBankAccounts(userId, initial);
       return initial;
     }
-    const list: BankAccount[] = JSON.parse(raw);
+    let list: BankAccount[] = JSON.parse(raw);
+    let changed = false;
+
+    // Migrate MyInversor -> MyInvestor and update default notes if needed
+    list = list.map((b) => {
+      let updated = { ...b };
+      if (b.name === 'MyInversor' || b.id === 'b-myinversor') {
+        updated.name = 'MyInvestor';
+        updated.id = 'b-myinvestor';
+        changed = true;
+      }
+      if (b.name.toLowerCase().includes('sabadell') && (!b.notes || b.notes.includes('principal para nómina'))) {
+        updated.notes = 'Donde entra la nómina y extras, y de donde se cobra el gym y todo lo fijo.';
+        changed = true;
+      }
+      if (b.name.toLowerCase().includes('trade') && (!b.notes || b.notes.includes('remunerada de ahorro'))) {
+        updated.notes = 'Donde tengo la cuenta de emergencia.';
+        changed = true;
+      }
+      if (b.name.toLowerCase().includes('revolut') && (!b.notes || b.notes.includes('para ocio, restaurantes'))) {
+        updated.notes = 'Donde pagaré todos los gastos no fijos.';
+        changed = true;
+      }
+      if ((b.name.toLowerCase().includes('myinvestor') || b.name.toLowerCase().includes('myinversor')) && (!b.notes || b.notes.includes('Aportación mensual'))) {
+        updated.notes = 'Donde tengo las inversiones/carteras inversión.';
+        changed = true;
+      }
+      if ((b.is_cash || b.name.toLowerCase() === 'efectivo') && (!b.notes || b.notes.includes('Dinero en efectivo'))) {
+        updated.notes = 'Efectivo que no cuenta.';
+        changed = true;
+      }
+      return updated;
+    });
+
     // Ensure Efectivo exists for existing users
     const hasCash = list.some(
       (b) => b.is_cash || b.id === 'b-efectivo' || b.name.trim().toLowerCase() === 'efectivo'
@@ -325,13 +364,17 @@ export function getBankAccounts(userId: string): BankAccount[] {
         purpose: 'cash',
         interest_rate: 'Físico',
         color: '#16A34A',
-        notes: 'Dinero en efectivo / cartera. Solo para tenerlo presente, no computa en cuentas bancarias ni en el cuadre.',
+        notes: 'Efectivo que no cuenta.',
         is_cash: true,
         exclude_from_calculations: true,
         last_reconciled_at: new Date().toISOString(),
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       });
+      changed = true;
+    }
+
+    if (changed) {
       saveBankAccounts(userId, list);
     }
     return list;
@@ -366,5 +409,41 @@ export function saveScheduledDebits(userId: string, debits: BankScheduledDebit[]
     localStorage.setItem(STORAGE_KEY_DEBITS + userId, JSON.stringify(debits));
   } catch (e) {
     console.error('Error saving scheduled debits to localStorage:', e);
+  }
+}
+
+export interface CalendarEmailAlertSettings {
+  enabled: boolean;
+  email: string;
+  daysAdvance: number;
+}
+
+const STORAGE_KEY_EMAIL_ALERTS = 'pt_email_alerts_';
+
+export function getEmailAlertSettings(userId: string, defaultEmail = ''): CalendarEmailAlertSettings {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_EMAIL_ALERTS + userId);
+    if (!raw) {
+      return {
+        enabled: true,
+        email: defaultEmail || '',
+        daysAdvance: 3,
+      };
+    }
+    return JSON.parse(raw);
+  } catch {
+    return {
+      enabled: true,
+      email: defaultEmail || '',
+      daysAdvance: 3,
+    };
+  }
+}
+
+export function saveEmailAlertSettings(userId: string, settings: CalendarEmailAlertSettings): void {
+  try {
+    localStorage.setItem(STORAGE_KEY_EMAIL_ALERTS + userId, JSON.stringify(settings));
+  } catch (e) {
+    console.error('Error saving email alert settings:', e);
   }
 }
