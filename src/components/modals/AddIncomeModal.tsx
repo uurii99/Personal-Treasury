@@ -9,6 +9,8 @@ import { eurosToCents } from '@/lib/money';
 import { getTodayISO, getMonthYearFromDate } from '@/lib/dates';
 import { Modal } from '@/components/ui/Modal';
 import { Button, Input, Select } from '@/components/ui';
+import { useCelebration } from '@/contexts/CelebrationContext';
+import { recordMovementInBank } from '@/lib/banks';
 import { INCOME_TYPE_LABELS, type IncomeType } from '@/types';
 
 const schema = z.object({
@@ -32,6 +34,7 @@ interface AddIncomeModalProps {
 export function AddIncomeModal({ open, onOpenChange, month, year, onSaved }: AddIncomeModalProps) {
   const { user } = useAuth();
   const { success, error: showError } = useToast();
+  const { triggerNominaCelebration } = useCelebration();
   const [saving, setSaving] = useState(false);
 
   const form = useForm<FormData>({
@@ -73,6 +76,22 @@ export function AddIncomeModal({ open, onOpenChange, month, year, onSaved }: Add
         showError('Error al guardar el ingreso');
         console.error(error);
         return;
+      }
+
+      // Update banks automatically
+      recordMovementInBank(user.id, {
+        type: 'income',
+        amountCents,
+        description: data.description,
+      });
+
+      // If Nómina, trigger Donald Duck money celebration GIF!
+      const isNomina =
+        data.income_type === 'salary' ||
+        data.description.toLowerCase().includes('nomina') ||
+        data.description.toLowerCase().includes('nòmina');
+      if (isNomina) {
+        triggerNominaCelebration(amountCents);
       }
 
       success('Ingreso registrado', data.description);

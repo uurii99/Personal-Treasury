@@ -3,9 +3,11 @@ import { Modal } from '@/components/ui/Modal';
 import { Button, Input } from '@/components/ui';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
+import { useCelebration } from '@/contexts/CelebrationContext';
 import { supabase } from '@/lib/supabase';
 import { eurosToCents, centsToEuros } from '@/lib/money';
 import { getMonthName } from '@/lib/dates';
+import { recordMovementInBank } from '@/lib/banks';
 import type { BudgetSection } from '@/types';
 
 export interface CellEditData {
@@ -35,6 +37,7 @@ function CellEditForm({
 }) {
   const { user } = useAuth();
   const { success, error: showError } = useToast();
+  const { triggerNominaCelebration } = useCelebration();
 
   const [amountStr, setAmountStr] = useState(() => {
     const euros = centsToEuros(data.currentAmountCents);
@@ -140,6 +143,27 @@ function CellEditForm({
             date: `${data.year}-${String(data.month).padStart(2, '0')}-01`,
           });
         }
+      }
+
+      // Update banks automatically
+      const deltaCents = cents - (data.currentAmountCents || 0);
+      if (deltaCents !== 0) {
+        recordMovementInBank(user.id, {
+          type: data.type,
+          amountCents: Math.abs(deltaCents),
+          section: data.section,
+          description: data.conceptName,
+          operation: deltaCents > 0 ? 'add' : 'remove',
+        });
+      }
+
+      // If Nómina entered or increased, trigger Donald Duck money GIF!
+      const isNomina =
+        data.type === 'income' &&
+        (data.conceptName.toUpperCase().includes('NÒMINA') ||
+          data.conceptName.toUpperCase().includes('NOMINA'));
+      if (isNomina && cents > 0) {
+        triggerNominaCelebration(cents);
       }
 
       success('Celda actualizada', `${data.conceptName} (${getMonthName(data.month)}): ${parsedAmount.toFixed(2)} €`);

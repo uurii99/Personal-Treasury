@@ -1,11 +1,9 @@
 import { useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import {
-  Receipt,
   BarChart3,
   Settings,
   Tag,
-  History,
   Plus,
   LogOut,
   Moon,
@@ -119,13 +117,11 @@ export function AppLayout() {
   // Profile dropdown open state
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
-  // Clean navigation: removed /annual, /recurring, /savings as requested
+  // Clean navigation: removed Historial, Mes actual, /annual, /recurring, /savings as requested
   const mainNavItems: NavItem[] = [
     { to: '/dashboard', label: t.nav.excel, icon: <FileSpreadsheet className="h-4 w-4 text-[#107c41]" /> },
     { to: '/banks', label: t.nav.banks, icon: <Landmark className="h-4 w-4 text-brand-600 dark:text-brand-400" /> },
     { to: '/goals', label: t.nav.goals, icon: <Target className="h-4 w-4 text-amber-500" /> },
-    { to: '/treasury', label: t.nav.currentMonth, icon: <Receipt className="h-4 w-4" /> },
-    { to: '/history', label: t.nav.history, icon: <History className="h-4 w-4" /> },
   ];
 
   const managementNavItems: NavItem[] = [
@@ -135,7 +131,7 @@ export function AppLayout() {
   ];
 
   const handleAddMovement = () => {
-    navigate('/treasury?action=add');
+    navigate('/dashboard');
   };
 
   const closeMobileSidebar = () => setMobileSidebarOpen(false);

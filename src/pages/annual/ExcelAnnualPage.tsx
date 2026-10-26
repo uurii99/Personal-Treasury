@@ -12,8 +12,6 @@ import {
   Receipt,
   Edit2,
   Loader2,
-  Eye,
-  EyeOff,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
@@ -28,6 +26,9 @@ import { CellDetailModal, type CellDetailTarget } from '@/components/excel/CellD
 import { AddRowModal } from '@/components/excel/AddRowModal';
 import { AddMovementModal } from '@/components/modals/AddMovementModal';
 import { AddIncomeModal } from '@/components/modals/AddIncomeModal';
+import { MobileMonthlyView } from '@/components/excel/MobileMonthlyView';
+import { isUuriiProfile, syncUuriiExcelData } from '@/lib/syncUuriiExcel';
+import { Calendar, Sparkles } from 'lucide-react';
 import type { Category, BudgetSection, IncomeEntry, Transaction } from '@/types';
 
 // Default categories extracted exactly from TRESORERIA URI.xlsx
@@ -80,7 +81,7 @@ const MONTHS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 const COL_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O'];
 
 export function ExcelAnnualPage() {
-  const { user, settings, refreshSettings } = useAuth();
+  const { user, profile, settings, refreshSettings } = useAuth();
   const { success, error: showError } = useToast();
   const { language, t } = useLanguage();
 
@@ -106,9 +107,8 @@ export function ExcelAnnualPage() {
     conceptName?: string;
   } | null>(null);
 
-  // Side Inspector (Columns P:R in TRESORERIA URI.xlsx)
+  // Selected month for mobile view
   const [selectedInspectorMonth, setSelectedInspectorMonth] = useState<number>(currentMY.month);
-  const [showInspector, setShowInspector] = useState<boolean>(true);
 
   // Modals state
   const [showPercentageModal, setShowPercentageModal] = useState(false);
@@ -121,11 +121,31 @@ export function ExcelAnnualPage() {
 
   // Search filter
   const [searchTerm, setSearchTerm] = useState('');
+  const [viewMode, setViewMode] = useState<'month' | 'annual'>(() =>
+    typeof window !== 'undefined' && window.innerWidth < 768 ? 'month' : 'annual'
+  );
+  const [excelDensity, setExcelDensity] = useState<'normal' | 'compact' | 'mini'>('compact');
+  const [isUurii, setIsUurii] = useState(false);
+  const [syncingUurii, setSyncingUurii] = useState(false);
 
   // 1. Load data
   const loadYearData = useCallback(async () => {
     if (!user) return;
     setLoading(true);
+
+    // Auto-sync for uurii99_ profile starting this month (October 2026)
+    // Strictly ignores and NEVER modifies any other user's data
+    if (isUuriiProfile(user, profile)) {
+      setIsUurii(true);
+      const syncKey = `uurii_excel_synced_${user.id}_2026_10`;
+      if (localStorage.getItem(syncKey) !== 'true') {
+        try {
+          await syncUuriiExcelData(user, profile);
+        } catch (e) {
+          console.error('Error auto-syncing uurii excel:', e);
+        }
+      }
+    }
 
     try {
       // Load categories
@@ -174,7 +194,7 @@ export function ExcelAnnualPage() {
     } finally {
       setLoading(false);
     }
-  }, [user, year, showError]);
+  }, [user, profile, year, showError]);
 
   useEffect(() => {
     loadYearData();
@@ -371,8 +391,27 @@ export function ExcelAnnualPage() {
     return running;
   }, [monthlyNetBalance, settings?.initial_balance]);
 
-  // Actual savings rate achieved
-  const yearSavingsRate = yearTotalIncome > 0 ? (yearTotalSavings / yearTotalIncome) * 100 : 0;
+
+  const scrollToMonth = (mNum: number) => {
+    const el = document.getElementById(`month-col-${mNum}`);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    }
+  };
+
+  const handleManualSyncUurii = async () => {
+    if (!user) return;
+    setSyncingUurii(true);
+    const res = await syncUuriiExcelData(user, profile, true);
+    if (res.success) {
+      success('Sincronizado', res.message);
+      await loadYearData();
+    } else {
+      showError(res.message);
+    }
+    setSyncingUurii(false);
+  };
+
 
   // Quick cell click
   const handleCellClick = (
@@ -503,6 +542,50 @@ export function ExcelAnnualPage() {
             </div>
           </div>
 
+          {/* View Mode Switcher and Uurii sync */}
+          <div className="flex items-center gap-2">
+            <div className="flex items-center bg-black/25 p-0.5 rounded-xl border border-white/20">
+              <button
+                onClick={() => setViewMode('month')}
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${
+                  viewMode === 'month'
+                    ? 'bg-white text-emerald-900 shadow-sm'
+                    : 'text-white/80 hover:text-white'
+                }`}
+              >
+                <Calendar className="h-3.5 w-3.5" />
+                <span>{language === 'ca' ? 'Vista Mes' : 'Vista Mes'}</span>
+              </button>
+              <button
+                onClick={() => setViewMode('annual')}
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${
+                  viewMode === 'annual'
+                    ? 'bg-white text-emerald-900 shadow-sm'
+                    : 'text-white/80 hover:text-white'
+                }`}
+              >
+                <FileSpreadsheet className="h-3.5 w-3.5" />
+                <span>{language === 'ca' ? 'Excel Anual' : 'Excel Anual'}</span>
+              </button>
+            </div>
+
+            {isUurii && (
+              <button
+                onClick={handleManualSyncUurii}
+                disabled={syncingUurii}
+                className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white/20 hover:bg-white/30 text-white text-xs font-semibold border border-white/20 transition-colors shadow-sm"
+                title="Sincronizar datos de TRESORERIA URI para Octubre 2026"
+              >
+                {syncingUurii ? (
+                  <Loader2 className="h-3 w-3 animate-spin text-white" />
+                ) : (
+                  <Sparkles className="h-3 w-3 text-amber-300" />
+                )}
+                <span>TRESORERIA URI</span>
+              </button>
+            )}
+          </div>
+
           {/* Quick year navigation */}
           <div className="flex items-center gap-2">
             <div className="flex items-center bg-black/20 rounded-lg p-0.5 border border-white/20">
@@ -557,6 +640,43 @@ export function ExcelAnnualPage() {
             </button>
           </div>
 
+          {/* Mobile Controls & Jump */}
+          {viewMode === 'annual' && (
+            <div className="flex items-center gap-1.5 order-2 sm:order-none">
+              <button
+                onClick={() => scrollToMonth(currentMY.month)}
+                className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-200 text-xs font-semibold hover:bg-emerald-200 transition-colors border border-emerald-300 dark:border-emerald-800"
+                title="Desplazarse al mes actual"
+              >
+                <span>📍 {t.months[currentMY.month - 1]}</span>
+              </button>
+
+              <div className="flex items-center bg-surface-200 dark:bg-surface-800 p-0.5 rounded-lg text-[10px] font-semibold text-surface-600 dark:text-surface-300">
+                <button
+                  onClick={() => setExcelDensity('normal')}
+                  className={`px-1.5 py-0.5 rounded ${excelDensity === 'normal' ? 'bg-white dark:bg-surface-700 shadow-xs text-surface-900 dark:text-surface-100 font-bold' : ''}`}
+                  title="Vista Normal"
+                >
+                  100%
+                </button>
+                <button
+                  onClick={() => setExcelDensity('compact')}
+                  className={`px-1.5 py-0.5 rounded ${excelDensity === 'compact' ? 'bg-white dark:bg-surface-700 shadow-xs text-surface-900 dark:text-surface-100 font-bold' : ''}`}
+                  title="Vista Compacta"
+                >
+                  85%
+                </button>
+                <button
+                  onClick={() => setExcelDensity('mini')}
+                  className={`px-1.5 py-0.5 rounded ${excelDensity === 'mini' ? 'bg-white dark:bg-surface-700 shadow-xs text-surface-900 dark:text-surface-100 font-bold' : ''}`}
+                  title="Vista Mini"
+                >
+                  70%
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Quick buttons */}
           <div className="flex flex-wrap items-center gap-2">
             <Button
@@ -585,15 +705,6 @@ export function ExcelAnnualPage() {
               }}
             >
               {language === 'ca' ? 'Nova fila' : 'Nueva fila'}
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              icon={showInspector ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
-              onClick={() => setShowInspector(!showInspector)}
-              title={language === 'ca' ? 'Mostrar / ocultar el desglossament mensual' : 'Mostrar / ocultar el desglose mensual'}
-            >
-              {showInspector ? t.common.hideMonthDetail : t.common.showMonthDetail}
             </Button>
             <Button
               size="sm"
@@ -656,7 +767,7 @@ export function ExcelAnnualPage() {
         </div>
 
         {/* Year KPI Chips */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-surface-200 dark:divide-surface-800 border-b border-surface-200 dark:border-surface-800 text-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-surface-200 dark:divide-surface-800 border-b border-surface-200 dark:border-surface-800 text-xs">
           <div className="p-3 flex items-center justify-between">
             <span className="text-surface-500 font-medium">{t.tables.totalEarned}</span>
             <span className="font-mono font-bold text-success-600 dark:text-success-400 tabular-nums">
@@ -680,23 +791,63 @@ export function ExcelAnnualPage() {
               {formatCurrency(yearNetBalance)}
             </span>
           </div>
-          <div className="p-3 flex items-center justify-between bg-brand-50/30 dark:bg-brand-950/20">
-            <span className="text-surface-500 font-medium">{t.stats.savingsRate}:</span>
-            <span
-              className={`font-mono font-bold tabular-nums flex items-center gap-1 ${
-                yearSavingsRate >= sp ? 'text-success-600 dark:text-success-400' : 'text-amber-600 dark:text-amber-400'
-              }`}
-            >
-              {yearSavingsRate.toFixed(1)}%
-              <span className="text-[10px] text-surface-400 font-normal">({language === 'ca' ? 'Obj' : 'Obj'}: {sp}%)</span>
-            </span>
-          </div>
         </div>
 
-        {/* ===== SPREADSHEET MAIN CONTAINER (Grid + Inspector Widget) ===== */}
-        <div className="flex flex-col lg:flex-row divide-y lg:divide-y-0 lg:divide-x divide-surface-200 dark:divide-surface-800">
-          {/* Main Excel Grid */}
-          <div className="flex-1 overflow-x-auto max-h-[75vh] relative select-text">
+        {viewMode === 'month' ? (
+          <div className="p-3 sm:p-4">
+            <MobileMonthlyView
+              month={selectedInspectorMonth}
+              setMonth={setSelectedInspectorMonth}
+              year={year}
+              incomeConcepts={incomeConcepts}
+              incomeMatrix={incomeMatrix}
+              fixedMatrix={fixedMatrix}
+              leisureMatrix={leisureMatrix}
+              savingsMatrix={savingsMatrix}
+              monthlyTotalIncome={monthlyTotalIncome}
+              monthlyTotalFixed={monthlyTotalFixed}
+              monthlyTotalLeisure={monthlyTotalLeisure}
+              monthlyTotalSavings={monthlyTotalSavings}
+              monthlyAllocatedFixed={monthlyAllocatedFixed}
+              monthlyAllocatedLeisure={monthlyAllocatedLeisure}
+              monthlyAllocatedSavings={monthlyAllocatedSavings}
+              monthlyRemainingFixed={monthlyRemainingFixed}
+              monthlyRemainingLeisure={monthlyRemainingLeisure}
+              monthlyRemainingSavings={monthlyRemainingSavings}
+              monthlyTotalExpenses={monthlyTotalExpenses}
+              monthlyNetBalance={monthlyNetBalance}
+              fp={fp}
+              lp={lp}
+              sp={sp}
+              onSelectCell={({ type, conceptName, month, amount, section, categoryId }) => {
+                setCellEditData({
+                  type,
+                  conceptName,
+                  month,
+                  year,
+                  currentAmountCents: amount,
+                  section,
+                  categoryId,
+                });
+              }}
+              onDrilldown={({ type, conceptName, month, section, categoryId }) => {
+                setCellDetailTarget({
+                  type,
+                  conceptName,
+                  month,
+                  year,
+                  section,
+                  categoryId,
+                });
+              }}
+              onAddIncome={() => setShowAddIncome(true)}
+              onAddMovement={() => setShowAddMovement(true)}
+            />
+          </div>
+        ) : (
+          <div className={`excel-density-${excelDensity}`}>
+            {/* Main Excel Grid */}
+            <div className="overflow-x-auto max-h-[75vh] relative select-text">
             <table className="excel-table">
               {/* COLUMN HEADERS ROW: Letters A, B, C... */}
               <thead>
@@ -704,7 +855,7 @@ export function ExcelAnnualPage() {
                   <th className="excel-row-num excel-sticky-col bg-surface-200 dark:bg-surface-800 border-b border-surface-300 dark:border-surface-700">
                     #
                   </th>
-                  <th className="excel-col-header excel-sticky-col left-[2.25rem] min-w-[250px] text-left px-3">
+                  <th className="excel-col-header excel-sticky-concept min-w-[130px] sm:min-w-[250px] text-left px-3">
                     A · CONCEPTE
                   </th>
                   {MONTHS.map((m, idx) => {
@@ -713,7 +864,8 @@ export function ExcelAnnualPage() {
                     return (
                       <th
                         key={m}
-                        className={`excel-col-header min-w-[115px] ${
+                        id={`month-col-${m}`}
+                        className={`excel-col-header min-w-[80px] sm:min-w-[115px] ${
                           isCurrent
                             ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 font-bold'
                             : ''
@@ -729,11 +881,11 @@ export function ExcelAnnualPage() {
                       </th>
                     );
                   })}
-                  <th className="excel-col-header min-w-[130px] bg-surface-200 dark:bg-surface-800/80 font-bold">
+                  <th className="excel-col-header min-w-[90px] sm:min-w-[130px] bg-surface-200 dark:bg-surface-800/80 font-bold">
                     <div className="text-[10px] text-surface-400">N</div>
                     <span>TOTAL %</span>
                   </th>
-                  <th className="excel-col-header min-w-[115px] bg-surface-200 dark:bg-surface-800/80 font-bold">
+                  <th className="excel-col-header min-w-[80px] sm:min-w-[115px] bg-surface-200 dark:bg-surface-800/80 font-bold">
                     <div className="text-[10px] text-surface-400">O</div>
                     <span>{t.tables.monthlyAverage}</span>
                   </th>
@@ -779,7 +931,7 @@ export function ExcelAnnualPage() {
                     return (
                       <tr key={concept} className="hover:bg-emerald-100/60 dark:hover:bg-emerald-950/40 group">
                         <td className="excel-row-num">{rowNum}</td>
-                        <td className="excel-cell excel-sticky-col left-[2.25rem] bg-[#E2F0D9] dark:bg-emerald-950/70 font-semibold text-emerald-950 dark:text-emerald-100">
+                        <td className="excel-cell excel-sticky-concept bg-[#E2F0D9] dark:bg-emerald-950/70 font-semibold text-emerald-950 dark:text-emerald-100">
                           <div className="flex items-center justify-between gap-1">
                             <span className="truncate">{concept}</span>
                             <button
@@ -845,7 +997,7 @@ export function ExcelAnnualPage() {
                   <td className="excel-row-num bg-emerald-200 dark:bg-emerald-900 text-emerald-900 dark:text-emerald-200">
                     6
                   </td>
-                  <td className="excel-cell excel-sticky-col left-[2.25rem] bg-[#D9EAD3] dark:bg-emerald-950/80 font-bold text-emerald-950 dark:text-emerald-100 text-right pr-4">
+                  <td className="excel-cell excel-sticky-concept bg-[#D9EAD3] dark:bg-emerald-950/80 font-bold text-emerald-950 dark:text-emerald-100 text-right pr-4">
                     {t.tables.totalEarned}
                   </td>
                   {MONTHS.map((m) => {
@@ -907,7 +1059,7 @@ export function ExcelAnnualPage() {
                     return (
                       <tr key={rowItem.catId || rowItem.name} className="hover:bg-blue-100/60 dark:hover:bg-blue-950/40 group">
                         <td className="excel-row-num">{rowNum}</td>
-                        <td className="excel-cell excel-sticky-col left-[2.25rem] bg-[#D9E1F2] dark:bg-blue-950/70 font-semibold text-blue-950 dark:text-blue-100">
+                        <td className="excel-cell excel-sticky-concept bg-[#D9E1F2] dark:bg-blue-950/70 font-semibold text-blue-950 dark:text-blue-100">
                           <div className="flex items-center justify-between gap-1">
                             <span className="truncate">{rowItem.name}</span>
                             <button
@@ -977,7 +1129,7 @@ export function ExcelAnnualPage() {
                 {/* TOTAL GASTADO (Tabla 2) */}
                 <tr className="bg-[#F4CCCC] dark:bg-red-950/40 font-bold border-t border-b border-red-200 dark:border-red-800">
                   <td className="excel-row-num bg-[#EA9999] dark:bg-red-900 text-red-950 dark:text-red-200">21</td>
-                  <td className="excel-cell excel-sticky-col left-[2.25rem] bg-[#F4CCCC] dark:bg-red-950/60 font-bold text-red-950 dark:text-red-200 text-right pr-4">
+                  <td className="excel-cell excel-sticky-concept bg-[#F4CCCC] dark:bg-red-950/60 font-bold text-red-950 dark:text-red-200 text-right pr-4">
                     {t.tables.totalSpent}
                   </td>
                   {MONTHS.map((m) => (
@@ -999,7 +1151,7 @@ export function ExcelAnnualPage() {
                 {/* RESTANTE (Tabla 2) */}
                 <tr className="bg-surface-100 dark:bg-surface-800 font-bold">
                   <td className="excel-row-num">22</td>
-                  <td className="excel-cell excel-sticky-col left-[2.25rem] bg-surface-100 dark:bg-surface-800 font-bold text-surface-900 dark:text-surface-100 text-right pr-4">
+                  <td className="excel-cell excel-sticky-concept bg-surface-100 dark:bg-surface-800 font-bold text-surface-900 dark:text-surface-100 text-right pr-4">
                     {t.tables.remaining}
                   </td>
                   {MONTHS.map((m) => {
@@ -1030,7 +1182,7 @@ export function ExcelAnnualPage() {
                 {/* PRESUPUESTO ASIGNADO (Tabla 2) - C6 * 40 / 100 */}
                 <tr className="bg-[#C9DAF8] dark:bg-blue-950/60 font-semibold text-xs border-b-2 border-blue-300 dark:border-blue-700">
                   <td className="excel-row-num bg-blue-200 dark:bg-blue-900 text-blue-900 dark:text-blue-200">23</td>
-                  <td className="excel-cell excel-sticky-col left-[2.25rem] bg-[#C9DAF8] dark:bg-blue-950/80 font-semibold text-blue-950 dark:text-blue-100 text-right pr-4">
+                  <td className="excel-cell excel-sticky-concept bg-[#C9DAF8] dark:bg-blue-950/80 font-semibold text-blue-950 dark:text-blue-100 text-right pr-4">
                     {t.tables.availableBudget} ({fp}%):
                   </td>
                   {MONTHS.map((m) => (
@@ -1091,7 +1243,7 @@ export function ExcelAnnualPage() {
                     return (
                       <tr key={rowItem.catId || rowItem.name} className="hover:bg-amber-100/60 dark:hover:bg-amber-950/40 group">
                         <td className="excel-row-num">{rowNum}</td>
-                        <td className="excel-cell excel-sticky-col left-[2.25rem] bg-[#FFF2CC] dark:bg-amber-950/70 font-semibold text-amber-950 dark:text-amber-100">
+                        <td className="excel-cell excel-sticky-concept bg-[#FFF2CC] dark:bg-amber-950/70 font-semibold text-amber-950 dark:text-amber-100">
                           <div className="flex items-center justify-between gap-1">
                             <span className="truncate">{rowItem.name}</span>
                             <button
@@ -1161,7 +1313,7 @@ export function ExcelAnnualPage() {
                 {/* TOTAL GASTADO (Tabla 3) */}
                 <tr className="bg-[#F4CCCC] dark:bg-red-950/40 font-bold border-t border-b border-red-200 dark:border-red-800">
                   <td className="excel-row-num bg-[#EA9999] dark:bg-red-900 text-red-950 dark:text-red-200">36</td>
-                  <td className="excel-cell excel-sticky-col left-[2.25rem] bg-[#F4CCCC] dark:bg-red-950/60 font-bold text-red-950 dark:text-red-200 text-right pr-4">
+                  <td className="excel-cell excel-sticky-concept bg-[#F4CCCC] dark:bg-red-950/60 font-bold text-red-950 dark:text-red-200 text-right pr-4">
                     {t.tables.totalSpent}
                   </td>
                   {MONTHS.map((m) => (
@@ -1183,7 +1335,7 @@ export function ExcelAnnualPage() {
                 {/* RESTANTE (Tabla 3) */}
                 <tr className="bg-surface-100 dark:bg-surface-800 font-bold">
                   <td className="excel-row-num">37</td>
-                  <td className="excel-cell excel-sticky-col left-[2.25rem] bg-surface-100 dark:bg-surface-800 font-bold text-surface-900 dark:text-surface-100 text-right pr-4">
+                  <td className="excel-cell excel-sticky-concept bg-surface-100 dark:bg-surface-800 font-bold text-surface-900 dark:text-surface-100 text-right pr-4">
                     {t.tables.remaining}
                   </td>
                   {MONTHS.map((m) => {
@@ -1214,7 +1366,7 @@ export function ExcelAnnualPage() {
                 {/* PRESUPUESTO ASIGNADO (Tabla 3) - C6 * 30 / 100 */}
                 <tr className="bg-[#FFF2CC] dark:bg-amber-950/60 font-semibold text-xs border-b-2 border-amber-300 dark:border-amber-700">
                   <td className="excel-row-num bg-amber-200 dark:bg-amber-900 text-amber-900 dark:text-amber-200">38</td>
-                  <td className="excel-cell excel-sticky-col left-[2.25rem] bg-[#FFF2CC] dark:bg-amber-950/80 font-semibold text-amber-950 dark:text-amber-100 text-right pr-4">
+                  <td className="excel-cell excel-sticky-concept bg-[#FFF2CC] dark:bg-amber-950/80 font-semibold text-amber-950 dark:text-amber-100 text-right pr-4">
                     {t.tables.availableBudget} ({lp}%):
                   </td>
                   {MONTHS.map((m) => (
@@ -1275,7 +1427,7 @@ export function ExcelAnnualPage() {
                     return (
                       <tr key={rowItem.catId || rowItem.name} className="hover:bg-purple-100/60 dark:hover:bg-purple-950/40 group">
                         <td className="excel-row-num">{rowNum}</td>
-                        <td className="excel-cell excel-sticky-col left-[2.25rem] bg-[#EAD1DC] dark:bg-purple-950/70 font-semibold text-purple-950 dark:text-purple-100">
+                        <td className="excel-cell excel-sticky-concept bg-[#EAD1DC] dark:bg-purple-950/70 font-semibold text-purple-950 dark:text-purple-100">
                           <div className="flex items-center justify-between gap-1">
                             <span className="truncate">{rowItem.name}</span>
                             <button
@@ -1345,7 +1497,7 @@ export function ExcelAnnualPage() {
                 {/* TOTAL INVERTIT/ESTALVIAT (Tabla 4) */}
                 <tr className="bg-[#F3E8FF] dark:bg-purple-950/60 font-bold border-t-2 border-b-2 border-purple-300 dark:border-purple-700">
                   <td className="excel-row-num bg-purple-200 dark:bg-purple-900 text-purple-950 dark:text-purple-200">44</td>
-                  <td className="excel-cell excel-sticky-col left-[2.25rem] bg-[#F3E8FF] dark:bg-purple-950/80 font-bold text-purple-950 dark:text-purple-100 text-right pr-4">
+                  <td className="excel-cell excel-sticky-concept bg-[#F3E8FF] dark:bg-purple-950/80 font-bold text-purple-950 dark:text-purple-100 text-right pr-4">
                     {t.tables.totalSavings}
                   </td>
                   {MONTHS.map((m) => (
@@ -1367,7 +1519,7 @@ export function ExcelAnnualPage() {
                 {/* RESTANT (Tabla 4) - C46 - C44 */}
                 <tr className="bg-surface-100 dark:bg-surface-800 font-bold">
                   <td className="excel-row-num">45</td>
-                  <td className="excel-cell excel-sticky-col left-[2.25rem] bg-surface-100 dark:bg-surface-800 font-bold text-surface-900 dark:text-surface-100 text-right pr-4">
+                  <td className="excel-cell excel-sticky-concept bg-surface-100 dark:bg-surface-800 font-bold text-surface-900 dark:text-surface-100 text-right pr-4">
                     {t.tables.remaining}
                   </td>
                   {MONTHS.map((m) => {
@@ -1398,7 +1550,7 @@ export function ExcelAnnualPage() {
                 {/* MY INVERSOR / Trade Republic (Tabla 4) - C6 * 30 / 100 */}
                 <tr className="bg-[#FAF5FF] dark:bg-purple-950/40 font-semibold text-xs border-b-2 border-purple-200 dark:border-purple-800">
                   <td className="excel-row-num bg-purple-100 dark:bg-purple-900/60 text-purple-900 dark:text-purple-200">46</td>
-                  <td className="excel-cell excel-sticky-col left-[2.25rem] bg-[#FAF5FF] dark:bg-purple-950/60 font-semibold text-purple-950 dark:text-purple-200 text-right pr-4">
+                  <td className="excel-cell excel-sticky-concept bg-[#FAF5FF] dark:bg-purple-950/60 font-semibold text-purple-950 dark:text-purple-200 text-right pr-4">
                     {t.tables.availableBudget} ({sp}%):
                   </td>
                   {MONTHS.map((m) => (
@@ -1437,7 +1589,7 @@ export function ExcelAnnualPage() {
                 {/* Total Despeses */}
                 <tr className="bg-surface-100/70 dark:bg-surface-800/60 font-semibold">
                   <td className="excel-row-num">50</td>
-                  <td className="excel-cell excel-sticky-col left-[2.25rem] bg-surface-100 dark:bg-surface-800 font-semibold text-surface-800 dark:text-surface-200 text-right pr-4">
+                  <td className="excel-cell excel-sticky-concept bg-surface-100 dark:bg-surface-800 font-semibold text-surface-800 dark:text-surface-200 text-right pr-4">
                     TOTAL DESPESES:
                   </td>
                   {MONTHS.map((m) => (
@@ -1456,7 +1608,7 @@ export function ExcelAnnualPage() {
                 {/* Resultat Net */}
                 <tr className="bg-white dark:bg-surface-900 font-bold border-t-2 border-b-2 border-surface-300 dark:border-surface-700">
                   <td className="excel-row-num bg-surface-200 dark:bg-surface-800">51</td>
-                  <td className="excel-cell excel-sticky-col left-[2.25rem] bg-white dark:bg-surface-900 font-bold text-surface-900 dark:text-surface-100 text-right pr-4">
+                  <td className="excel-cell excel-sticky-concept bg-white dark:bg-surface-900 font-bold text-surface-900 dark:text-surface-100 text-right pr-4">
                     RESULTAT NET:
                   </td>
                   {MONTHS.map((m) => {
@@ -1491,7 +1643,7 @@ export function ExcelAnnualPage() {
                 {/* Saldo Acumulat */}
                 <tr className="bg-emerald-50/40 dark:bg-emerald-950/20 text-xs font-semibold">
                   <td className="excel-row-num bg-emerald-100 dark:bg-emerald-900/40">52</td>
-                  <td className="excel-cell excel-sticky-col left-[2.25rem] bg-emerald-50 dark:bg-emerald-950/40 font-semibold text-emerald-950 dark:text-emerald-100 text-right pr-4">
+                  <td className="excel-cell excel-sticky-concept bg-emerald-50 dark:bg-emerald-950/40 font-semibold text-emerald-950 dark:text-emerald-100 text-right pr-4">
                     SALDO ACUMULAT:
                   </td>
                   {MONTHS.map((m) => {
@@ -1515,155 +1667,8 @@ export function ExcelAnnualPage() {
               </tbody>
             </table>
           </div>
-
-          {/* ===== SIDE INSPECTOR WIDGET (COLUMNS P:R FROM TRESORERIA URI.XLSX) ===== */}
-          {showInspector && (
-            <div className="w-full lg:w-72 bg-surface-50/70 dark:bg-surface-900/80 p-4 shrink-0 flex flex-col justify-between border-t lg:border-t-0 border-surface-200 dark:border-surface-800">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold uppercase tracking-wider text-surface-700 dark:text-surface-300">
-                      Detall Mes:
-                    </span>
-                    <select
-                      value={selectedInspectorMonth}
-                      onChange={(e) => setSelectedInspectorMonth(parseInt(e.target.value, 10))}
-                      className="text-xs font-bold font-mono bg-white dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-lg px-2.5 py-1 text-surface-900 dark:text-surface-100"
-                    >
-                      {MONTHS.map((m) => (
-                        <option key={m} value={m}>
-                          {MONTH_NAMES[m - 1]}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <span className="text-[10px] font-mono text-surface-400">P:R</span>
-                </div>
-
-                {/* Mini breakdown table like Uri's Excel */}
-                <div className="bg-white dark:bg-surface-800 rounded-xl border border-surface-200 dark:border-surface-700 overflow-hidden shadow-sm">
-                  <div className="bg-[#434343] text-white px-3 py-1.5 flex justify-between text-xs font-bold">
-                    <span>Concepte</span>
-                    <span>Import</span>
-                  </div>
-                  <div className="max-h-[50vh] overflow-y-auto divide-y divide-surface-100 dark:divide-surface-700/60 text-xs">
-                    {/* Fixed concepts */}
-                    <div className="px-2.5 py-1 bg-blue-50/50 dark:bg-blue-950/30 text-[10px] font-bold text-blue-800 dark:text-blue-300">
-                      Fixes
-                    </div>
-                    {Object.values(fixedMatrix).map((item) => {
-                      const amt = item.months[selectedInspectorMonth] || 0;
-                      return (
-                        <div
-                          key={item.catId || item.name}
-                          onClick={() =>
-                            handleCellDoubleClick('expense', item.name, selectedInspectorMonth, amt, 'fixed', item.catId)
-                          }
-                          className="px-3 py-1.5 flex justify-between items-center hover:bg-surface-50 dark:hover:bg-surface-700 cursor-pointer transition-colors"
-                        >
-                          <span className="text-surface-700 dark:text-surface-300 truncate max-w-[140px]">
-                            {item.name}
-                          </span>
-                          <span
-                            className={`font-mono tabular-nums ${
-                              amt > 0 ? 'font-semibold text-surface-900 dark:text-surface-100' : 'text-surface-400'
-                            }`}
-                          >
-                            {amt > 0 ? formatCurrency(amt) : '-'}
-                          </span>
-                        </div>
-                      );
-                    })}
-
-                    {/* Leisure concepts */}
-                    <div className="px-2.5 py-1 bg-amber-50/50 dark:bg-amber-950/30 text-[10px] font-bold text-amber-800 dark:text-amber-300">
-                      Opcional
-                    </div>
-                    {Object.values(leisureMatrix).map((item) => {
-                      const amt = item.months[selectedInspectorMonth] || 0;
-                      return (
-                        <div
-                          key={item.catId || item.name}
-                          onClick={() =>
-                            handleCellDoubleClick('expense', item.name, selectedInspectorMonth, amt, 'leisure', item.catId)
-                          }
-                          className="px-3 py-1.5 flex justify-between items-center hover:bg-surface-50 dark:hover:bg-surface-700 cursor-pointer transition-colors"
-                        >
-                          <span className="text-surface-700 dark:text-surface-300 truncate max-w-[140px]">
-                            {item.name}
-                          </span>
-                          <span
-                            className={`font-mono tabular-nums ${
-                              amt > 0 ? 'font-semibold text-surface-900 dark:text-surface-100' : 'text-surface-400'
-                            }`}
-                          >
-                            {amt > 0 ? formatCurrency(amt) : '-'}
-                          </span>
-                        </div>
-                      );
-                    })}
-
-                    {/* Savings concepts */}
-                    <div className="px-2.5 py-1 bg-purple-50/50 dark:bg-purple-950/30 text-[10px] font-bold text-purple-800 dark:text-purple-300">
-                      Estalvi
-                    </div>
-                    {Object.values(savingsMatrix).map((item) => {
-                      const amt = item.months[selectedInspectorMonth] || 0;
-                      return (
-                        <div
-                          key={item.catId || item.name}
-                          onClick={() =>
-                            handleCellDoubleClick('expense', item.name, selectedInspectorMonth, amt, 'savings', item.catId)
-                          }
-                          className="px-3 py-1.5 flex justify-between items-center hover:bg-surface-50 dark:hover:bg-surface-700 cursor-pointer transition-colors"
-                        >
-                          <span className="text-surface-700 dark:text-surface-300 truncate max-w-[140px]">
-                            {item.name}
-                          </span>
-                          <span
-                            className={`font-mono tabular-nums ${
-                              amt > 0 ? 'font-semibold text-surface-900 dark:text-surface-100' : 'text-surface-400'
-                            }`}
-                          >
-                            {amt > 0 ? formatCurrency(amt) : '-'}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-
-              {/* Inspector bottom summary */}
-              <div className="pt-4 border-t border-surface-200 dark:border-surface-700 space-y-1.5 text-xs">
-                <div className="flex justify-between">
-                  <span className="text-surface-500">{t.tables.totalEarned}</span>
-                  <span className="font-mono font-bold text-success-600 dark:text-success-400">
-                    {formatCurrency(monthlyTotalIncome[selectedInspectorMonth])}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-surface-500">{t.tables.totalSpent}</span>
-                  <span className="font-mono font-bold text-danger-600 dark:text-danger-400">
-                    {formatCurrency(monthlyTotalExpenses[selectedInspectorMonth])}
-                  </span>
-                </div>
-                <div className="flex justify-between font-bold border-t border-surface-200 dark:border-surface-700 pt-1">
-                  <span>{t.tables.netBalance}</span>
-                  <span
-                    className={`font-mono ${
-                      monthlyNetBalance[selectedInspectorMonth] >= 0
-                        ? 'text-success-600 dark:text-success-400'
-                        : 'text-danger-600'
-                    }`}
-                  >
-                    {formatCurrency(monthlyNetBalance[selectedInspectorMonth])}
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
+      )}
 
         {/* Footer info bar */}
         <div className="p-3 bg-surface-50 dark:bg-surface-900 border-t border-surface-200 dark:border-surface-800 flex flex-wrap items-center justify-between gap-3 text-xs text-surface-500">
@@ -1687,6 +1692,55 @@ export function ExcelAnnualPage() {
           </p>
         </div>
       </div>
+
+      {/* Mobile Quick Cell Action Bar */}
+      {viewMode === 'annual' && activeCell?.conceptName && activeCell?.month && (
+        <div className="sm:hidden fixed bottom-16 left-3 right-3 z-40 bg-surface-900/95 text-white backdrop-blur-md border border-surface-700 rounded-2xl p-3 shadow-modal flex items-center justify-between gap-3 animate-slideUp">
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-bold truncate text-emerald-300">
+              {activeCell.conceptName}
+            </p>
+            <p className="text-[11px] text-surface-300 font-mono">
+              {t.months[activeCell.month - 1]} {year}: <strong className="text-white">{formatCurrency(activeCell.amount || 0)}</strong>
+            </p>
+          </div>
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              onClick={() => {
+                setCellEditData({
+                  type: activeCell.type || 'expense',
+                  conceptName: activeCell.conceptName || '',
+                  month: activeCell.month || currentMY.month,
+                  year,
+                  currentAmountCents: activeCell.amount || 0,
+                  section: activeCell.section,
+                  categoryId: activeCell.categoryId,
+                });
+              }}
+              className="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold flex items-center gap-1 shadow-sm active:scale-95"
+            >
+              <Edit2 className="h-3 w-3" />
+              <span>Editar</span>
+            </button>
+            <button
+              onClick={() => {
+                setCellDetailTarget({
+                  type: activeCell.type || 'expense',
+                  section: activeCell.section,
+                  categoryId: activeCell.categoryId,
+                  conceptName: activeCell.conceptName || '',
+                  month: activeCell.month || currentMY.month,
+                  year,
+                });
+              }}
+              className="px-2.5 py-1.5 bg-surface-800 hover:bg-surface-700 text-white rounded-xl text-xs font-semibold flex items-center gap-1 border border-surface-600 shadow-sm active:scale-95"
+            >
+              <Receipt className="h-3 w-3" />
+              <span>Desglose</span>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ===== MODALS ===== */}
       <PercentageModal

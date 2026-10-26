@@ -7,7 +7,8 @@ import { useToast } from '@/contexts/ToastContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/lib/supabase';
 import { formatCurrency, eurosToCents, centsToEuros } from '@/lib/money';
-import { getBankAccounts } from '@/lib/banks';
+import { getBankAccounts, recordMovementInBank } from '@/lib/banks';
+import { useCelebration } from '@/contexts/CelebrationContext';
 import type { BudgetSection } from '@/types';
 
 export interface CellDetailTarget {
@@ -29,6 +30,7 @@ export function CellDetailModal({ target, onClose, onUpdated }: CellDetailModalP
   const { user } = useAuth();
   const { success, error: showError } = useToast();
   const { t } = useLanguage();
+  const { triggerNominaCelebration } = useCelebration();
 
   const [loading, setLoading] = useState(false);
   const [items, setItems] = useState<any[]>([]);
@@ -154,6 +156,18 @@ export function CellDetailModal({ target, onClose, onUpdated }: CellDetailModalP
           notes: notesObj,
         });
         if (error) throw error;
+
+        // Auto-update banks:
+        recordMovementInBank(user.id, {
+          amount: cents,
+          type: 'income',
+          concept: target.conceptName,
+          bank,
+        });
+
+        if (target.conceptName.toUpperCase().includes('NÓMINA') || target.conceptName.toUpperCase().includes('NOMINA')) {
+          triggerNominaCelebration(cents);
+        }
       } else {
         const { error } = await supabase.from('transactions').insert({
           user_id: user.id,
@@ -168,6 +182,14 @@ export function CellDetailModal({ target, onClose, onUpdated }: CellDetailModalP
           notes: notesObj,
         });
         if (error) throw error;
+
+        // Auto-update banks:
+        recordMovementInBank(user.id, {
+          amount: cents,
+          type: 'expense',
+          concept: trimmedDesc || target.conceptName,
+          bank,
+        });
       }
 
       success('Movimiento registrado', `${trimmedDesc} (${parsed.toFixed(2)} €)`);
@@ -185,11 +207,28 @@ export function CellDetailModal({ target, onClose, onUpdated }: CellDetailModalP
 
   const handleDeleteSubMovement = async (id: string) => {
     if (!user || !target) return;
+    const itemToDelete = items.find((it) => it.id === id);
     try {
       if (target.type === 'income') {
         await supabase.from('income_entries').delete().eq('id', id);
+        if (itemToDelete) {
+          recordMovementInBank(user.id, {
+            amount: itemToDelete.amount,
+            type: 'expense', // Reverting income decreases bank
+            concept: target.conceptName,
+            bank: getBankFromNotes(itemToDelete.notes),
+          });
+        }
       } else {
         await supabase.from('transactions').delete().eq('id', id);
+        if (itemToDelete) {
+          recordMovementInBank(user.id, {
+            amount: itemToDelete.amount,
+            type: 'income', // Reverting expense increases bank
+            concept: itemToDelete.description || target.conceptName,
+            bank: getBankFromNotes(itemToDelete.notes),
+          });
+        }
       }
       success('Movimiento eliminado');
       await loadSubMovements();
@@ -214,6 +253,7 @@ export function CellDetailModal({ target, onClose, onUpdated }: CellDetailModalP
       return;
     }
 
+    const oldItem = items.find((it) => it.id === id);
     try {
       const cents = eurosToCents(parsed);
       const notesObj = JSON.stringify({ bank: editBank });
@@ -227,6 +267,18 @@ export function CellDetailModal({ target, onClose, onUpdated }: CellDetailModalP
             updated_at: new Date().toISOString(),
           })
           .eq('id', id);
+
+        if (oldItem) {
+          const delta = cents - (oldItem.amount || 0);
+          if (delta !== 0) {
+            recordMovementInBank(user.id, {
+              amount: Math.abs(delta),
+              type: delta > 0 ? 'income' : 'expense',
+              concept: target.conceptName,
+              bank: editBank,
+            });
+          }
+        }
       } else {
         await supabase
           .from('transactions')
@@ -237,6 +289,18 @@ export function CellDetailModal({ target, onClose, onUpdated }: CellDetailModalP
             updated_at: new Date().toISOString(),
           })
           .eq('id', id);
+
+        if (oldItem) {
+          const delta = cents - (oldItem.amount || 0);
+          if (delta !== 0) {
+            recordMovementInBank(user.id, {
+              amount: Math.abs(delta),
+              type: delta > 0 ? 'expense' : 'income',
+              concept: editDesc.trim() || target.conceptName,
+              bank: editBank,
+            });
+          }
+        }
       }
 
       success('Movimiento actualizado');

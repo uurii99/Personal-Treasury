@@ -9,6 +9,7 @@ import { eurosToCents } from '@/lib/money';
 import { getTodayISO, getMonthYearFromDate } from '@/lib/dates';
 import { Modal } from '@/components/ui/Modal';
 import { Button, Input, Select } from '@/components/ui';
+import { recordMovementInBank } from '@/lib/banks';
 import type { Category, BudgetSection } from '@/types';
 import { BUDGET_SECTION_LABELS } from '@/types';
 
@@ -96,6 +97,14 @@ export function AddMovementModal({ open, onOpenChange, month, year, onSaved }: A
         console.error(error);
         return;
       }
+
+      // Automatically update banks
+      recordMovementInBank(user.id, {
+        type: 'expense',
+        amountCents,
+        section: data.section as BudgetSection,
+        description: data.description,
+      });
 
       success('Movimiento registrado', data.description);
       form.reset({

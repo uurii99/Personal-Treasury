@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import {
-  Building2,
   Plus,
   Calendar,
   AlertTriangle,
@@ -11,6 +10,7 @@ import {
   Sparkles,
   ShieldCheck,
   Banknote,
+  Droplets,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
@@ -22,6 +22,8 @@ import {
   saveBankAccounts,
   getScheduledDebits,
   saveScheduledDebits,
+  calculateBankLiquidity,
+  BANK_CONCEPTS_MAP,
 } from '@/lib/banks';
 import { BankLogo } from '@/components/banks/BankLogo';
 import type { BankAccount, BankScheduledDebit, BankAccountPurpose } from '@/types';
@@ -68,14 +70,21 @@ export function BanksPage() {
 
   useEffect(() => {
     loadData();
+    const handleUpdate = () => loadData();
+    window.addEventListener('bank-accounts-updated', handleUpdate);
+    return () => window.removeEventListener('bank-accounts-updated', handleUpdate);
   }, [loadData]);
+
+  // Comprehensive liquidity calculation:
+  // "añade en bancos la liquidez, que sera todo el dinero, menos, inversiones y cuenta de emergencia"
+  const liquidity = useMemo(() => {
+    return calculateBankLiquidity(accounts);
+  }, [accounts]);
 
   // Total balance in bank accounts (Excludes cash: "que ese no contara para nada, solo para tenerlo presente")
   const totalBalanceCents = useMemo(() => {
-    return accounts
-      .filter((acc) => !acc.is_cash && !acc.exclude_from_calculations && acc.purpose !== 'cash' && acc.name.trim().toLowerCase() !== 'efectivo')
-      .reduce((sum, acc) => sum + (acc.balance || 0), 0);
-  }, [accounts]);
+    return liquidity.totalWealthCents;
+  }, [liquidity]);
 
   // Cash balance specifically for tracking physical money without counting in bank totals
   const cashBalanceCents = useMemo(() => {
@@ -84,14 +93,6 @@ export function BanksPage() {
       .reduce((sum, acc) => sum + (acc.balance || 0), 0);
   }, [accounts]);
 
-  // Balance by purpose
-  const balanceByPurpose = useMemo(() => {
-    const res: Record<BankAccountPurpose, number> = { fixed: 0, leisure: 0, savings: 0, mixed: 0, cash: 0 };
-    accounts.forEach((a) => {
-      res[a.purpose] = (res[a.purpose] || 0) + a.balance;
-    });
-    return res;
-  }, [accounts]);
 
   // Handle save account
   const handleSaveAccount = (e: React.FormEvent) => {
@@ -301,73 +302,123 @@ export function BanksPage() {
         </div>
       </div>
 
-      {/* Global wealth banner */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-gradient-to-br from-[#107c41] to-emerald-800 text-white p-5 rounded-2xl shadow-md relative overflow-hidden flex flex-col justify-between">
+      {/* Global wealth & Liquidity banner */}
+      <div className="space-y-4">
+        {/* Main Liquidity Hero Card */}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-sky-600 via-teal-600 to-emerald-600 p-6 text-white shadow-lg">
           <div className="absolute right-0 top-0 translate-x-4 -translate-y-4 opacity-10 pointer-events-none">
-            <Building2 className="w-32 h-32" />
+            <Droplets className="w-48 h-48" />
           </div>
-          <div>
-            <span className="text-xs font-semibold uppercase tracking-wider text-emerald-200">
-              {t.banks.totalBalance}
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-white/20 backdrop-blur-sm text-white">
+                  <Droplets className="w-3.5 h-3.5 text-cyan-200" />
+                  Liquidez Total Disponible
+                </span>
+                <span className="text-xs text-teal-100 bg-teal-900/40 px-2 py-0.5 rounded-full font-medium">
+                  Sabadell + Revolut
+                </span>
+              </div>
+              <p className="text-4xl sm:text-5xl font-extrabold font-mono tabular-nums mt-2 tracking-tight drop-shadow-sm">
+                {formatCurrency(liquidity.liquidityCents)}
+              </p>
+              <div className="flex flex-wrap items-center gap-2 mt-3 text-xs text-emerald-100">
+                <span className="font-semibold text-white">Fórmula de liquidez:</span>
+                <span className="px-2 py-0.5 rounded bg-black/20 font-mono">
+                  Total ({formatCurrency(liquidity.totalWealthCents)}) − Inversiones ({formatCurrency(liquidity.investmentsCents)}) − Emergencia ({formatCurrency(liquidity.emergencyFundCents)})
+                </span>
+              </div>
+            </div>
+
+            {/* Sub-breakdown of liquidity */}
+            <div className="flex flex-col sm:flex-row md:flex-col gap-2 shrink-0">
+              <div className="flex items-center justify-between gap-4 px-3 py-2 rounded-xl bg-white/10 backdrop-blur-sm border border-white/10 min-w-[200px]">
+                <span className="text-xs text-sky-100 font-medium">Banc Sabadell (Fijos):</span>
+                <span className="text-sm font-bold font-mono">{formatCurrency(liquidity.sabadellCents)}</span>
+              </div>
+              <div className="flex items-center justify-between gap-4 px-3 py-2 rounded-xl bg-white/10 backdrop-blur-sm border border-white/10 min-w-[200px]">
+                <span className="text-xs text-teal-100 font-medium">Revolut (Ocio):</span>
+                <span className="text-sm font-bold font-mono">{formatCurrency(liquidity.revolutCents)}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Global summary 4-cards grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="bg-white dark:bg-surface-900 p-5 rounded-2xl border border-surface-200 dark:border-surface-800 shadow-sm flex flex-col justify-between">
+            <div>
+              <span className="text-xs font-semibold uppercase tracking-wider text-surface-500">
+                Total en Cuentas
+              </span>
+              <p className="text-2xl font-extrabold font-mono tabular-nums mt-1 text-surface-900 dark:text-surface-100">
+                {formatCurrency(totalBalanceCents)}
+              </p>
+            </div>
+            <p className="text-xs text-surface-400 mt-2 flex items-center gap-1.5">
+              <ShieldCheck className="h-4 w-4 text-emerald-500 shrink-0" />
+              <span>Suma total de bancos</span>
+            </p>
+          </div>
+
+          <div className="bg-white dark:bg-surface-900 p-5 rounded-2xl border border-surface-200 dark:border-surface-800 shadow-sm flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-surface-500 font-semibold uppercase tracking-wider">
+                  Cuenta Emergencia
+                </span>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300">
+                  Intocable
+                </span>
+              </div>
+              <p className="text-2xl font-bold font-mono text-amber-600 dark:text-amber-400 mt-1 tabular-nums">
+                {formatCurrency(liquidity.emergencyFundCents)}
+              </p>
+            </div>
+            <span className="text-[11px] text-surface-400 mt-2 flex items-center gap-1">
+              <span>Trade Republic · 2% TAE</span>
             </span>
-            <p className="text-3xl font-extrabold font-mono tabular-nums mt-1 tracking-tight">
-              {formatCurrency(totalBalanceCents)}
-            </p>
           </div>
-          <p className="text-xs text-emerald-100 mt-2 flex items-center gap-1.5">
-            <ShieldCheck className="h-4 w-4 text-emerald-300 shrink-0" />
-            <span>Suma de cuentas bancarias (no incluye efectivo).</span>
-          </p>
-        </div>
 
-        <div className="bg-white dark:bg-surface-900 p-5 rounded-2xl border border-surface-200 dark:border-surface-800 shadow-sm flex flex-col justify-between">
-          <div>
-            <span className="text-xs text-surface-500 font-medium">Asignación Fijos / Ocio</span>
-            <div className="space-y-1.5 mt-2">
-              <div className="flex justify-between text-xs">
-                <span className="text-blue-600 dark:text-blue-400 font-medium">Fijos (Sabadell):</span>
-                <span className="font-mono font-bold">{formatCurrency(balanceByPurpose.fixed)}</span>
+          <div className="bg-white dark:bg-surface-900 p-5 rounded-2xl border border-surface-200 dark:border-surface-800 shadow-sm flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-surface-500 font-semibold uppercase tracking-wider">
+                  Inversiones L/P
+                </span>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300">
+                  Patrimonio
+                </span>
               </div>
-              <div className="flex justify-between text-xs">
-                <span className="text-amber-600 dark:text-amber-400 font-medium">Ocio (Revolut):</span>
-                <span className="font-mono font-bold">{formatCurrency(balanceByPurpose.leisure)}</span>
+              <p className="text-2xl font-bold font-mono text-purple-600 dark:text-purple-400 mt-1 tabular-nums">
+                {formatCurrency(liquidity.investmentsCents)}
+              </p>
+            </div>
+            <p className="text-xs text-surface-500 mt-2 flex items-center gap-1">
+              <Sparkles className="h-3 w-3 text-purple-500 shrink-0" /> MyInversor Fondos
+            </p>
+          </div>
+
+          <div className="bg-white dark:bg-surface-900 p-5 rounded-2xl border border-dashed border-emerald-300 dark:border-emerald-700/80 shadow-sm flex flex-col justify-between bg-emerald-50/25 dark:bg-emerald-950/20">
+            <div>
+              <div className="flex items-center justify-between gap-1">
+                <span className="text-xs text-emerald-800 dark:text-emerald-300 font-bold uppercase tracking-wider flex items-center gap-1">
+                  <Banknote className="h-4 w-4 text-emerald-600" />
+                  {t.banks.cashTitle}
+                </span>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-200">
+                  Informativo
+                </span>
               </div>
+              <p className="text-2xl font-bold font-mono text-emerald-700 dark:text-emerald-400 mt-1 tabular-nums">
+                {formatCurrency(cashBalanceCents)}
+              </p>
             </div>
-          </div>
-          <span className="text-[11px] text-surface-400 mt-2">Corresponde al 40% y 30%</span>
-        </div>
-
-        <div className="bg-white dark:bg-surface-900 p-5 rounded-2xl border border-surface-200 dark:border-surface-800 shadow-sm flex flex-col justify-between">
-          <div>
-            <span className="text-xs text-surface-500 font-medium">Ahorro e Inversión (30%)</span>
-            <p className="text-2xl font-bold font-mono text-purple-600 dark:text-purple-400 mt-1 tabular-nums">
-              {formatCurrency(balanceByPurpose.savings)}
+            <p className="text-[11px] text-surface-500 dark:text-surface-400 mt-2">
+              {t.banks.cashOnlyInformative}
             </p>
           </div>
-          <p className="text-xs text-surface-500 mt-2 flex items-center gap-1">
-            <Sparkles className="h-3 w-3 text-amber-500 shrink-0" /> Trade Republic + MyInversor
-          </p>
-        </div>
-
-        <div className="bg-white dark:bg-surface-900 p-5 rounded-2xl border border-dashed border-emerald-300 dark:border-emerald-700/80 shadow-sm flex flex-col justify-between bg-emerald-50/25 dark:bg-emerald-950/20">
-          <div>
-            <div className="flex items-center justify-between gap-1">
-              <span className="text-xs text-emerald-800 dark:text-emerald-300 font-bold uppercase tracking-wider flex items-center gap-1">
-                <Banknote className="h-4 w-4 text-emerald-600" />
-                {t.banks.cashTitle}
-              </span>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-200">
-                Informativo
-              </span>
-            </div>
-            <p className="text-2xl font-bold font-mono text-emerald-700 dark:text-emerald-400 mt-1 tabular-nums">
-              {formatCurrency(cashBalanceCents)}
-            </p>
-          </div>
-          <p className="text-[11px] text-surface-500 dark:text-surface-400 mt-2">
-            {t.banks.cashOnlyInformative}
-          </p>
         </div>
       </div>
 
@@ -387,6 +438,10 @@ export function BanksPage() {
             const isCash = acc.is_cash || acc.exclude_from_calculations || acc.purpose === 'cash' || acc.name.trim().toLowerCase() === 'efectivo';
             const badge = getPurposeBadge(acc.purpose, isCash);
             const isEditing = inlineEditingId === acc.id;
+            const conceptInfo = BANK_CONCEPTS_MAP[acc.id];
+            const isLiquidity = acc.id === 'b-sabadell' || acc.id === 'b-revolut';
+            const isEmergency = acc.id === 'b-trade-republic';
+            const isInvestment = acc.id === 'b-myinversor';
 
             return (
               <div
@@ -394,6 +449,8 @@ export function BanksPage() {
                 className={`bg-white dark:bg-surface-900 border rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow relative flex flex-col justify-between ${
                   isCash
                     ? 'border-dashed border-emerald-300 dark:border-emerald-700/80 bg-emerald-50/15 dark:bg-emerald-950/10'
+                    : isLiquidity
+                    ? 'border-sky-200 dark:border-sky-900/60'
                     : 'border-surface-200 dark:border-surface-800'
                 }`}
               >
@@ -408,6 +465,30 @@ export function BanksPage() {
                     <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${badge.color}`}>
                       {badge.label}
                     </span>
+                  </div>
+
+                  {/* Liquidity computation status */}
+                  <div className="mb-2">
+                    {isLiquidity && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/50 px-2 py-0.5 rounded-md border border-sky-200/60 dark:border-sky-800/60">
+                        <Droplets className="w-3 h-3 text-sky-500" /> Computa en Liquidez
+                      </span>
+                    )}
+                    {isEmergency && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/50 px-2 py-0.5 rounded-md border border-amber-200/60 dark:border-amber-800/60">
+                        🛡️ Cuenta Emergencia (Excluido)
+                      </span>
+                    )}
+                    {isInvestment && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/50 px-2 py-0.5 rounded-md border border-purple-200/60 dark:border-purple-800/60">
+                        📈 Inversión (Excluido de Liquidez)
+                      </span>
+                    )}
+                    {isCash && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded-md border border-emerald-200/60 dark:border-emerald-800/60">
+                        💵 Físico (Solo Informativo)
+                      </span>
+                    )}
                   </div>
 
                   {acc.interest_rate && (
@@ -451,6 +532,38 @@ export function BanksPage() {
                       </div>
                     )}
                   </div>
+
+                  {/* Concepts belonging to this bank */}
+                  {conceptInfo && (
+                    <div className="mt-2 mb-3 pt-2 border-t border-surface-100 dark:border-surface-800">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-surface-500 dark:text-surface-400">
+                          Conceptos de este banco:
+                        </span>
+                        <span className="text-[9px] text-surface-400 font-mono">
+                          {conceptInfo.concepts.length} conceptos
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap gap-1 max-h-28 overflow-y-auto pr-1">
+                        {conceptInfo.concepts.map((c) => (
+                          <span
+                            key={c}
+                            className={`text-[9.5px] px-1.5 py-0.5 rounded font-medium ${
+                              isLiquidity
+                                ? 'bg-sky-50 dark:bg-sky-950/40 text-sky-800 dark:text-sky-300 border border-sky-100 dark:border-sky-900/40'
+                                : isEmergency
+                                ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-100 dark:border-amber-900/40'
+                                : isInvestment
+                                ? 'bg-purple-50 dark:bg-purple-950/40 text-purple-800 dark:text-purple-300 border border-purple-100 dark:border-purple-900/40'
+                                : 'bg-surface-100 dark:bg-surface-800 text-surface-700 dark:text-surface-300'
+                            }`}
+                          >
+                            {c}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   {acc.notes && <p className="text-xs text-surface-500 line-clamp-2 mb-3">{acc.notes}</p>}
                 </div>

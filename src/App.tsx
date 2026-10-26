@@ -5,6 +5,7 @@ import { ThemeProvider } from '@/contexts/ThemeContext';
 import { ToastProvider } from '@/contexts/ToastContext';
 import { ToastContainer } from '@/components/ui';
 import { LanguageProvider } from '@/contexts/LanguageContext';
+import { CelebrationProvider } from '@/contexts/CelebrationContext';
 import { ProtectedRoute, PublicOnlyRoute } from '@/components/auth/ProtectedRoute';
 import { AppLayout } from '@/components/layout/AppLayout';
 
@@ -44,38 +45,40 @@ export default function App() {
         <ToastProvider>
           <BrowserRouter>
             <AuthProvider>
-              <Suspense fallback={<PageLoader />}>
-                <Routes>
-                  {/* Public routes */}
-                  <Route path="/login" element={<PublicOnlyRoute><LoginPage /></PublicOnlyRoute>} />
-                  <Route path="/forgot-password" element={<PublicOnlyRoute><ForgotPasswordPage /></PublicOnlyRoute>} />
-                  <Route path="/auth/callback" element={<AuthCallbackPage />} />
+              <CelebrationProvider>
+                <Suspense fallback={<PageLoader />}>
+                  <Routes>
+                    {/* Public routes */}
+                    <Route path="/login" element={<PublicOnlyRoute><LoginPage /></PublicOnlyRoute>} />
+                    <Route path="/forgot-password" element={<PublicOnlyRoute><ForgotPasswordPage /></PublicOnlyRoute>} />
+                    <Route path="/auth/callback" element={<AuthCallbackPage />} />
 
-                  {/* Onboarding */}
-                  <Route path="/onboarding" element={<OnboardingPage />} />
+                    {/* Onboarding */}
+                    <Route path="/onboarding" element={<OnboardingPage />} />
 
-                  {/* Protected app routes */}
-                  <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
-                    <Route path="/dashboard" element={<DashboardPage />} />
-                    <Route path="/banks" element={<BanksPage />} />
-                    <Route path="/goals" element={<GoalsPage />} />
-                    <Route path="/treasury" element={<TreasuryPage />} />
-                    <Route path="/treasury/section/:section" element={<SectionDetailPage />} />
-                    <Route path="/annual" element={<Navigate to="/dashboard" replace />} />
-                    <Route path="/recurring" element={<Navigate to="/dashboard" replace />} />
-                    <Route path="/savings" element={<Navigate to="/dashboard" replace />} />
-                    <Route path="/history" element={<HistoryPage />} />
-                    <Route path="/categories" element={<CategoriesPage />} />
-                    <Route path="/statistics" element={<StatisticsPage />} />
-                    <Route path="/settings" element={<SettingsPage />} />
-                    <Route path="/profile" element={<ProfilePage />} />
-                  </Route>
+                    {/* Protected app routes */}
+                    <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
+                      <Route path="/dashboard" element={<DashboardPage />} />
+                      <Route path="/banks" element={<BanksPage />} />
+                      <Route path="/goals" element={<GoalsPage />} />
+                      <Route path="/treasury" element={<Navigate to="/dashboard" replace />} />
+                      <Route path="/treasury/section/:section" element={<Navigate to="/dashboard" replace />} />
+                      <Route path="/annual" element={<Navigate to="/dashboard" replace />} />
+                      <Route path="/recurring" element={<Navigate to="/dashboard" replace />} />
+                      <Route path="/savings" element={<Navigate to="/dashboard" replace />} />
+                      <Route path="/history" element={<Navigate to="/dashboard" replace />} />
+                      <Route path="/categories" element={<CategoriesPage />} />
+                      <Route path="/statistics" element={<StatisticsPage />} />
+                      <Route path="/settings" element={<SettingsPage />} />
+                      <Route path="/profile" element={<ProfilePage />} />
+                    </Route>
 
-                  {/* Catch-all redirect */}
-                  <Route path="*" element={<Navigate to="/dashboard" replace />} />
-                </Routes>
-              </Suspense>
-              <ToastContainer />
+                    {/* Catch-all redirect */}
+                    <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                  </Routes>
+                </Suspense>
+                <ToastContainer />
+              </CelebrationProvider>
             </AuthProvider>
           </BrowserRouter>
         </ToastProvider>

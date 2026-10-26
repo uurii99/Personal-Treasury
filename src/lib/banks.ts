@@ -1,4 +1,4 @@
-import type { BankAccount, BankScheduledDebit } from '@/types';
+import type { BankAccount, BankScheduledDebit, BankAccountPurpose } from '@/types';
 
 const STORAGE_KEY_BANKS = 'pt_bank_accounts_';
 const STORAGE_KEY_DEBITS = 'pt_bank_debits_';
@@ -68,9 +68,221 @@ export const DEFAULT_BANKS: Omit<BankAccount, 'user_id'>[] = [
   },
 ];
 
+export const BANK_CONCEPTS_MAP: Record<string, { label: string; concepts: string[]; typeDesc: string; isExcludedFromLiquidity?: boolean }> = {
+  'b-sabadell': {
+    label: 'Gastos fijos y nómina (40%)',
+    typeDesc: 'Cuenta operativa principal · Se ingresa la nómina y se cargan los recibos fijos',
+    concepts: [
+      'NÒMINA',
+      'GYM - FIJO',
+      'ASSEG. MOTO',
+      'ITV MOTO',
+      'REV./REPARACIONS MOTO',
+      'IMPOST CIRCULACIO MOTO',
+      'TRANSPORT PÚBLIC',
+      'BENZINA MOTO',
+      'CORTE DE PELO',
+      'OTROS',
+    ],
+  },
+  'b-revolut': {
+    label: 'Gastos opcionales y ocio (30%)',
+    typeDesc: 'Tarjeta de uso diario · Salidas, compras, restaurantes y caprichos',
+    concepts: [
+      'SALIDAS/VIAGES',
+      'ROPA',
+      'COMIDAS',
+      'DEPORTES',
+      'REGALS',
+      'PIEZAS MOTO',
+      'GASOLINA MOTO',
+      'HOTWHEELS',
+    ],
+  },
+  'b-trade-republic': {
+    label: 'Cuenta de Emergencia (2% TAE)',
+    typeDesc: 'Fondo de emergencia remunerado · Reserva intocable para imprevistos (no es liquidez operativa)',
+    isExcludedFromLiquidity: true,
+    concepts: [
+      'FONS EMERGENCIA',
+      'CUENTA REMUNERADA',
+      'RESERVA IMPREVISTOS',
+    ],
+  },
+  'b-myinversor': {
+    label: 'Inversión a largo plazo (30%)',
+    typeDesc: 'Cartera de inversión indexada · Crecimiento patrimonial (no es liquidez operativa)',
+    isExcludedFromLiquidity: true,
+    concepts: [
+      'INVERSIÓ',
+      'FONDOS INDEXADOS',
+      'APORTACIONES MENSUALES',
+    ],
+  },
+  'b-efectivo': {
+    label: 'Efectivo en mano',
+    typeDesc: 'Dinero en efectivo / cartera física (solo informativo, no computa en bancos)',
+    isExcludedFromLiquidity: true,
+    concepts: [
+      'CARTERA FÍSICA',
+      'EFECTIVO',
+    ],
+  },
+};
+
+/**
+ * Calculates bank liquidity:
+ * "todo el dinero, menos, inversiones y cuenta de emergencia"
+ */
+export function calculateBankLiquidity(accounts: BankAccount[]): {
+  totalWealthCents: number;
+  investmentsCents: number;
+  emergencyFundCents: number;
+  liquidityCents: number;
+  cashCents: number;
+  sabadellCents: number;
+  revolutCents: number;
+} {
+  let totalWealthCents = 0;
+  let investmentsCents = 0;
+  let emergencyFundCents = 0;
+  let cashCents = 0;
+  let sabadellCents = 0;
+  let revolutCents = 0;
+
+  accounts.forEach((acc) => {
+    const isCash =
+      acc.is_cash ||
+      acc.exclude_from_calculations ||
+      acc.purpose === 'cash' ||
+      acc.name.trim().toLowerCase() === 'efectivo';
+
+    if (isCash) {
+      cashCents += acc.balance || 0;
+      return;
+    }
+
+    const bId = acc.id.toLowerCase();
+    const bName = acc.name.toLowerCase();
+
+    totalWealthCents += acc.balance || 0;
+
+    if (bId.includes('myinversor') || bName.includes('myinversor') || bName.includes('invers')) {
+      investmentsCents += acc.balance || 0;
+    } else if (bId.includes('trade') || bName.includes('trade') || bName.includes('emergencia')) {
+      emergencyFundCents += acc.balance || 0;
+    } else if (bId.includes('sabadell') || bName.includes('sabadell')) {
+      sabadellCents += acc.balance || 0;
+    } else if (bId.includes('revolut') || bName.includes('revolut')) {
+      revolutCents += acc.balance || 0;
+    } else if (acc.purpose === 'fixed') {
+      sabadellCents += acc.balance || 0;
+    } else if (acc.purpose === 'leisure') {
+      revolutCents += acc.balance || 0;
+    } else if (acc.purpose === 'savings') {
+      investmentsCents += acc.balance || 0;
+    }
+  });
+
+  // Liquidez = Todo el dinero menos inversiones y cuenta de emergencia
+  const liquidityCents = Math.max(0, totalWealthCents - investmentsCents - emergencyFundCents);
+
+  return {
+    totalWealthCents,
+    investmentsCents,
+    emergencyFundCents,
+    liquidityCents,
+    cashCents,
+    sabadellCents,
+    revolutCents,
+  };
+}
+
+/**
+ * Automatically updates bank balances when any income or expense is added or modified.
+ */
+export function recordMovementInBank(
+  userId: string,
+  movement: {
+    type: 'income' | 'expense';
+    amountCents?: number;
+    amount?: number;
+    section?: BankAccountPurpose | 'fixed' | 'leisure' | 'savings';
+    categoryName?: string;
+    concept?: string;
+    description?: string;
+    bank?: string;
+    operation?: 'add' | 'remove';
+  }
+) {
+  const value = movement.amountCents ?? movement.amount ?? 0;
+  if (!userId || value <= 0) return;
+
+  const accounts = getBankAccounts(userId);
+  const factor = movement.operation === 'remove' ? -1 : 1;
+  const isIncome = movement.type === 'income';
+
+  let targetId = 'b-sabadell';
+  const desc = (movement.description || movement.concept || movement.categoryName || '').toLowerCase();
+  const bankHint = (movement.bank || '').toLowerCase();
+
+  if (bankHint.includes('revolut')) {
+    targetId = 'b-revolut';
+  } else if (bankHint.includes('trade')) {
+    targetId = 'b-trade-republic';
+  } else if (bankHint.includes('invers')) {
+    targetId = 'b-myinversor';
+  } else if (bankHint.includes('sabadell')) {
+    targetId = 'b-sabadell';
+  } else if (isIncome) {
+    targetId = 'b-sabadell'; // Salary / primary income goes into Sabadell
+  } else {
+    // Expense
+    if (desc.includes('invers') || desc.includes('indexad')) {
+      targetId = 'b-myinversor';
+    } else if (desc.includes('emergencia') || desc.includes('fons')) {
+      targetId = 'b-trade-republic';
+    } else if (
+      movement.section === 'leisure' ||
+      desc.includes('comida') ||
+      desc.includes('ropa') ||
+      desc.includes('hotwheel') ||
+      desc.includes('gasolina') ||
+      desc.includes('regal') ||
+      desc.includes('viaje') ||
+      desc.includes('salida') ||
+      desc.includes('pieza') ||
+      desc.includes('deporte')
+    ) {
+      targetId = 'b-revolut';
+    } else {
+      // Fixed expense (Sabadell)
+      targetId = 'b-sabadell';
+    }
+  }
+
+  const updated = accounts.map((acc) => {
+    const isTarget = acc.id === targetId || acc.name.toLowerCase().includes(targetId.replace('b-', ''));
+    if (isTarget) {
+      const delta = isIncome ? value * factor : -value * factor;
+      return {
+        ...acc,
+        balance: Math.max(0, acc.balance + delta),
+        updated_at: new Date().toISOString(),
+      };
+    }
+    return acc;
+  });
+
+  saveBankAccounts(userId, updated);
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('bank-accounts-updated'));
+  }
+}
+
 export const DEFAULT_SCHEDULED_DEBITS: BankScheduledDebit[] = [
   {
-    id: 'deb-seguro-moto',
+    id: 'deb-asseg-moto',
     bank_id: 'b-sabadell',
     title: 'Seguro Moto',
     amount: 65000, // 650,00 €
