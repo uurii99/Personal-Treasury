@@ -704,7 +704,7 @@ export function ExcelAnnualPage() {
                   <th className="excel-row-num excel-sticky-col bg-surface-200 dark:bg-surface-800 border-b border-surface-300 dark:border-surface-700">
                     #
                   </th>
-                  <th className="excel-col-header excel-sticky-col left-[2.25rem] min-w-[210px] text-left px-3">
+                  <th className="excel-col-header excel-sticky-col left-[2.25rem] min-w-[250px] text-left px-3">
                     A · CONCEPTE
                   </th>
                   {MONTHS.map((m, idx) => {
@@ -713,7 +713,7 @@ export function ExcelAnnualPage() {
                     return (
                       <th
                         key={m}
-                        className={`excel-col-header min-w-[96px] ${
+                        className={`excel-col-header min-w-[115px] ${
                           isCurrent
                             ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 font-bold'
                             : ''
@@ -729,11 +729,11 @@ export function ExcelAnnualPage() {
                       </th>
                     );
                   })}
-                  <th className="excel-col-header min-w-[110px] bg-surface-200 dark:bg-surface-800/80 font-bold">
+                  <th className="excel-col-header min-w-[130px] bg-surface-200 dark:bg-surface-800/80 font-bold">
                     <div className="text-[10px] text-surface-400">N</div>
                     <span>TOTAL %</span>
                   </th>
-                  <th className="excel-col-header min-w-[95px] bg-surface-200 dark:bg-surface-800/80 font-bold">
+                  <th className="excel-col-header min-w-[115px] bg-surface-200 dark:bg-surface-800/80 font-bold">
                     <div className="text-[10px] text-surface-400">O</div>
                     <span>{t.tables.monthlyAverage}</span>
                   </th>
@@ -861,6 +861,11 @@ export function ExcelAnnualPage() {
                   <td className="excel-cell text-right font-mono font-bold text-emerald-900 dark:text-emerald-200 bg-[#C9E0C1] dark:bg-emerald-900 tabular-nums text-xs">
                     {formatCurrency(yearTotalIncome / 12)}
                   </td>
+                </tr>
+
+                {/* Separador entre Tablas */}
+                <tr className="excel-spacer-row">
+                  <td colSpan={16} className="excel-spacer-cell" />
                 </tr>
 
                 {/* ============================================================== */}
@@ -1038,6 +1043,11 @@ export function ExcelAnnualPage() {
                   </td>
                 </tr>
 
+                {/* Separador entre Tablas */}
+                <tr className="excel-spacer-row">
+                  <td colSpan={16} className="excel-spacer-cell" />
+                </tr>
+
                 {/* ============================================================== */}
                 {/* TABLA 3: PREVISIÓN DE GASTOS OCIO Y VARIABLES */}
                 {/* ============================================================== */}
@@ -1213,17 +1223,22 @@ export function ExcelAnnualPage() {
                   </td>
                 </tr>
 
+                {/* Separador entre Tablas */}
+                <tr className="excel-spacer-row">
+                  <td colSpan={16} className="excel-spacer-cell" />
+                </tr>
+
                 {/* ============================================================== */}
                 {/* TABLA 4: PREVISIÓN DE INVERSIONES Y AHORRO */}
                 {/* ============================================================== */}
-                <tr className="bg-[#434343] dark:bg-surface-800 text-white font-bold text-xs uppercase tracking-wider sticky top-[34px] z-10 shadow-sm">
-                  <td className="excel-row-num text-surface-300 bg-[#2b2b2b] dark:bg-surface-950 border-surface-600">41</td>
+                <tr className="bg-[#4A154B] dark:bg-purple-950 text-white font-bold text-xs uppercase tracking-wider sticky top-[34px] z-10 shadow-sm">
+                  <td className="excel-row-num text-purple-200 bg-[#350d36] dark:bg-black border-purple-800">41</td>
                   <td
                     colSpan={15}
-                    className="px-3 py-2 flex items-center justify-between text-surface-100 bg-[#434343] dark:bg-surface-800"
+                    className="px-3 py-2 flex items-center justify-between text-purple-100 bg-[#4A154B] dark:bg-purple-950"
                   >
                     <span className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-sm bg-purple-400 inline-block" />
+                      <span className="w-2.5 h-2.5 rounded-sm bg-purple-300 inline-block" />
                       {t.tables.savingsTitle}
                     </span>
                     <button
@@ -1312,23 +1327,23 @@ export function ExcelAnnualPage() {
                   })}
 
                 {/* TOTAL INVERTIT/ESTALVIAT (Tabla 4) */}
-                <tr className="bg-[#F4CCCC] dark:bg-red-950/40 font-bold border-t border-b border-red-200 dark:border-red-800">
-                  <td className="excel-row-num bg-[#EA9999] dark:bg-red-900 text-red-950 dark:text-red-200">44</td>
-                  <td className="excel-cell excel-sticky-col left-[2.25rem] bg-[#F4CCCC] dark:bg-red-950/60 font-bold text-red-950 dark:text-red-200 text-right pr-4">
-                    {t.tables.totalSpent}
+                <tr className="bg-[#F3E8FF] dark:bg-purple-950/60 font-bold border-t-2 border-b-2 border-purple-300 dark:border-purple-700">
+                  <td className="excel-row-num bg-purple-200 dark:bg-purple-900 text-purple-950 dark:text-purple-200">44</td>
+                  <td className="excel-cell excel-sticky-col left-[2.25rem] bg-[#F3E8FF] dark:bg-purple-950/80 font-bold text-purple-950 dark:text-purple-100 text-right pr-4">
+                    {t.tables.totalSavings}
                   </td>
                   {MONTHS.map((m) => (
                     <td
                       key={m}
-                      className="excel-cell text-right font-mono font-bold text-purple-700 dark:text-purple-300 tabular-nums"
+                      className="excel-cell text-right font-mono font-bold text-purple-900 dark:text-purple-200 tabular-nums"
                     >
                       {formatCurrency(monthlyTotalSavings[m])}
                     </td>
                   ))}
-                  <td className="excel-cell text-right font-mono font-bold text-purple-900 dark:text-purple-200 bg-[#EA9999] dark:bg-red-900 tabular-nums">
+                  <td className="excel-cell text-right font-mono font-bold text-purple-950 dark:text-purple-100 bg-[#E9D5FF] dark:bg-purple-900 tabular-nums">
                     {formatCurrency(yearTotalSavings)}
                   </td>
-                  <td className="excel-cell text-right font-mono font-bold text-purple-700 dark:text-purple-300 bg-[#EA9999] dark:bg-red-900 tabular-nums text-xs">
+                  <td className="excel-cell text-right font-mono font-bold text-purple-900 dark:text-purple-200 bg-[#E9D5FF] dark:bg-purple-900 tabular-nums text-xs">
                     {formatCurrency(yearTotalSavings / 12)}
                   </td>
                 </tr>
@@ -1365,27 +1380,32 @@ export function ExcelAnnualPage() {
                 </tr>
 
                 {/* MY INVERSOR / Trade Republic (Tabla 4) - C6 * 30 / 100 */}
-                <tr className="bg-surface-200/80 dark:bg-surface-800 font-semibold text-xs border-b-2 border-surface-400 dark:border-surface-600">
-                  <td className="excel-row-num bg-surface-300 dark:bg-surface-700">46</td>
-                  <td className="excel-cell excel-sticky-col left-[2.25rem] bg-surface-200 dark:bg-surface-800 font-semibold text-surface-900 dark:text-surface-100 text-right pr-4">
+                <tr className="bg-[#FAF5FF] dark:bg-purple-950/40 font-semibold text-xs border-b-2 border-purple-200 dark:border-purple-800">
+                  <td className="excel-row-num bg-purple-100 dark:bg-purple-900/60 text-purple-900 dark:text-purple-200">46</td>
+                  <td className="excel-cell excel-sticky-col left-[2.25rem] bg-[#FAF5FF] dark:bg-purple-950/60 font-semibold text-purple-950 dark:text-purple-200 text-right pr-4">
                     {t.tables.availableBudget} ({sp}%):
                   </td>
                   {MONTHS.map((m) => (
                     <td
                       key={m}
-                      className="excel-cell text-right font-mono font-semibold text-surface-900 dark:text-surface-100 tabular-nums"
+                      className="excel-cell text-right font-mono font-semibold text-purple-900 dark:text-purple-300 tabular-nums"
                     >
                       {formatCurrency(monthlyAllocatedSavings[m])}
                     </td>
                   ))}
-                  <td className="excel-cell text-right font-mono font-bold text-surface-950 dark:text-surface-50 bg-surface-300 dark:bg-surface-700 tabular-nums">
+                  <td className="excel-cell text-right font-mono font-bold text-purple-950 dark:text-purple-100 bg-[#F3E8FF] dark:bg-purple-900 tabular-nums">
                     {formatCurrency(
                       Object.values(monthlyAllocatedSavings).reduce((a, b) => a + b, 0)
                     )}
                   </td>
-                  <td className="excel-cell text-right font-mono text-surface-700 bg-surface-300 dark:bg-surface-700 tabular-nums text-xs">
+                  <td className="excel-cell text-right font-mono text-purple-800 dark:text-purple-300 bg-[#F3E8FF] dark:bg-purple-900 tabular-nums text-xs">
                     -
                   </td>
+                </tr>
+
+                {/* Separador entre Tablas */}
+                <tr className="excel-spacer-row">
+                  <td colSpan={16} className="excel-spacer-cell" />
                 </tr>
 
                 {/* ============================================================== */}

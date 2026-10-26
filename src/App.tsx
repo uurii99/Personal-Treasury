@@ -61,11 +61,11 @@ export default function App() {
                     <Route path="/goals" element={<GoalsPage />} />
                     <Route path="/treasury" element={<TreasuryPage />} />
                     <Route path="/treasury/section/:section" element={<SectionDetailPage />} />
-                    <Route path="/annual" element={<AnnualViewPage />} />
+                    <Route path="/annual" element={<Navigate to="/dashboard" replace />} />
+                    <Route path="/recurring" element={<Navigate to="/dashboard" replace />} />
+                    <Route path="/savings" element={<Navigate to="/dashboard" replace />} />
                     <Route path="/history" element={<HistoryPage />} />
                     <Route path="/categories" element={<CategoriesPage />} />
-                    <Route path="/recurring" element={<RecurringExpensesPage />} />
-                    <Route path="/savings" element={<SavingsPage />} />
                     <Route path="/statistics" element={<StatisticsPage />} />
                     <Route path="/settings" element={<SettingsPage />} />
                     <Route path="/profile" element={<ProfilePage />} />

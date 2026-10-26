@@ -16,6 +16,7 @@ export interface Translations {
     savingsAdd: string;
     totalEarned: string;
     totalSpent: string;
+    totalSavings: string;
     availableBudget: string;
     remaining: string;
     leftOver: string;
@@ -135,6 +136,7 @@ const DICTIONARY: Record<Language, Translations> = {
       savingsAdd: '+ Añadir ahorro/inversión',
       totalEarned: 'TOTAL INGRESOS:',
       totalSpent: 'TOTAL GASTADO:',
+      totalSavings: 'TOTAL INVERTIDO / AHORRO:',
       availableBudget: 'PRESUPUESTO DISPONIBLE:',
       remaining: 'RESTANTE:',
       leftOver: 'SOBRA',
@@ -252,6 +254,7 @@ const DICTIONARY: Record<Language, Translations> = {
       savingsAdd: '+ Afegir estalvi/inversió',
       totalEarned: 'TOTAL INGRESSOS:',
       totalSpent: 'TOTAL GASTAT:',
+      totalSavings: 'TOTAL INVERTIT / ESTALVI:',
       availableBudget: 'PRESSUPOST DISPONIBLE:',
       remaining: 'RESTANT:',
       leftOver: 'SOBRA',

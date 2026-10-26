@@ -23,6 +23,7 @@ import {
   getScheduledDebits,
   saveScheduledDebits,
 } from '@/lib/banks';
+import { BankLogo } from '@/components/banks/BankLogo';
 import type { BankAccount, BankScheduledDebit, BankAccountPurpose } from '@/types';
 
 export function BanksPage() {
@@ -398,13 +399,8 @@ export function BanksPage() {
               >
                 <div>
                   <div className="flex items-center justify-between gap-2 mb-2">
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="w-7 h-7 rounded-lg flex items-center justify-center font-bold text-white text-xs shadow-sm"
-                        style={{ backgroundColor: isCash ? '#059669' : acc.color || '#107c41' }}
-                      >
-                        {isCash ? <Banknote className="h-4 w-4 text-white" /> : acc.name.charAt(0)}
-                      </div>
+                    <div className="flex items-center gap-2.5">
+                      <BankLogo bankName={acc.name} isCash={isCash} size="md" />
                       <h3 className="text-sm font-bold text-surface-900 dark:text-surface-100 truncate">
                         {acc.name}
                       </h3>
@@ -528,8 +524,10 @@ export function BanksPage() {
                       Día {deb.due_day} de cada mes / año
                     </span>
                     <h3 className="text-sm font-bold text-surface-900 dark:text-surface-100 mt-1">{deb.title}</h3>
-                    <p className="text-xs text-surface-500 font-mono">
-                      Cargo en: <strong className="text-surface-800 dark:text-surface-200">{bankAcc?.name || 'Banco'}</strong>
+                    <p className="text-xs text-surface-500 font-mono flex items-center gap-1.5 mt-1">
+                      <span>Cargo en:</span>
+                      {bankAcc && <BankLogo bankName={bankAcc.name} isCash={bankAcc.is_cash} size="sm" className="!w-4 !h-4 !rounded" />}
+                      <strong className="text-surface-800 dark:text-surface-200">{bankAcc?.name || 'Banco'}</strong>
                     </p>
                   </div>
 
