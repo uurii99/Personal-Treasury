@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/lib/supabase';
 import { Card, CardHeader, EmptyState, SkeletonCard } from '@/components/ui';
 import { centsToEuros } from '@/lib/money';
-import { getMonthNameShort, getCurrentMonthYear } from '@/lib/dates';
+import { getCurrentMonthYear } from '@/lib/dates';
 import { BarChart3, TrendingUp, PieChart } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -14,6 +15,7 @@ const CHART_COLORS = ['#6366f1', '#f59e0b', '#8b5cf6', '#10b981', '#ef4444', '#0
 
 export function StatisticsPage() {
   const { user } = useAuth();
+  const { language, t } = useLanguage();
   const [loading, setLoading] = useState(true);
   const [monthlyData, setMonthlyData] = useState<any[]>([]);
   const [categoryData, setCategoryData] = useState<any[]>([]);
@@ -33,7 +35,11 @@ export function StatisticsPage() {
         ]);
         const income = (incomes ?? []).reduce((s, i) => s + i.amount, 0);
         const expenses = (transactions ?? []).filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
-        monthly.push({ month: getMonthNameShort(m), ingresos: centsToEuros(income), gastos: centsToEuros(expenses) });
+        monthly.push({
+          month: t.monthsShort[m - 1],
+          ingresos: centsToEuros(income),
+          gastos: centsToEuros(expenses),
+        });
       }
       setMonthlyData(monthly);
 
@@ -46,9 +52,9 @@ export function StatisticsPage() {
         .eq('budget_year', currentYear);
 
       const catMap = new Map<string, number>();
-      (transactions ?? []).forEach((t: any) => {
-        const name = t.category?.name ?? 'Sin categoría';
-        catMap.set(name, (catMap.get(name) ?? 0) + t.amount);
+      (transactions ?? []).forEach((tItem: any) => {
+        const name = tItem.category?.name ?? (language === 'ca' ? 'Sense categoria' : 'Sin categoría');
+        catMap.set(name, (catMap.get(name) ?? 0) + tItem.amount);
       });
 
       const catArr = Array.from(catMap.entries())
@@ -61,14 +67,14 @@ export function StatisticsPage() {
     };
 
     loadStats();
-  }, [user, currentYear]);
+  }, [user, currentYear, language, t.monthsShort]);
 
   const hasData = monthlyData.some(m => m.ingresos > 0 || m.gastos > 0);
 
   if (loading) {
     return (
       <div className="space-y-6">
-        <h1 className="text-xl font-bold text-surface-900 dark:text-surface-100">Estadísticas</h1>
+        <h1 className="text-xl font-bold text-surface-900 dark:text-surface-100">{t.stats.title}</h1>
         <div className="grid gap-4 lg:grid-cols-2">
           {[1, 2, 3, 4].map(i => <SkeletonCard key={i} />)}
         </div>
@@ -79,11 +85,13 @@ export function StatisticsPage() {
   if (!hasData) {
     return (
       <div className="space-y-6">
-        <h1 className="text-xl font-bold text-surface-900 dark:text-surface-100">Estadísticas</h1>
+        <h1 className="text-xl font-bold text-surface-900 dark:text-surface-100">{t.stats.title}</h1>
         <EmptyState
           icon={<BarChart3 className="h-6 w-6" />}
-          title="Sin datos suficientes"
-          description="Registra ingresos y gastos para ver tus estadísticas y gráficos. Los datos se mostrarán automáticamente."
+          title={language === 'ca' ? 'Sense dades suficients' : 'Sin datos suficientes'}
+          description={language === 'ca'
+            ? 'Registra ingressos i despeses per veure les teves estadístiques i gràfics.'
+            : 'Registra ingresos y gastos para ver tus estadísticas y gráficos.'}
         />
       </div>
     );
@@ -97,16 +105,22 @@ export function StatisticsPage() {
     fontSize: '12px',
   };
 
+  const incomeLabel = language === 'ca' ? 'Ingressos' : 'Ingresos';
+  const expenseLabel = language === 'ca' ? 'Despeses' : 'Gastos';
+
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-bold text-surface-900 dark:text-surface-100">
-        Estadísticas — {currentYear}
-      </h1>
+      <div>
+        <h1 className="text-xl font-bold text-surface-900 dark:text-surface-100">
+          {t.stats.title} — {currentYear}
+        </h1>
+        <p className="text-xs text-surface-500 mt-1">{t.stats.subtitle}</p>
+      </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Monthly Income vs Expenses */}
         <Card>
-          <CardHeader title="Ingresos vs Gastos" icon={<BarChart3 className="h-5 w-5" />} />
+          <CardHeader title={t.stats.incomeVsExpense} icon={<BarChart3 className="h-5 w-5" />} />
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={monthlyData} barGap={2}>
@@ -115,8 +129,8 @@ export function StatisticsPage() {
                 <YAxis tick={{ fontSize: 11 }} stroke="var(--color-surface-400)" tickFormatter={(v) => `${v}€`} />
                 <Tooltip contentStyle={tooltipStyle} formatter={(value) => [`${Number(value).toFixed(2)} €`]} />
                 <Legend />
-                <Bar dataKey="ingresos" fill="var(--color-success-500)" radius={[4, 4, 0, 0]} name="Ingresos" />
-                <Bar dataKey="gastos" fill="var(--color-danger-500)" radius={[4, 4, 0, 0]} name="Gastos" />
+                <Bar dataKey="ingresos" fill="var(--color-success-500)" radius={[4, 4, 0, 0]} name={incomeLabel} />
+                <Bar dataKey="gastos" fill="var(--color-danger-500)" radius={[4, 4, 0, 0]} name={expenseLabel} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -124,9 +138,11 @@ export function StatisticsPage() {
 
         {/* Category breakdown */}
         <Card>
-          <CardHeader title="Gastos por categoría" icon={<PieChart className="h-5 w-5" />} />
+          <CardHeader title={t.stats.expenseDistribution} icon={<PieChart className="h-5 w-5" />} />
           {categoryData.length === 0 ? (
-            <p className="text-sm text-surface-400 text-center py-8">Sin datos de categorías.</p>
+            <p className="text-sm text-surface-400 text-center py-8">
+              {language === 'ca' ? 'Sense dades de categories.' : 'Sin datos de categorías.'}
+            </p>
           ) : (
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
@@ -155,7 +171,10 @@ export function StatisticsPage() {
 
         {/* Monthly evolution */}
         <Card className="lg:col-span-2">
-          <CardHeader title="Evolución mensual" icon={<TrendingUp className="h-5 w-5" />} />
+          <CardHeader
+            title={language === 'ca' ? 'Evolució mensual' : 'Evolución mensual'}
+            icon={<TrendingUp className="h-5 w-5" />}
+          />
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={monthlyData}>
@@ -164,8 +183,8 @@ export function StatisticsPage() {
                 <YAxis tick={{ fontSize: 11 }} stroke="var(--color-surface-400)" tickFormatter={(v) => `${v}€`} />
                 <Tooltip contentStyle={tooltipStyle} formatter={(value) => [`${Number(value).toFixed(2)} €`]} />
                 <Legend />
-                <Line type="monotone" dataKey="ingresos" stroke="var(--color-success-500)" strokeWidth={2} dot={{ r: 3 }} name="Ingresos" />
-                <Line type="monotone" dataKey="gastos" stroke="var(--color-danger-500)" strokeWidth={2} dot={{ r: 3 }} name="Gastos" />
+                <Line type="monotone" dataKey="ingresos" stroke="var(--color-success-500)" strokeWidth={2} dot={{ r: 3 }} name={incomeLabel} />
+                <Line type="monotone" dataKey="gastos" stroke="var(--color-danger-500)" strokeWidth={2} dot={{ r: 3 }} name={expenseLabel} />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -174,15 +193,15 @@ export function StatisticsPage() {
         {/* Top categories table */}
         {categoryData.length > 0 && (
           <Card className="lg:col-span-2">
-            <CardHeader title="Categorías con mayor gasto" />
+            <CardHeader title={language === 'ca' ? 'Categories amb més despesa' : 'Categorías con mayor gasto'} />
             <div className="overflow-x-auto">
               <table className="treasury-table">
                 <thead>
                   <tr>
                     <th>#</th>
-                    <th>Categoría</th>
-                    <th className="text-right">Importe</th>
-                    <th className="text-right">% del total</th>
+                    <th>{language === 'ca' ? 'Categoria' : 'Categoría'}</th>
+                    <th className="text-right">{t.common.amount}</th>
+                    <th className="text-right">% {language === 'ca' ? 'del total' : 'del total'}</th>
                   </tr>
                 </thead>
                 <tbody>

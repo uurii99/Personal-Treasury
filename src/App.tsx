@@ -4,6 +4,7 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { ToastProvider } from '@/contexts/ToastContext';
 import { ToastContainer } from '@/components/ui';
+import { LanguageProvider } from '@/contexts/LanguageContext';
 import { ProtectedRoute, PublicOnlyRoute } from '@/components/auth/ProtectedRoute';
 import { AppLayout } from '@/components/layout/AppLayout';
 
@@ -15,6 +16,8 @@ const OnboardingPage = lazy(() => import('@/pages/onboarding/OnboardingPage').th
 
 // App pages (lazy loaded)
 const DashboardPage = lazy(() => import('@/pages/dashboard/DashboardPage').then((m) => ({ default: m.DashboardPage })));
+const BanksPage = lazy(() => import('@/pages/banks/BanksPage').then((m) => ({ default: m.BanksPage })));
+const GoalsPage = lazy(() => import('@/pages/goals/GoalsPage').then((m) => ({ default: m.GoalsPage })));
 const TreasuryPage = lazy(() => import('@/pages/treasury/TreasuryPage').then((m) => ({ default: m.TreasuryPage })));
 const SectionDetailPage = lazy(() => import('@/pages/treasury/SectionDetailPage').then((m) => ({ default: m.SectionDetailPage })));
 const AnnualViewPage = lazy(() => import('@/pages/annual/AnnualViewPage').then((m) => ({ default: m.AnnualViewPage })));
@@ -37,42 +40,46 @@ function PageLoader() {
 export default function App() {
   return (
     <ThemeProvider>
-      <ToastProvider>
-        <BrowserRouter>
-          <AuthProvider>
-            <Suspense fallback={<PageLoader />}>
-              <Routes>
-                {/* Public routes */}
-                <Route path="/login" element={<PublicOnlyRoute><LoginPage /></PublicOnlyRoute>} />
-                <Route path="/forgot-password" element={<PublicOnlyRoute><ForgotPasswordPage /></PublicOnlyRoute>} />
-                <Route path="/auth/callback" element={<AuthCallbackPage />} />
+      <LanguageProvider>
+        <ToastProvider>
+          <BrowserRouter>
+            <AuthProvider>
+              <Suspense fallback={<PageLoader />}>
+                <Routes>
+                  {/* Public routes */}
+                  <Route path="/login" element={<PublicOnlyRoute><LoginPage /></PublicOnlyRoute>} />
+                  <Route path="/forgot-password" element={<PublicOnlyRoute><ForgotPasswordPage /></PublicOnlyRoute>} />
+                  <Route path="/auth/callback" element={<AuthCallbackPage />} />
 
-                {/* Onboarding */}
-                <Route path="/onboarding" element={<OnboardingPage />} />
+                  {/* Onboarding */}
+                  <Route path="/onboarding" element={<OnboardingPage />} />
 
-                {/* Protected app routes */}
-                <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
-                  <Route path="/dashboard" element={<DashboardPage />} />
-                  <Route path="/treasury" element={<TreasuryPage />} />
-                  <Route path="/treasury/section/:section" element={<SectionDetailPage />} />
-                  <Route path="/annual" element={<AnnualViewPage />} />
-                  <Route path="/history" element={<HistoryPage />} />
-                  <Route path="/categories" element={<CategoriesPage />} />
-                  <Route path="/recurring" element={<RecurringExpensesPage />} />
-                  <Route path="/savings" element={<SavingsPage />} />
-                  <Route path="/statistics" element={<StatisticsPage />} />
-                  <Route path="/settings" element={<SettingsPage />} />
-                  <Route path="/profile" element={<ProfilePage />} />
-                </Route>
+                  {/* Protected app routes */}
+                  <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
+                    <Route path="/dashboard" element={<DashboardPage />} />
+                    <Route path="/banks" element={<BanksPage />} />
+                    <Route path="/goals" element={<GoalsPage />} />
+                    <Route path="/treasury" element={<TreasuryPage />} />
+                    <Route path="/treasury/section/:section" element={<SectionDetailPage />} />
+                    <Route path="/annual" element={<AnnualViewPage />} />
+                    <Route path="/history" element={<HistoryPage />} />
+                    <Route path="/categories" element={<CategoriesPage />} />
+                    <Route path="/recurring" element={<RecurringExpensesPage />} />
+                    <Route path="/savings" element={<SavingsPage />} />
+                    <Route path="/statistics" element={<StatisticsPage />} />
+                    <Route path="/settings" element={<SettingsPage />} />
+                    <Route path="/profile" element={<ProfilePage />} />
+                  </Route>
 
-                {/* Catch-all redirect */}
-                <Route path="*" element={<Navigate to="/dashboard" replace />} />
-              </Routes>
-            </Suspense>
-            <ToastContainer />
-          </AuthProvider>
-        </BrowserRouter>
-      </ToastProvider>
+                  {/* Catch-all redirect */}
+                  <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                </Routes>
+              </Suspense>
+              <ToastContainer />
+            </AuthProvider>
+          </BrowserRouter>
+        </ToastProvider>
+      </LanguageProvider>
     </ThemeProvider>
   );
 }

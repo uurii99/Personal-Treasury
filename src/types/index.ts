@@ -254,3 +254,57 @@ export interface ToastMessage {
   description?: string;
   duration?: number;
 }
+
+// === Banks & Accounts ===
+export type BankAccountPurpose = 'fixed' | 'leisure' | 'savings' | 'mixed';
+
+export interface BankAccount {
+  id: string;
+  user_id: string;
+  name: string; // e.g. Banc Sabadell, Revolut, Trade Republic
+  balance: number; // in cents
+  interest_rate?: string | null; // e.g. "2% TAE"
+  purpose: BankAccountPurpose;
+  color?: string | null;
+  account_number?: string | null;
+  notes?: string | null;
+  last_reconciled_at?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BankScheduledDebit {
+  id: string;
+  bank_id: string;
+  title: string; // e.g. "Seguro moto"
+  amount: number; // in cents
+  due_day: number; // day of the month 1-31
+  due_date?: string | null; // specific ISO date
+  recurrence: 'monthly' | 'annual' | 'one_time';
+  category_name?: string;
+  notes?: string | null;
+}
+
+export interface BankReconciliation {
+  id: string;
+  bank_id: string;
+  date: string;
+  reported_balance: number; // cents seen in bank app
+  calculated_balance: number; // cents calculated by app
+  difference: number; // cents
+  notes?: string | null;
+}
+
+// === Goals / Metas Anuales ===
+export interface AnnualGoal {
+  id: string;
+  user_id: string;
+  title: string; // e.g. "Ahorrar 1.000€ para un coche"
+  section: 'leisure' | 'savings';
+  target_amount: number; // in cents
+  current_amount: number; // in cents
+  target_year: number;
+  deadline?: string | null;
+  status: 'active' | 'completed' | 'cancelled';
+  notes?: string | null;
+}

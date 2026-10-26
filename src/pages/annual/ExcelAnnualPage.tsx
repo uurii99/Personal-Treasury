@@ -17,12 +17,14 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/lib/supabase';
 import { formatCurrency, centsToEuros } from '@/lib/money';
 import { getCurrentMonthYear } from '@/lib/dates';
 import { Button } from '@/components/ui';
 import { PercentageModal } from '@/components/excel/PercentageModal';
 import { CellEditModal, type CellEditData } from '@/components/excel/CellEditModal';
+import { CellDetailModal, type CellDetailTarget } from '@/components/excel/CellDetailModal';
 import { AddRowModal } from '@/components/excel/AddRowModal';
 import { AddMovementModal } from '@/components/modals/AddMovementModal';
 import { AddIncomeModal } from '@/components/modals/AddIncomeModal';
@@ -80,6 +82,7 @@ const COL_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L',
 export function ExcelAnnualPage() {
   const { user, settings, refreshSettings } = useAuth();
   const { success, error: showError } = useToast();
+  const { language, t } = useLanguage();
 
   const currentMY = getCurrentMonthYear();
   const [year, setYear] = useState(currentMY.year);
@@ -97,6 +100,10 @@ export function ExcelAnnualPage() {
     month?: number;
     amount?: number;
     formula?: string;
+    type?: 'income' | 'expense';
+    section?: BudgetSection;
+    categoryId?: string;
+    conceptName?: string;
   } | null>(null);
 
   // Side Inspector (Columns P:R in TRESORERIA URI.xlsx)
@@ -108,6 +115,7 @@ export function ExcelAnnualPage() {
   const [showAddRowModal, setShowAddRowModal] = useState(false);
   const [addRowDefaultSection, setAddRowDefaultSection] = useState<'income' | BudgetSection>('fixed');
   const [cellEditData, setCellEditData] = useState<CellEditData | null>(null);
+  const [cellDetailTarget, setCellDetailTarget] = useState<CellDetailTarget | null>(null);
   const [showAddMovement, setShowAddMovement] = useState(false);
   const [showAddIncome, setShowAddIncome] = useState(false);
 
@@ -323,6 +331,14 @@ export function ExcelAnnualPage() {
     return rem;
   }, [monthlyAllocatedLeisure, monthlyTotalLeisure]);
 
+  const monthlyRemainingSavings = useMemo(() => {
+    const rem: Record<number, number> = {};
+    MONTHS.forEach((m) => {
+      rem[m] = monthlyAllocatedSavings[m] - monthlyTotalSavings[m];
+    });
+    return rem;
+  }, [monthlyAllocatedSavings, monthlyTotalSavings]);
+
   // Overall totals
   const monthlyTotalExpenses = useMemo(() => {
     const totals: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0 };
@@ -370,12 +386,17 @@ export function ExcelAnnualPage() {
     _categoryId?: string
   ) => {
     const coordStr = `${colCoord}${rowCoord}`;
+    const mName = t.months[month - 1];
     setActiveCell({
       coord: coordStr,
-      concept: `${conceptName} (${MONTH_NAMES[month - 1]})`,
+      concept: `${conceptName} (${mName})`,
       month,
       amount: amountCents,
-      formula: `${conceptName} [${MONTH_NAMES[month - 1]} ${year}] = ${formatCurrency(amountCents)}`,
+      formula: `${conceptName} [${mName} ${year}] = ${formatCurrency(amountCents)}`,
+      type: _type,
+      section: _section,
+      categoryId: _categoryId,
+      conceptName,
     });
     setSelectedInspectorMonth(month);
   };
@@ -384,24 +405,24 @@ export function ExcelAnnualPage() {
     type: 'income' | 'expense',
     conceptName: string,
     month: number,
-    amountCents: number,
+    _amountCents: number,
     section?: BudgetSection,
     categoryId?: string
   ) => {
-    setCellEditData({
+    // Open detailed drilldown modal showing itemized sub-expenses & bank
+    setCellDetailTarget({
       type,
       section,
       categoryId,
       conceptName,
       month,
       year,
-      currentAmountCents: amountCents,
     });
   };
 
   // Export to CSV
   const handleExportCSV = () => {
-    const headers = ['Tabla', 'Concepto', ...MONTH_NAMES, 'TOTAL ANUAL', 'MEDIA MENSUAL'];
+    const headers = [language === 'ca' ? 'Taula' : 'Tabla', t.common.concept, ...t.months, t.tables.totalAnnual, t.tables.monthlyAverage];
     const rows: (string | number)[][] = [headers];
 
     const addRow = (tabla: string, concepto: string, monthsData: Record<number, number>) => {
@@ -412,28 +433,28 @@ export function ExcelAnnualPage() {
     };
 
     // 1. Ingresos
-    incomeConcepts.forEach((c) => addRow("PREVISIÓ D'INGRESSOS", c, incomeMatrix[c] || {}));
-    addRow("PREVISIÓ D'INGRESSOS", 'TOTAL:', monthlyTotalIncome);
+    incomeConcepts.forEach((c) => addRow(t.tables.incomeTitle, c, incomeMatrix[c] || {}));
+    addRow(t.tables.incomeTitle, t.tables.totalEarned, monthlyTotalIncome);
 
     // 2. Fijos
-    Object.values(fixedMatrix).forEach((r) => addRow('PREVISIÓ DE DESPESES FIXES', r.name, r.months));
-    addRow('PREVISIÓ DE DESPESES FIXES', 'TOTAL GASTAT:', monthlyTotalFixed);
-    addRow('PREVISIÓ DE DESPESES FIXES', 'SABADELL / REVOLUT (40%):', monthlyAllocatedFixed);
-    addRow('PREVISIÓ DE DESPESES FIXES', 'RESTANT:', monthlyRemainingFixed);
+    Object.values(fixedMatrix).forEach((r) => addRow(t.tables.fixedTitle, r.name, r.months));
+    addRow(t.tables.fixedTitle, t.tables.totalSpent, monthlyTotalFixed);
+    addRow(t.tables.fixedTitle, `${t.tables.availableBudget} (${fp}%):`, monthlyAllocatedFixed);
+    addRow(t.tables.fixedTitle, t.tables.remaining, monthlyRemainingFixed);
 
     // 3. Ocio
-    Object.values(leisureMatrix).forEach((r) => addRow('PREVISIÓ DE DESPESES OPCIONALS', r.name, r.months));
-    addRow('PREVISIÓ DE DESPESES OPCIONALS', 'TOTAL GASTAT:', monthlyTotalLeisure);
-    addRow('PREVISIÓ DE DESPESES OPCIONALS', 'REVOLUT (30%):', monthlyAllocatedLeisure);
-    addRow('PREVISIÓ DE DESPESES OPCIONALS', 'RESTANT:', monthlyRemainingLeisure);
+    Object.values(leisureMatrix).forEach((r) => addRow(t.tables.leisureTitle, r.name, r.months));
+    addRow(t.tables.leisureTitle, t.tables.totalSpent, monthlyTotalLeisure);
+    addRow(t.tables.leisureTitle, `${t.tables.availableBudget} (${lp}%):`, monthlyAllocatedLeisure);
+    addRow(t.tables.leisureTitle, t.tables.remaining, monthlyRemainingLeisure);
 
     // 4. Ahorro
-    Object.values(savingsMatrix).forEach((r) => addRow('PREVISIÓ DE DESPESES PROVISIONALS/ESTALVI', r.name, r.months));
-    addRow('PREVISIÓ DE DESPESES PROVISIONALS/ESTALVI', 'TOTAL ASIGNAT:', monthlyAllocatedSavings);
+    Object.values(savingsMatrix).forEach((r) => addRow(t.tables.savingsTitle, r.name, r.months));
+    addRow(t.tables.savingsTitle, `${t.tables.availableBudget} (${sp}%):`, monthlyAllocatedSavings);
 
     // Resumen
-    addRow('RESUMEN', 'TOTAL GASTOS', monthlyTotalExpenses);
-    addRow('RESUMEN', 'RESULTAT NET', monthlyNetBalance);
+    addRow(t.tables.generalSummary, t.tables.totalSpent, monthlyTotalExpenses);
+    addRow(t.tables.generalSummary, t.tables.netBalance, monthlyNetBalance);
 
     const csvContent = '\uFEFF' + rows.map((r) => r.join(';')).join('\r\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -460,20 +481,22 @@ export function ExcelAnnualPage() {
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-sm font-bold tracking-tight">
-                  PRESSUPOST ANUAL TRESORERIA - {year}.xlsx
+                  {language === 'ca' ? 'PRESSUPOST ANUAL TRESORERIA' : 'PRESUPUESTO ANUAL TESORERÍA'} - {year}.xlsx
                 </span>
                 <span className="hidden sm:inline text-[10px] px-2 py-0.5 rounded-full bg-white/20 font-medium">
-                  Vista Anual
+                  {language === 'ca' ? 'Vista Anual' : 'Vista Anual'}
                 </span>
               </div>
               <p className="text-[11px] text-emerald-100 flex items-center gap-1">
                 {loading ? (
                   <>
-                    <Loader2 className="h-3 w-3 inline animate-spin text-emerald-200" /> Sincronitzant dades...
+                    <Loader2 className="h-3 w-3 inline animate-spin text-emerald-200" />{' '}
+                    {language === 'ca' ? 'Sincronitzant dades...' : 'Sincronizando datos...'}
                   </>
                 ) : (
                   <>
-                    <CheckCircle2 className="h-3 w-3 inline text-emerald-200" /> Sincronitzat en temps real
+                    <CheckCircle2 className="h-3 w-3 inline text-emerald-200" />{' '}
+                    {language === 'ca' ? 'Sincronitzat en temps real' : 'Sincronizado en tiempo real'}
                   </>
                 )}
               </p>
@@ -507,7 +530,7 @@ export function ExcelAnnualPage() {
                 onClick={() => setYear(currentMY.year)}
                 className="text-xs px-2.5 py-1.5 rounded-lg bg-white/20 hover:bg-white/30 text-white font-medium transition-colors"
               >
-                Año actual ({currentMY.year})
+                {t.common.currentYear} ({currentMY.year})
               </button>
             )}
           </div>
@@ -520,15 +543,17 @@ export function ExcelAnnualPage() {
             <button
               onClick={() => setShowPercentageModal(true)}
               className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-brand-200 dark:border-brand-800/80 bg-brand-50/70 dark:bg-brand-950/40 hover:bg-brand-100/70 dark:hover:bg-brand-900/40 text-brand-700 dark:text-brand-300 transition-all text-xs font-semibold shadow-sm group"
-              title="Ajustar repartiment de percentatges"
+              title={t.common.adjustPercentages}
             >
               <Percent className="h-3.5 w-3.5 text-brand-600 dark:text-brand-400" />
               <span>
-                Repartiment: <strong className="text-surface-900 dark:text-surface-100">{fp}%</strong> Fixes ·{' '}
-                <strong className="text-surface-900 dark:text-surface-100">{lp}%</strong> Opcional ·{' '}
-                <strong className="text-surface-900 dark:text-surface-100">{sp}%</strong> Estalvi
+                {language === 'ca' ? 'Repartiment:' : 'Reparto:'} <strong className="text-surface-900 dark:text-surface-100">{fp}%</strong> {language === 'ca' ? 'Fixes' : 'Fijo'} ·{' '}
+                <strong className="text-surface-900 dark:text-surface-100">{lp}%</strong> {language === 'ca' ? 'Opcional' : 'Ocio'} ·{' '}
+                <strong className="text-surface-900 dark:text-surface-100">{sp}%</strong> {language === 'ca' ? 'Estalvi' : 'Ahorro'}
               </span>
-              <span className="text-[11px] underline opacity-80 group-hover:opacity-100 ml-1">Canviar %</span>
+              <span className="text-[11px] underline opacity-80 group-hover:opacity-100 ml-1">
+                {language === 'ca' ? 'Canviar %' : 'Cambiar %'}
+              </span>
             </button>
           </div>
 
@@ -540,7 +565,7 @@ export function ExcelAnnualPage() {
               icon={<TrendingUp className="h-3.5 w-3.5 text-emerald-600" />}
               onClick={() => setShowAddIncome(true)}
             >
-              Ingrés
+              {language === 'ca' ? 'Ingrés' : 'Ingreso'}
             </Button>
             <Button
               size="sm"
@@ -548,7 +573,7 @@ export function ExcelAnnualPage() {
               icon={<Receipt className="h-3.5 w-3.5 text-danger-500" />}
               onClick={() => setShowAddMovement(true)}
             >
-              Despesa
+              {language === 'ca' ? 'Despesa' : 'Gasto'}
             </Button>
             <Button
               size="sm"
@@ -559,23 +584,23 @@ export function ExcelAnnualPage() {
                 setShowAddRowModal(true);
               }}
             >
-              Nova fila
+              {language === 'ca' ? 'Nova fila' : 'Nueva fila'}
             </Button>
             <Button
               size="sm"
               variant="outline"
               icon={showInspector ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
               onClick={() => setShowInspector(!showInspector)}
-              title="Mostrar / ocultar el desglosament mensual de les columnes P:R"
+              title={language === 'ca' ? 'Mostrar / ocultar el desglossament mensual' : 'Mostrar / ocultar el desglose mensual'}
             >
-              {showInspector ? 'Amagar Detall Mes' : 'Veure Detall Mes'}
+              {showInspector ? t.common.hideMonthDetail : t.common.showMonthDetail}
             </Button>
             <Button
               size="sm"
               variant="ghost"
               icon={<Download className="h-3.5 w-3.5" />}
               onClick={handleExportCSV}
-              title="Exportar a CSV / Excel"
+              title={t.common.exportCSV}
             >
               CSV
             </Button>
@@ -590,18 +615,39 @@ export function ExcelAnnualPage() {
 
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <span className="font-serif italic font-bold text-surface-400 select-none">fx</span>
-            <div className="font-mono text-surface-800 dark:text-surface-200 truncate bg-surface-50 dark:bg-surface-800/50 px-2 py-1 rounded flex-1 border border-surface-200/50 dark:border-surface-700/50">
+            <div className="font-mono text-surface-800 dark:text-surface-200 truncate bg-surface-50 dark:bg-surface-800/50 px-2.5 py-1 rounded flex-1 border border-surface-200/50 dark:border-surface-700/50">
               {activeCell?.formula ||
-                `=RESULTAT_NET_ANUAL(INGRESSOS: ${formatCurrency(yearTotalIncome)} - DESPESES: ${formatCurrency(yearTotalExpenses)}) = ${formatCurrency(yearNetBalance)}`}
+                `=BALANCE_NETO(${t.tables.totalEarned} ${formatCurrency(yearTotalIncome)} - ${t.tables.totalSpent} ${formatCurrency(yearTotalExpenses)}) = ${formatCurrency(yearNetBalance)}`}
             </div>
           </div>
+
+          {/* Quick detail button for selected cell */}
+          {activeCell?.conceptName && activeCell?.month && (
+            <button
+              onClick={() => {
+                setCellDetailTarget({
+                  type: activeCell.type || 'expense',
+                  section: activeCell.section,
+                  categoryId: activeCell.categoryId,
+                  conceptName: activeCell.conceptName || '',
+                  month: activeCell.month || currentMY.month,
+                  year,
+                });
+              }}
+              className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded text-xs flex items-center gap-1.5 shrink-0 transition-colors shadow-sm"
+              title={t.common.seeDetails}
+            >
+              <Receipt className="h-3 w-3" />
+              <span>{t.common.seeDetails}</span>
+            </button>
+          )}
 
           {/* Quick search */}
           <div className="relative w-44 hidden md:block shrink-0">
             <Search className="h-3.5 w-3.5 absolute left-2.5 top-2 text-surface-400" />
             <input
               type="text"
-              placeholder="Cercar concepte..."
+              placeholder={t.common.search}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full text-xs pl-8 pr-2.5 py-1 rounded-lg bg-surface-100 dark:bg-surface-800 border-none text-surface-900 dark:text-surface-100 placeholder-surface-400 focus:ring-1 focus:ring-emerald-500"
@@ -612,19 +658,19 @@ export function ExcelAnnualPage() {
         {/* Year KPI Chips */}
         <div className="grid grid-cols-2 sm:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-surface-200 dark:divide-surface-800 border-b border-surface-200 dark:border-surface-800 text-xs">
           <div className="p-3 flex items-center justify-between">
-            <span className="text-surface-500 font-medium">Ingressos Anuals:</span>
+            <span className="text-surface-500 font-medium">{t.tables.totalEarned}</span>
             <span className="font-mono font-bold text-success-600 dark:text-success-400 tabular-nums">
               {formatCurrency(yearTotalIncome)}
             </span>
           </div>
           <div className="p-3 flex items-center justify-between">
-            <span className="text-surface-500 font-medium">Despeses Anuals:</span>
+            <span className="text-surface-500 font-medium">{t.tables.totalSpent}</span>
             <span className="font-mono font-bold text-danger-600 dark:text-danger-400 tabular-nums">
               {formatCurrency(yearTotalExpenses)}
             </span>
           </div>
           <div className="p-3 flex items-center justify-between">
-            <span className="text-surface-500 font-medium">Resultat Net:</span>
+            <span className="text-surface-500 font-medium">{t.tables.netBalance}</span>
             <span
               className={`font-mono font-bold tabular-nums ${
                 yearNetBalance >= 0 ? 'text-surface-900 dark:text-surface-100' : 'text-danger-600'
@@ -635,14 +681,14 @@ export function ExcelAnnualPage() {
             </span>
           </div>
           <div className="p-3 flex items-center justify-between bg-brand-50/30 dark:bg-brand-950/20">
-            <span className="text-surface-500 font-medium">Estalvi aconseguit:</span>
+            <span className="text-surface-500 font-medium">{t.stats.savingsRate}:</span>
             <span
               className={`font-mono font-bold tabular-nums flex items-center gap-1 ${
                 yearSavingsRate >= sp ? 'text-success-600 dark:text-success-400' : 'text-amber-600 dark:text-amber-400'
               }`}
             >
               {yearSavingsRate.toFixed(1)}%
-              <span className="text-[10px] text-surface-400 font-normal">(Obj: {sp}%)</span>
+              <span className="text-[10px] text-surface-400 font-normal">({language === 'ca' ? 'Obj' : 'Obj'}: {sp}%)</span>
             </span>
           </div>
         </div>
@@ -689,14 +735,14 @@ export function ExcelAnnualPage() {
                   </th>
                   <th className="excel-col-header min-w-[95px] bg-surface-200 dark:bg-surface-800/80 font-bold">
                     <div className="text-[10px] text-surface-400">O</div>
-                    <span>MITJANA</span>
+                    <span>{t.tables.monthlyAverage}</span>
                   </th>
                 </tr>
               </thead>
 
               <tbody>
                 {/* ============================================================== */}
-                {/* TABLA 1: PREVISIÓ D'INGRESSOS 100% */}
+                {/* TABLA 1: PREVISIÓN DE INGRESOS */}
                 {/* ============================================================== */}
                 <tr className="bg-[#38761D] dark:bg-emerald-900 text-white font-bold text-xs uppercase tracking-wider sticky top-[34px] z-10 shadow-sm">
                   <td className="excel-row-num text-emerald-200 bg-[#275314] dark:bg-emerald-950 border-emerald-700">
@@ -708,7 +754,7 @@ export function ExcelAnnualPage() {
                   >
                     <span className="flex items-center gap-2">
                       <span className="w-2.5 h-2.5 rounded-sm bg-emerald-300 inline-block" />
-                      PREVISIÓ D'INGRESSOS 100%
+                      {t.tables.incomeTitle}
                     </span>
                     <button
                       onClick={() => {
@@ -717,7 +763,7 @@ export function ExcelAnnualPage() {
                       }}
                       className="text-[11px] font-medium bg-white/20 hover:bg-white/30 text-white px-2 py-0.5 rounded transition-colors"
                     >
-                      + Afegir ingrés
+                      {t.tables.incomeAdd}
                     </button>
                   </td>
                 </tr>
@@ -796,7 +842,7 @@ export function ExcelAnnualPage() {
                     6
                   </td>
                   <td className="excel-cell excel-sticky-col left-[2.25rem] bg-[#D9EAD3] dark:bg-emerald-950/80 font-bold text-emerald-950 dark:text-emerald-100 text-right pr-4">
-                    TOTAL:
+                    {t.tables.totalEarned}
                   </td>
                   {MONTHS.map((m) => {
                     const mTotal = monthlyTotalIncome[m];
@@ -818,7 +864,7 @@ export function ExcelAnnualPage() {
                 </tr>
 
                 {/* ============================================================== */}
-                {/* TABLA 2: PREVISIÓ DE DESPESES FIXES */}
+                {/* TABLA 2: PREVISIÓN DE GASTOS FIJOS */}
                 {/* ============================================================== */}
                 <tr className="bg-[#1C4587] dark:bg-slate-800 text-white font-bold text-xs uppercase tracking-wider sticky top-[34px] z-10 shadow-sm">
                   <td className="excel-row-num text-slate-300 bg-[#143263] dark:bg-slate-900 border-blue-900">9</td>
@@ -828,7 +874,7 @@ export function ExcelAnnualPage() {
                   >
                     <span className="flex items-center gap-2">
                       <span className="w-2.5 h-2.5 rounded-sm bg-blue-300 inline-block" />
-                      PREVISIÓ DE DESPESES FIXES {fp}%
+                      {t.tables.fixedTitle}
                     </span>
                     <button
                       onClick={() => {
@@ -837,7 +883,7 @@ export function ExcelAnnualPage() {
                       }}
                       className="text-[11px] font-medium bg-white/20 hover:bg-white/30 text-white px-2 py-0.5 rounded transition-colors"
                     >
-                      + Afegir despesa fixa
+                      {t.tables.fixedAdd}
                     </button>
                   </td>
                 </tr>
@@ -915,11 +961,11 @@ export function ExcelAnnualPage() {
                     );
                   })}
 
-                {/* TOTAL GASTAT (Tabla 2) */}
+                {/* TOTAL GASTADO (Tabla 2) */}
                 <tr className="bg-[#F4CCCC] dark:bg-red-950/40 font-bold border-t border-b border-red-200 dark:border-red-800">
                   <td className="excel-row-num bg-[#EA9999] dark:bg-red-900 text-red-950 dark:text-red-200">21</td>
                   <td className="excel-cell excel-sticky-col left-[2.25rem] bg-[#F4CCCC] dark:bg-red-950/60 font-bold text-red-950 dark:text-red-200 text-right pr-4">
-                    TOTAL GASTAT:
+                    {t.tables.totalSpent}
                   </td>
                   {MONTHS.map((m) => (
                     <td
@@ -937,11 +983,11 @@ export function ExcelAnnualPage() {
                   </td>
                 </tr>
 
-                {/* RESTANT (Tabla 2) - C23 - C21 */}
+                {/* RESTANTE (Tabla 2) */}
                 <tr className="bg-surface-100 dark:bg-surface-800 font-bold">
                   <td className="excel-row-num">22</td>
                   <td className="excel-cell excel-sticky-col left-[2.25rem] bg-surface-100 dark:bg-surface-800 font-bold text-surface-900 dark:text-surface-100 text-right pr-4">
-                    RESTANT:
+                    {t.tables.remaining}
                   </td>
                   {MONTHS.map((m) => {
                     const rem = monthlyRemainingFixed[m];
@@ -968,11 +1014,11 @@ export function ExcelAnnualPage() {
                   </td>
                 </tr>
 
-                {/* SABADELL / REVOLUT¿? (Tabla 2) - C6 * 40 / 100 */}
+                {/* PRESUPUESTO ASIGNADO (Tabla 2) - C6 * 40 / 100 */}
                 <tr className="bg-[#C9DAF8] dark:bg-blue-950/60 font-semibold text-xs border-b-2 border-blue-300 dark:border-blue-700">
                   <td className="excel-row-num bg-blue-200 dark:bg-blue-900 text-blue-900 dark:text-blue-200">23</td>
                   <td className="excel-cell excel-sticky-col left-[2.25rem] bg-[#C9DAF8] dark:bg-blue-950/80 font-semibold text-blue-950 dark:text-blue-100 text-right pr-4">
-                    SABADELL / REVOLUT ({fp}%):
+                    {t.tables.availableBudget} ({fp}%):
                   </td>
                   {MONTHS.map((m) => (
                     <td
@@ -993,7 +1039,7 @@ export function ExcelAnnualPage() {
                 </tr>
 
                 {/* ============================================================== */}
-                {/* TABLA 3: PREVISIÓ DE DESPESES OPCIONALS */}
+                {/* TABLA 3: PREVISIÓN DE GASTOS OCIO Y VARIABLES */}
                 {/* ============================================================== */}
                 <tr className="bg-[#BF9000] dark:bg-amber-800 text-white font-bold text-xs uppercase tracking-wider sticky top-[34px] z-10 shadow-sm">
                   <td className="excel-row-num text-amber-200 bg-[#8c6900] dark:bg-amber-950 border-amber-600">26</td>
@@ -1003,7 +1049,7 @@ export function ExcelAnnualPage() {
                   >
                     <span className="flex items-center gap-2">
                       <span className="w-2.5 h-2.5 rounded-sm bg-amber-200 inline-block" />
-                      PREVISIÓ DE DESPESES OPCIONALS {lp}%
+                      {t.tables.leisureTitle}
                     </span>
                     <button
                       onClick={() => {
@@ -1012,7 +1058,7 @@ export function ExcelAnnualPage() {
                       }}
                       className="text-[11px] font-medium bg-white/20 hover:bg-white/30 text-white px-2 py-0.5 rounded transition-colors"
                     >
-                      + Afegir despesa opcional
+                      {t.tables.leisureAdd}
                     </button>
                   </td>
                 </tr>
@@ -1090,11 +1136,11 @@ export function ExcelAnnualPage() {
                     );
                   })}
 
-                {/* TOTAL GASTAT (Tabla 3) */}
+                {/* TOTAL GASTADO (Tabla 3) */}
                 <tr className="bg-[#F4CCCC] dark:bg-red-950/40 font-bold border-t border-b border-red-200 dark:border-red-800">
                   <td className="excel-row-num bg-[#EA9999] dark:bg-red-900 text-red-950 dark:text-red-200">36</td>
                   <td className="excel-cell excel-sticky-col left-[2.25rem] bg-[#F4CCCC] dark:bg-red-950/60 font-bold text-red-950 dark:text-red-200 text-right pr-4">
-                    TOTAL GASTAT:
+                    {t.tables.totalSpent}
                   </td>
                   {MONTHS.map((m) => (
                     <td
@@ -1112,11 +1158,11 @@ export function ExcelAnnualPage() {
                   </td>
                 </tr>
 
-                {/* RESTANT (Tabla 3) - C38 - C36 */}
+                {/* RESTANTE (Tabla 3) */}
                 <tr className="bg-surface-100 dark:bg-surface-800 font-bold">
                   <td className="excel-row-num">37</td>
                   <td className="excel-cell excel-sticky-col left-[2.25rem] bg-surface-100 dark:bg-surface-800 font-bold text-surface-900 dark:text-surface-100 text-right pr-4">
-                    RESTANT:
+                    {t.tables.remaining}
                   </td>
                   {MONTHS.map((m) => {
                     const rem = monthlyRemainingLeisure[m];
@@ -1143,11 +1189,11 @@ export function ExcelAnnualPage() {
                   </td>
                 </tr>
 
-                {/* REVOLUT (Tabla 3) - C6 * 30 / 100 */}
+                {/* PRESUPUESTO ASIGNADO (Tabla 3) - C6 * 30 / 100 */}
                 <tr className="bg-[#FFF2CC] dark:bg-amber-950/60 font-semibold text-xs border-b-2 border-amber-300 dark:border-amber-700">
                   <td className="excel-row-num bg-amber-200 dark:bg-amber-900 text-amber-900 dark:text-amber-200">38</td>
                   <td className="excel-cell excel-sticky-col left-[2.25rem] bg-[#FFF2CC] dark:bg-amber-950/80 font-semibold text-amber-950 dark:text-amber-100 text-right pr-4">
-                    REVOLUT ({lp}%):
+                    {t.tables.availableBudget} ({lp}%):
                   </td>
                   {MONTHS.map((m) => (
                     <td
@@ -1168,7 +1214,7 @@ export function ExcelAnnualPage() {
                 </tr>
 
                 {/* ============================================================== */}
-                {/* TABLA 4: PREVISIÓ DE DESPESES PROVISIONALS/ESTALVI */}
+                {/* TABLA 4: PREVISIÓN DE INVERSIONES Y AHORRO */}
                 {/* ============================================================== */}
                 <tr className="bg-[#434343] dark:bg-surface-800 text-white font-bold text-xs uppercase tracking-wider sticky top-[34px] z-10 shadow-sm">
                   <td className="excel-row-num text-surface-300 bg-[#2b2b2b] dark:bg-surface-950 border-surface-600">41</td>
@@ -1178,7 +1224,7 @@ export function ExcelAnnualPage() {
                   >
                     <span className="flex items-center gap-2">
                       <span className="w-2.5 h-2.5 rounded-sm bg-purple-400 inline-block" />
-                      PREVISIÓ DE DESPESES PROVISIONALS/ESTALVI {sp}%
+                      {t.tables.savingsTitle}
                     </span>
                     <button
                       onClick={() => {
@@ -1187,7 +1233,7 @@ export function ExcelAnnualPage() {
                       }}
                       className="text-[11px] font-medium bg-white/20 hover:bg-white/30 text-white px-2 py-0.5 rounded transition-colors"
                     >
-                      + Afegir concepte estalvi
+                      {t.tables.savingsAdd}
                     </button>
                   </td>
                 </tr>
@@ -1265,11 +1311,64 @@ export function ExcelAnnualPage() {
                     );
                   })}
 
-                {/* MY INVERSOR / Trade Republic (Tabla 4) */}
+                {/* TOTAL INVERTIT/ESTALVIAT (Tabla 4) */}
+                <tr className="bg-[#F4CCCC] dark:bg-red-950/40 font-bold border-t border-b border-red-200 dark:border-red-800">
+                  <td className="excel-row-num bg-[#EA9999] dark:bg-red-900 text-red-950 dark:text-red-200">44</td>
+                  <td className="excel-cell excel-sticky-col left-[2.25rem] bg-[#F4CCCC] dark:bg-red-950/60 font-bold text-red-950 dark:text-red-200 text-right pr-4">
+                    {t.tables.totalSpent}
+                  </td>
+                  {MONTHS.map((m) => (
+                    <td
+                      key={m}
+                      className="excel-cell text-right font-mono font-bold text-purple-700 dark:text-purple-300 tabular-nums"
+                    >
+                      {formatCurrency(monthlyTotalSavings[m])}
+                    </td>
+                  ))}
+                  <td className="excel-cell text-right font-mono font-bold text-purple-900 dark:text-purple-200 bg-[#EA9999] dark:bg-red-900 tabular-nums">
+                    {formatCurrency(yearTotalSavings)}
+                  </td>
+                  <td className="excel-cell text-right font-mono font-bold text-purple-700 dark:text-purple-300 bg-[#EA9999] dark:bg-red-900 tabular-nums text-xs">
+                    {formatCurrency(yearTotalSavings / 12)}
+                  </td>
+                </tr>
+
+                {/* RESTANT (Tabla 4) - C46 - C44 */}
+                <tr className="bg-surface-100 dark:bg-surface-800 font-bold">
+                  <td className="excel-row-num">45</td>
+                  <td className="excel-cell excel-sticky-col left-[2.25rem] bg-surface-100 dark:bg-surface-800 font-bold text-surface-900 dark:text-surface-100 text-right pr-4">
+                    {t.tables.remaining}
+                  </td>
+                  {MONTHS.map((m) => {
+                    const rem = monthlyRemainingSavings[m];
+                    return (
+                      <td
+                        key={m}
+                        className={`excel-cell text-right font-mono font-bold tabular-nums ${
+                          rem >= 0
+                            ? 'text-emerald-700 dark:text-emerald-400 bg-emerald-50/40'
+                            : 'text-red-700 dark:text-red-400 bg-red-50/40'
+                        }`}
+                      >
+                        {formatCurrency(rem)}
+                      </td>
+                    );
+                  })}
+                  <td className="excel-cell text-right font-mono font-bold text-surface-900 dark:text-surface-100 bg-surface-200 dark:bg-surface-700 tabular-nums">
+                    {formatCurrency(
+                      Object.values(monthlyRemainingSavings).reduce((a, b) => a + b, 0)
+                    )}
+                  </td>
+                  <td className="excel-cell text-right font-mono text-surface-500 bg-surface-200 dark:bg-surface-700 tabular-nums text-xs">
+                    -
+                  </td>
+                </tr>
+
+                {/* MY INVERSOR / Trade Republic (Tabla 4) - C6 * 30 / 100 */}
                 <tr className="bg-surface-200/80 dark:bg-surface-800 font-semibold text-xs border-b-2 border-surface-400 dark:border-surface-600">
-                  <td className="excel-row-num bg-surface-300 dark:bg-surface-700">45</td>
+                  <td className="excel-row-num bg-surface-300 dark:bg-surface-700">46</td>
                   <td className="excel-cell excel-sticky-col left-[2.25rem] bg-surface-200 dark:bg-surface-800 font-semibold text-surface-900 dark:text-surface-100 text-right pr-4">
-                    MY INVERSOR / Trade Republic ({sp}%):
+                    {t.tables.availableBudget} ({sp}%):
                   </td>
                   {MONTHS.map((m) => (
                     <td
@@ -1502,19 +1601,19 @@ export function ExcelAnnualPage() {
               {/* Inspector bottom summary */}
               <div className="pt-4 border-t border-surface-200 dark:border-surface-700 space-y-1.5 text-xs">
                 <div className="flex justify-between">
-                  <span className="text-surface-500">Ingressos mes:</span>
+                  <span className="text-surface-500">{t.tables.totalEarned}</span>
                   <span className="font-mono font-bold text-success-600 dark:text-success-400">
                     {formatCurrency(monthlyTotalIncome[selectedInspectorMonth])}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-surface-500">Despeses mes:</span>
+                  <span className="text-surface-500">{t.tables.totalSpent}</span>
                   <span className="font-mono font-bold text-danger-600 dark:text-danger-400">
                     {formatCurrency(monthlyTotalExpenses[selectedInspectorMonth])}
                   </span>
                 </div>
                 <div className="flex justify-between font-bold border-t border-surface-200 dark:border-surface-700 pt-1">
-                  <span>Net mes:</span>
+                  <span>{t.tables.netBalance}</span>
                   <span
                     className={`font-mono ${
                       monthlyNetBalance[selectedInspectorMonth] >= 0
@@ -1534,21 +1633,21 @@ export function ExcelAnnualPage() {
         <div className="p-3 bg-surface-50 dark:bg-surface-900 border-t border-surface-200 dark:border-surface-800 flex flex-wrap items-center justify-between gap-3 text-xs text-surface-500">
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-sm bg-[#38761D] inline-block" /> 1. Ingressos
+              <span className="w-2.5 h-2.5 rounded-sm bg-[#38761D] inline-block" /> 1. {language === 'ca' ? 'Ingressos' : 'Ingresos'}
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-sm bg-[#1C4587] inline-block" /> 2. Fixes ({fp}%)
+              <span className="w-2.5 h-2.5 rounded-sm bg-[#1C4587] inline-block" /> 2. {language === 'ca' ? 'Fixes' : 'Fijo'} ({fp}%)
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-sm bg-[#BF9000] inline-block" /> 3. Opcional ({lp}%)
+              <span className="w-2.5 h-2.5 rounded-sm bg-[#BF9000] inline-block" /> 3. {language === 'ca' ? 'Opcional' : 'Ocio'} ({lp}%)
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-sm bg-[#434343] inline-block" /> 4. Estalvi ({sp}%)
+              <span className="w-2.5 h-2.5 rounded-sm bg-[#434343] inline-block" /> 4. {language === 'ca' ? 'Estalvi' : 'Ahorro'} ({sp}%)
             </span>
           </div>
 
           <p className="italic text-[11px] text-surface-400">
-            💡 Fes doble clic a qualsevol cel·la per editar el seu import instantàniament.
+            💡 {language === 'ca' ? 'Fes doble clic a qualsevol cel·la per veure el desglossament i bancs.' : 'Haz doble clic en cualquier celda para ver el desglose detallado y bancos.'}
           </p>
         </div>
       </div>
@@ -1561,6 +1660,12 @@ export function ExcelAnnualPage() {
           refreshSettings();
           loadYearData();
         }}
+      />
+
+      <CellDetailModal
+        target={cellDetailTarget}
+        onClose={() => setCellDetailTarget(null)}
+        onUpdated={loadYearData}
       />
 
       <CellEditModal

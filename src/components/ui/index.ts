@@ -9,3 +9,5 @@ export { ProgressBar } from './ProgressBar';
 export { Skeleton, SkeletonCard, SkeletonTable } from './Skeleton';
 export { EmptyState } from './EmptyState';
 export { ToastContainer } from './ToastContainer';
+export { Logo } from './Logo';
+export { LanguageToggle } from './LanguageToggle';
