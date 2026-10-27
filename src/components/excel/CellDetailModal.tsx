@@ -117,10 +117,12 @@ export function CellDetailModal({ target, onClose, onUpdated }: CellDetailModalP
         const parsed = JSON.parse(notes);
         return parsed.bank || 'Banc Sabadell';
       }
-      return notes;
-    } catch {
+    } catch {}
+    const known = ['banc sabadell', 'sabadell', 'revolut', 'trade republic', 'myinversor', 'myinvestor', 'efectivo', 'efectiu', 'caixabank', 'bbva', 'santander'];
+    if (known.some((k) => notes.toLowerCase().includes(k))) {
       return notes;
     }
+    return 'Banc Sabadell';
   };
 
   const handleAddSubMovement = async (e: React.FormEvent) => {
@@ -409,16 +411,28 @@ export function CellDetailModal({ target, onClose, onUpdated }: CellDetailModalP
                   >
                     <div className="min-w-0 pr-3">
                       <p className="text-sm font-semibold text-surface-900 dark:text-surface-100 truncate">
-                        {item.description}
+                        {(() => {
+                          if (item.notes && item.notes.startsWith('{')) {
+                            try {
+                              const parsed = JSON.parse(item.notes);
+                              if (parsed.rawConcept) return parsed.rawConcept;
+                            } catch {}
+                          }
+                          return item.description;
+                        })()}
                       </p>
                       <div className="flex items-center gap-2 text-xs text-surface-400 mt-0.5">
                         <span className="flex items-center gap-1">
                           <Calendar className="h-3 w-3" /> {item.date}
                         </span>
-                        <span>·</span>
-                        <span className="flex items-center gap-1 font-medium text-brand-600 dark:text-brand-400">
-                          <Building2 className="h-3 w-3" /> {bankName}
-                        </span>
+                        {bankName && (
+                          <>
+                            <span>·</span>
+                            <span className="flex items-center gap-1 font-medium text-surface-600 dark:text-surface-300">
+                              <Building2 className="h-3 w-3 text-surface-400" /> {bankName}
+                            </span>
+                          </>
+                        )}
                       </div>
                     </div>
 

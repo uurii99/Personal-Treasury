@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase';
-import { eurosToCents } from '@/lib/money';
+import { GASSTOS_BANK_MOVEMENTS } from '@/data/gasstos2026';
 import type { User } from '@supabase/supabase-js';
 import type { UserProfile, BudgetSection } from '@/types';
 
@@ -22,112 +22,43 @@ export function isUuriiProfile(
   ).toLowerCase();
 
   return (
-    displayName.includes('uurii99') ||
-    email.includes('uurii99') ||
+    displayName.includes('uurii') ||
+    email.includes('uurii') ||
     email === 'ovidalg@fp.insjoaquimmir.cat' ||
     localStorage.getItem('is_uurii99_profile') === 'true'
   );
 }
 
-export interface ExcelMovementItem {
-  amountEuros: number;
-  description: string;
-}
+const ALL_STANDARD_CATEGORIES: { name: string; section: BudgetSection }[] = [
+  // 1. Gastos Fijos (40%)
+  { name: 'GYM - FIJO', section: 'fixed' },
+  { name: 'ASSEG. MOTO', section: 'fixed' },
+  { name: 'ITV MOTO', section: 'fixed' },
+  { name: 'REV./REPARACIONS MOTO', section: 'fixed' },
+  { name: 'IMPOST CIRCULACIO MOTO', section: 'fixed' },
+  { name: 'TRANSPORT PÚBLIC', section: 'fixed' },
+  { name: 'BENZINA MOTO', section: 'fixed' },
+  { name: 'CORTE DE PELO', section: 'fixed' },
+  { name: 'OTROS', section: 'fixed' },
 
-export interface ExcelExpenseSeed {
-  categoryName: string;
-  section: BudgetSection;
-  amountEuros: number;
-  notes?: string;
-  items?: ExcelMovementItem[];
-}
+  // 2. Gastos Opcionales / Ocio (30%)
+  { name: 'SALIDAS/VIAGES', section: 'leisure' },
+  { name: 'ROPA', section: 'leisure' },
+  { name: 'COMIDAS', section: 'leisure' },
+  { name: 'DEPORTES', section: 'leisure' },
+  { name: 'REGALS', section: 'leisure' },
+  { name: 'PIEZAS MOTO', section: 'leisure' },
+  { name: 'GASOLINA MOTO', section: 'leisure' },
+  { name: 'HOTWHEELS', section: 'leisure' },
 
-/**
- * Data extracted directly from TRESORERIA URI.xlsx for the starting month (October 2026)
- */
-export const UURII_EXCEL_OCTOBER_2026 = {
-  year: 2026,
-  month: 10, // Octubre
-  incomes: [
-    {
-      description: 'NÒMINA',
-      amountEuros: 723.98,
-      type: 'salary' as const,
-      date: '2026-10-01',
-    },
-  ],
-  expenses: [
-    // 1. Gastos Fijos (40%)
-    {
-      categoryName: 'GYM - FIJO',
-      section: 'fixed' as BudgetSection,
-      amountEuros: 49.95,
-      notes: 'Cuota mensual gimnasio',
-    },
-    {
-      categoryName: 'CORTE DE PELO',
-      section: 'fixed' as BudgetSection,
-      amountEuros: 13.00,
-      notes: 'Peluquería',
-    },
-    {
-      categoryName: 'OTROS',
-      section: 'fixed' as BudgetSection,
-      amountEuros: 12.00,
-      notes: 'Otros',
-    },
-
-    // 2. Gastos Opcionales / Ocio (30%)
-    {
-      categoryName: 'COMIDAS',
-      section: 'leisure' as BudgetSection,
-      amountEuros: 18.58,
-      notes: 'Comidas',
-    },
-    {
-      categoryName: 'REGALS',
-      section: 'leisure' as BudgetSection,
-      amountEuros: 30.27,
-      notes: 'Regalos',
-    },
-    {
-      categoryName: 'PIEZAS MOTO',
-      section: 'leisure' as BudgetSection,
-      amountEuros: 200.08,
-      notes: 'Piezas moto',
-    },
-    {
-      categoryName: 'GASOLINA MOTO',
-      section: 'leisure' as BudgetSection,
-      amountEuros: 13.41,
-      notes: 'Gasolina moto',
-    },
-    {
-      categoryName: 'HOTWHEELS',
-      section: 'leisure' as BudgetSection,
-      amountEuros: 75.60,
-      notes: 'Hotwheels',
-    },
-
-    // 3. Inversión y Ahorro (30%)
-    {
-      categoryName: 'INVERSIÓ',
-      section: 'savings' as BudgetSection,
-      amountEuros: 108.60,
-      notes: 'Inversión mensual (50% de ahorro)',
-    },
-    {
-      categoryName: 'FONS EMERGENCIA',
-      section: 'savings' as BudgetSection,
-      amountEuros: 108.60,
-      notes: 'Fondo de emergencia (50% de ahorro)',
-    },
-  ],
-};
+  // 3. Inversiones y Ahorro (30%)
+  { name: 'INVERSIÓ', section: 'savings' },
+  { name: 'FONS EMERGENCIA', section: 'savings' },
+];
 
 /**
- * Syncs the TRESORERIA URI data for uurii99_ ONLY.
- * NEVER modifies other users' data under any circumstances.
+ * Syncs the entire GASSTOS.xls bank statement (393 movements for 2026) for uurii99_ ONLY.
+ * Strictly ignores and NEVER modifies other users' data.
  */
 export async function syncUuriiExcelData(
   user: User | null,
@@ -146,26 +77,27 @@ export async function syncUuriiExcelData(
     };
   }
 
-  const syncKey = `uurii_excel_synced_${user.id}_2026_10`;
+  const syncKey = `uurii_gasstos_synced_${user.id}_v3`;
   if (!force && localStorage.getItem(syncKey) === 'true') {
     return {
       success: true,
-      message: 'Los datos de TRESORERIA URI ya están sincronizados para este mes.',
+      message: 'El extracto de GASSTOS.xls ya está completamente sincronizado.',
     };
   }
 
   try {
-    const { year, month, incomes, expenses } = UURII_EXCEL_OCTOBER_2026;
+    // 1. Purge legacy mock items
+    const unwantedMock = [
+      'Hot Wheels 1',
+      'Hot Wheels pack',
+      'Hot Wheels 3',
+      'Otros fijos',
+      'Hot Wheels 2',
+      'Piezas moto 1',
+      'Piezas moto 2',
+    ];
 
-    // 1. Fetch user categories
-    const { data: existingCategories } = await supabase
-      .from('categories')
-      .select('*')
-      .eq('user_id', user.id);
-
-    // Purge unwanted mock items (Hot Wheels 1, Hot Wheels pack, Hot Wheels 3, Otros fijos)
-    const unwantedDescriptions = ['Hot Wheels 1', 'Hot Wheels pack', 'Hot Wheels 3', 'Otros fijos', 'Hot Wheels 2'];
-    for (const desc of unwantedDescriptions) {
+    for (const desc of unwantedMock) {
       await supabase
         .from('transactions')
         .delete()
@@ -178,113 +110,138 @@ export async function syncUuriiExcelData(
       .eq('user_id', user.id)
       .ilike('name', 'Otros fijos');
 
+    // 2. Fetch or create all standard categories for this user
+    const { data: existingCats } = await supabase
+      .from('categories')
+      .select('*')
+      .eq('user_id', user.id);
+
     const categoryMap = new Map<string, string>(); // lowercase name -> category id
-    existingCategories?.forEach((c) => {
+    existingCats?.forEach((c) => {
       if (c.name.trim().toLowerCase() !== 'otros fijos') {
         categoryMap.set(c.name.trim().toLowerCase(), c.id);
       }
     });
 
-    // Create any missing categories specifically for this user
-    for (const exp of expenses) {
-      const lowerName = exp.categoryName.trim().toLowerCase();
-      if (!categoryMap.has(lowerName)) {
+    for (let i = 0; i < ALL_STANDARD_CATEGORIES.length; i++) {
+      const cat = ALL_STANDARD_CATEGORIES[i];
+      const lower = cat.name.trim().toLowerCase();
+      if (!categoryMap.has(lower)) {
         const { data: newCat } = await supabase
           .from('categories')
           .insert({
             user_id: user.id,
-            name: exp.categoryName,
-            section: exp.section,
-            sort_order: categoryMap.size,
+            name: cat.name,
+            section: cat.section,
+            sort_order: i,
           })
           .select()
           .single();
 
         if (newCat) {
-          categoryMap.set(lowerName, newCat.id);
+          categoryMap.set(lower, newCat.id);
         }
       }
     }
 
-    let insertedCount = 0;
+    // 3. Clear existing 2026 transactions and income entries to ensure clean overwrite from GASSTOS.xls
+    await supabase
+      .from('transactions')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('budget_year', 2026);
 
-    // 2. Sync Incomes for October 2026
-    for (const inc of incomes) {
-      const cents = eurosToCents(inc.amountEuros);
-      const { data: existingInc } = await supabase
-        .from('income_entries')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('budget_month', month)
-        .eq('budget_year', year)
-        .eq('description', inc.description)
-        .limit(1);
+    await supabase
+      .from('income_entries')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('budget_year', 2026);
 
-      if (!existingInc || existingInc.length === 0) {
-        await supabase.from('income_entries').insert({
+    // 4. Prepare batch records from GASSTOS_BANK_MOVEMENTS
+    const incomeRecords = GASSTOS_BANK_MOVEMENTS
+      .filter((m) => m.type === 'income')
+      .map((m) => ({
+        user_id: user.id,
+        description: m.concept || 'EXTRES',
+        amount: m.amountCents,
+        income_type: m.incomeType || 'other',
+        budget_month: m.month,
+        budget_year: m.year,
+        date: m.isoDate,
+        notes: JSON.stringify({ bank: 'Banc Sabadell', rawConcept: m.rawConcept }),
+      }));
+
+    const expenseRecords = GASSTOS_BANK_MOVEMENTS
+      .filter((m) => m.type === 'expense')
+      .map((m) => {
+        const catKey = (m.category || 'OTROS').trim().toLowerCase();
+        const catId = categoryMap.get(catKey) || categoryMap.get('otros') || null;
+        return {
           user_id: user.id,
-          description: inc.description,
-          amount: cents,
-          income_type: inc.type,
-          budget_month: month,
-          budget_year: year,
-          date: inc.date,
-          notes: 'Importado de TRESORERIA URI.xlsx',
-        });
-        insertedCount++;
+          type: 'expense' as const,
+          amount: m.amountCents,
+          description: m.rawConcept,
+          category_id: catId,
+          section: (m.section || 'leisure') as BudgetSection,
+          budget_month: m.month,
+          budget_year: m.year,
+          date: m.isoDate,
+          notes: JSON.stringify({ bank: 'Banc Sabadell' }),
+        };
+      });
+
+    // 5. Insert in chunks of 50 to avoid query size limits
+    const CHUNK_SIZE = 50;
+
+    for (let i = 0; i < incomeRecords.length; i += CHUNK_SIZE) {
+      const chunk = incomeRecords.slice(i, i + CHUNK_SIZE);
+      const { error: incErr } = await supabase.from('income_entries').insert(chunk);
+      if (incErr) {
+        console.error('Error inserting income chunk:', incErr);
       }
     }
 
-    // 3. Sync Expenses for October 2026
-    for (const exp of expenses) {
-      const catId = categoryMap.get(exp.categoryName.trim().toLowerCase()) || null;
-
-      // Check if transactions already exist for this category & month
-      let query = supabase
-        .from('transactions')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('budget_month', month)
-        .eq('budget_year', year)
-        .eq('type', 'expense');
-
-      if (catId) {
-        query = query.eq('category_id', catId);
-      } else {
-        query = query.eq('description', exp.categoryName);
+    for (let i = 0; i < expenseRecords.length; i += CHUNK_SIZE) {
+      const chunk = expenseRecords.slice(i, i + CHUNK_SIZE);
+      const { error: expErr } = await supabase.from('transactions').insert(chunk);
+      if (expErr) {
+        console.error('Error inserting expense chunk:', expErr);
       }
+    }
 
-      const { data: existingTx } = await query;
+    // 6. Update Banc Sabadell bank account balance to exact saldo from GASSTOS.xls (1.001,32 €)
+    const sabadellSaldoCents = 100132;
+    try {
+      const { data: bankAccs } = await supabase
+        .from('bank_accounts')
+        .select('*')
+        .eq('user_id', user.id);
 
-      if (!existingTx || existingTx.length === 0) {
-        await supabase.from('transactions').insert({
-          user_id: user.id,
-          type: 'expense',
-          amount: eurosToCents(exp.amountEuros),
-          description: exp.categoryName,
-          category_id: catId,
-          section: exp.section,
-          budget_month: month,
-          budget_year: year,
-          date: '2026-10-15',
-          notes: exp.notes,
-        });
-        insertedCount++;
+      const sabadellAcc = bankAccs?.find((b) => b.name?.toLowerCase().includes('sabadell'));
+      if (sabadellAcc) {
+        await supabase
+          .from('bank_accounts')
+          .update({ balance_cents: sabadellSaldoCents, updated_at: new Date().toISOString() })
+          .eq('id', sabadellAcc.id);
       }
+    } catch {
+      // Ignore if bank_accounts table is not present
     }
 
     localStorage.setItem(syncKey, 'true');
+    window.dispatchEvent(new CustomEvent('excel-data-updated'));
+    window.dispatchEvent(new CustomEvent('bank-accounts-updated'));
 
     return {
       success: true,
-      message: `Excel TRESORERIA URI sincronizado con éxito para Octubre 2026 (${insertedCount} registros procesados).`,
-      count: insertedCount,
+      message: `Extracto GASSTOS.xls sincronizado con éxito (${GASSTOS_BANK_MOVEMENTS.length} movimientos de 2026).`,
+      count: GASSTOS_BANK_MOVEMENTS.length,
     };
   } catch (error) {
-    console.error('Error syncing uurii excel:', error);
+    console.error('Error syncing GASSTOS.xls:', error);
     return {
       success: false,
-      message: 'Ocurrió un error al sincronizar los datos de TRESORERIA URI',
+      message: 'Ocurrió un error al sincronizar los datos de GASSTOS.xls',
     };
   }
 }

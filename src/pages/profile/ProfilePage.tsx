@@ -3,19 +3,15 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
 import { supabase } from '@/lib/supabase';
 import { Card, CardHeader, Button, Input, ConfirmDialog } from '@/components/ui';
-import { User, Shield, Download, Trash2, FileSpreadsheet, Sparkles, CheckCircle2 } from 'lucide-react';
-import { isUuriiProfile, syncUuriiExcelData } from '@/lib/syncUuriiExcel';
+import { User, Shield, Download, Trash2 } from 'lucide-react';
 
 export function ProfilePage() {
   const { user, profile, updateProfile, signOut } = useAuth();
   const { success, error: showError } = useToast();
   const [displayName, setDisplayName] = useState(profile?.display_name ?? '');
   const [saving, setSaving] = useState(false);
-  const [syncingExcel, setSyncingExcel] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
-
-  const isUurii = isUuriiProfile(user, profile) || displayName.toLowerCase().includes('uurii99');
 
   const handleSaveName = async () => {
     if (!displayName.trim()) return;
@@ -24,18 +20,6 @@ export function ProfilePage() {
     if (error) showError('Error al guardar');
     else success('Perfil actualizado');
     setSaving(false);
-  };
-
-  const handleSyncExcel = async () => {
-    if (!user) return;
-    setSyncingExcel(true);
-    const res = await syncUuriiExcelData(user, profile, true);
-    if (res.success) {
-      success('Sincronizado', res.message);
-    } else {
-      showError(res.message);
-    }
-    setSyncingExcel(false);
   };
 
   const handleExportJSON = async () => {
@@ -107,38 +91,6 @@ export function ProfilePage() {
         </div>
       </Card>
 
-      {/* TRESORERIA URI Excel (uurii99_ profile exclusive) */}
-      {isUurii && (
-        <Card className="border-emerald-200 dark:border-emerald-800/60 bg-emerald-50/20 dark:bg-emerald-950/10">
-          <CardHeader
-            title="Excel TRESORERIA URI (uurii99_)"
-            description="Tus datos iniciales del archivo TRESORERIA URI.xlsx contabilizados a partir de este mes (Octubre 2026)."
-            icon={<FileSpreadsheet className="h-5 w-5 text-emerald-600" />}
-          />
-          <div className="space-y-3">
-            <p className="text-xs text-surface-600 dark:text-surface-300">
-              Incluye: Nòmina (723,98 €), Gym fijo (49,95 €), Corte de pelo (13 €), Otros (12 €), Comidas (18,58 € con desglose), Regalos (30,27 €), Piezas moto (200,08 €), Gasolina moto (13,41 €), Hot Wheels (75,60 €) e Inversiones (108,60 €).
-            </p>
-            <div className="flex flex-wrap items-center gap-3 pt-1">
-              <Button
-                variant="outline"
-                className="border-emerald-600 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/60"
-                icon={<Sparkles className="h-4 w-4 text-emerald-600" />}
-                onClick={handleSyncExcel}
-                loading={syncingExcel}
-              >
-                Sincronizar datos (Octubre 2026)
-              </Button>
-              {localStorage.getItem(`uurii_excel_synced_${user?.id}_2026_10`) === 'true' && (
-                <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                  <CheckCircle2 className="h-4 w-4" />
-                  Sincronizado correctamente
-                </span>
-              )}
-            </div>
-          </div>
-        </Card>
-      )}
 
       {/* Data export */}
       <Card>

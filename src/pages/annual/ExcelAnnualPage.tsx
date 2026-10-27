@@ -13,7 +13,6 @@ import {
   Trash2,
   Loader2,
   Calendar,
-  Sparkles,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
@@ -142,22 +141,19 @@ export function ExcelAnnualPage() {
     typeof window !== 'undefined' && window.innerWidth < 768 ? 'month' : 'annual'
   );
   const [excelDensity, setExcelDensity] = useState<'normal' | 'compact' | 'mini'>('compact');
-  const [isUurii, setIsUurii] = useState(false);
-  const [syncingUurii, setSyncingUurii] = useState(false);
 
   // 1. Load data
   const loadYearData = useCallback(async () => {
     if (!user) return;
     setLoading(true);
 
-    // Auto-sync for uurii99_ profile starting this month (October 2026)
+    // Auto-sync for uurii99_ profile from full bank statement GASSTOS.xls
     // Strictly ignores and NEVER modifies any other user's data
     if (isUuriiProfile(user, profile)) {
-      setIsUurii(true);
-      const syncKey = `uurii_excel_synced_${user.id}_2026_10`;
+      const syncKey = `uurii_gasstos_synced_${user.id}_v3`;
       if (localStorage.getItem(syncKey) !== 'true') {
         try {
-          await syncUuriiExcelData(user, profile);
+          await syncUuriiExcelData(user, profile, true);
         } catch (e) {
           console.error('Error auto-syncing uurii excel:', e);
         }
@@ -204,7 +200,7 @@ export function ExcelAnnualPage() {
       ]);
 
       // Purge unwanted legacy mock items if found in transactions or categories
-      const unwantedMock = ['Hot Wheels 1', 'Hot Wheels pack', 'Hot Wheels 3', 'Otros fijos', 'Hot Wheels 2'];
+      const unwantedMock = ['Hot Wheels 1', 'Hot Wheels pack', 'Hot Wheels 3', 'Otros fijos', 'Hot Wheels 2', 'Piezas moto 1', 'Piezas moto 2'];
       const hasMock = transData?.some((t) => unwantedMock.some((u) => t.description?.toLowerCase().includes(u.toLowerCase()))) ||
         cats?.some((c) => c.name.toLowerCase() === 'otros fijos');
       if (hasMock) {
@@ -524,25 +520,6 @@ export function ExcelAnnualPage() {
   }, [monthlyNetBalance, settings?.initial_balance]);
 
 
-  const scrollToMonth = (mNum: number) => {
-    const el = document.getElementById(`month-col-${mNum}`);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-    }
-  };
-
-  const handleManualSyncUurii = async () => {
-    if (!user) return;
-    setSyncingUurii(true);
-    const res = await syncUuriiExcelData(user, profile, true);
-    if (res.success) {
-      success('Sincronizado', res.message);
-      await loadYearData();
-    } else {
-      showError(res.message);
-    }
-    setSyncingUurii(false);
-  };
 
 
   // Quick cell click
@@ -654,22 +631,6 @@ export function ExcelAnnualPage() {
                 <span>{language === 'ca' ? 'Excel Anual' : 'Excel Anual'}</span>
               </button>
             </div>
-
-            {isUurii && (
-              <button
-                onClick={handleManualSyncUurii}
-                disabled={syncingUurii}
-                className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white/20 hover:bg-white/30 text-white text-xs font-semibold border border-white/20 transition-colors shadow-sm"
-                title="Sincronizar datos de TRESORERIA URI para Octubre 2026"
-              >
-                {syncingUurii ? (
-                  <Loader2 className="h-3 w-3 animate-spin text-white" />
-                ) : (
-                  <Sparkles className="h-3 w-3 text-amber-300" />
-                )}
-                <span>TRESORERIA URI</span>
-              </button>
-            )}
           </div>
 
           {/* Quick year navigation */}
@@ -735,16 +696,10 @@ export function ExcelAnnualPage() {
             </button>
           </div>
 
-          {/* Mobile Controls & Jump */}
+          {/* Current month indicator (plain text, not a button) */}
           {viewMode === 'annual' && (
-            <div className="flex items-center gap-1.5 order-2 sm:order-none">
-              <button
-                onClick={() => scrollToMonth(currentMY.month)}
-                className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-200 text-xs font-semibold hover:bg-emerald-200 transition-colors border border-emerald-300 dark:border-emerald-800"
-                title={language === 'ca' ? 'Desplaçar-se al mes actual' : 'Desplazarse al mes actual'}
-              >
-                <span>📍 {t.months[currentMY.month - 1]}</span>
-              </button>
+            <div className="flex items-center gap-1.5 order-2 sm:order-none text-xs text-surface-600 dark:text-surface-300 font-semibold select-none px-1">
+              <span>📍 {t.months[currentMY.month - 1]}</span>
             </div>
           )}
 
