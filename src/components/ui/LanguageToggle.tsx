@@ -17,7 +17,6 @@ export function LanguageToggle() {
         }`}
         title="Cambiar a Español"
       >
-        <span>🇪🇸</span>
         <span>ES</span>
       </button>
 

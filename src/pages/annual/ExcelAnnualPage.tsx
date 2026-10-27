@@ -42,18 +42,18 @@ const INITIAL_CATEGORIES: { name: string; section: BudgetSection }[] = [
   { name: 'IMPOST CIRCULACIO MOTO', section: 'fixed' },
   { name: 'TRANSPORT PÚBLIC', section: 'fixed' },
   { name: 'BENZINA MOTO', section: 'fixed' },
+  { name: 'BENZINA COTXE', section: 'fixed' },
   { name: 'CORTE DE PELO', section: 'fixed' },
+  { name: 'GASTOS GENERALES', section: 'fixed' },
   { name: 'OTROS', section: 'fixed' },
 
   // 2. Gastos Opcionales / Ocio (30%)
-  { name: 'SALIDAS/VIAGES', section: 'leisure' },
-  { name: 'ROPA', section: 'leisure' },
   { name: 'COMIDAS', section: 'leisure' },
-  { name: 'DEPORTES', section: 'leisure' },
-  { name: 'REGALS', section: 'leisure' },
+  { name: 'REGALOS', section: 'leisure' },
   { name: 'PIEZAS MOTO', section: 'leisure' },
-  { name: 'GASOLINA MOTO', section: 'leisure' },
-  { name: 'HOTWHEELS', section: 'leisure' },
+  { name: 'HOT WHEELS', section: 'leisure' },
+  { name: 'ROPA', section: 'leisure' },
+  { name: 'SALIDAS/VIAGES', section: 'leisure' },
 
   // 3. Inversiones y Ahorro (30%)
   { name: 'INVERSIÓ', section: 'savings' },
@@ -150,7 +150,7 @@ export function ExcelAnnualPage() {
     // Auto-sync for uurii99_ profile from full bank statement GASSTOS.xls
     // Strictly ignores and NEVER modifies any other user's data
     if (isUuriiProfile(user, profile)) {
-      const syncKey = `uurii_gasstos_synced_${user.id}_v3`;
+      const syncKey = `uurii_gasstos_synced_${user.id}_v4`;
       if (localStorage.getItem(syncKey) !== 'true') {
         try {
           await syncUuriiExcelData(user, profile, true);
@@ -161,6 +161,17 @@ export function ExcelAnnualPage() {
     }
 
     try {
+      // Purge unwanted duplicate categories and mock items
+      const unwantedMock = ['Hot Wheels 1', 'Hot Wheels pack', 'Hot Wheels 3', 'Otros fijos', 'Hot Wheels 2', 'Piezas moto 1', 'Piezas moto 2'];
+      const unwantedCategoryNames = ['Otros fijos', 'DEPORTES', 'GYM', 'Gimnasio', 'GASOLINA MOTO', 'HOTWHEELS', 'REGALS'];
+
+      for (const u of unwantedCategoryNames) {
+        await supabase.from('categories').delete().eq('user_id', user.id).ilike('name', u);
+      }
+      for (const u of unwantedMock) {
+        await supabase.from('transactions').delete().eq('user_id', user.id).ilike('description', u);
+      }
+
       // Load categories
       let { data: cats } = await supabase
         .from('categories')
@@ -198,17 +209,6 @@ export function ExcelAnnualPage() {
           .eq('budget_year', year)
           .eq('type', 'expense'),
       ]);
-
-      // Purge unwanted legacy mock items if found in transactions or categories
-      const unwantedMock = ['Hot Wheels 1', 'Hot Wheels pack', 'Hot Wheels 3', 'Otros fijos', 'Hot Wheels 2', 'Piezas moto 1', 'Piezas moto 2'];
-      const hasMock = transData?.some((t) => unwantedMock.some((u) => t.description?.toLowerCase().includes(u.toLowerCase()))) ||
-        cats?.some((c) => c.name.toLowerCase() === 'otros fijos');
-      if (hasMock) {
-        for (const u of unwantedMock) {
-          await supabase.from('transactions').delete().eq('user_id', user.id).ilike('description', u);
-        }
-        await supabase.from('categories').delete().eq('user_id', user.id).ilike('name', 'Otros fijos');
-      }
 
       setIncomes(incData ?? []);
       setTransactions((transData ?? []).filter((t) => !unwantedMock.some((u) => t.description?.toLowerCase().includes(u.toLowerCase()))));

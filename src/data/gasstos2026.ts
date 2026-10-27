@@ -1,6 +1,12 @@
-// Auto-generated from GASSTOS.xls bank statement
+// Auto-generated from GASSTOS.xls bank statement and verified user rules
 // Account: ES75 0081 1633 4900 0617 8029 (Banc Sabadell)
-// Period: 01/01/2026 - 27/10/2026 (Total: 393 movements)
+// Period: 01/01/2026 - 27/10/2026
+// Verified manual rules:
+// - October exactly as Uri created manually (Nòmina 723,98€, Gym 49,95€, etc.)
+// - Months 1-9: 100% known categories (Peluqueria 13€, Carnet A2 320€, Cambio nombre moto 230€, Gasolina moto <=20€, Gasolina coche >20€)
+// - Months 1-9 generic expenses categorized under fixed 'GASTOS GENERALES'
+// - Emergency fund contributions in Jul (514€), Aug (867€), Sep (587€) totalling 2.558,77€ in emergency account
+// - Same-day Bizum reimbursements / refunds offsetted
 
 import type { BudgetSection, IncomeType } from '@/types';
 
@@ -26,533 +32,6 @@ export interface BankMovementItem {
 
 export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
   {
-    "rawDate": "27/10/2026",
-    "isoDate": "2026-10-27",
-    "month": 10,
-    "year": 2026,
-    "rawConcept": "NOMINA ASIMETRICS INTELLIGENTIA",
-    "amountEuros": 723.98,
-    "amountCents": 72398,
-    "saldoEuros": 1001.32,
-    "saldoCents": 100132,
-    "ref1": "",
-    "ref2": "",
-    "bank": "Banc Sabadell",
-    "type": "income",
-    "concept": "NÒMINA",
-    "incomeType": "salary"
-  },
-  {
-    "rawDate": "26/10/2026",
-    "isoDate": "2026-10-26",
-    "month": 10,
-    "year": 2026,
-    "rawConcept": "ABONO BIZUM DE MARIA M. O.",
-    "amountEuros": 70,
-    "amountCents": 7000,
-    "saldoEuros": 277.34,
-    "saldoCents": 27734,
-    "ref1": "",
-    "ref2": "936128932706",
-    "bank": "Banc Sabadell",
-    "type": "income",
-    "concept": "EXTRES",
-    "incomeType": "other"
-  },
-  {
-    "rawDate": "26/10/2026",
-    "isoDate": "2026-10-26",
-    "month": 10,
-    "year": 2026,
-    "rawConcept": "ABONO BIZUM DE MARIA C. P.",
-    "amountEuros": 30,
-    "amountCents": 3000,
-    "saldoEuros": 207.34,
-    "saldoCents": 20734,
-    "ref1": "",
-    "ref2": "110939886089",
-    "bank": "Banc Sabadell",
-    "type": "income",
-    "concept": "EXTRES",
-    "incomeType": "other"
-  },
-  {
-    "rawDate": "26/10/2026",
-    "isoDate": "2026-10-26",
-    "month": 10,
-    "year": 2026,
-    "rawConcept": "COMPRA TARJ. 5402XXXXXXXX8018 HOLALA-VILANOVA I LA",
-    "amountEuros": -7,
-    "amountCents": 700,
-    "saldoEuros": 177.34,
-    "saldoCents": 17734,
-    "ref1": "",
-    "ref2": "5402__8018",
-    "bank": "Banc Sabadell",
-    "type": "expense",
-    "section": "leisure",
-    "category": "ROPA"
-  },
-  {
-    "rawDate": "26/10/2026",
-    "isoDate": "2026-10-26",
-    "month": 10,
-    "year": 2026,
-    "rawConcept": "ABONO BIZUM DE NAIARA S. C.",
-    "amountEuros": 2.99,
-    "amountCents": 299,
-    "saldoEuros": 184.34,
-    "saldoCents": 18434,
-    "ref1": "",
-    "ref2": "185996676658",
-    "bank": "Banc Sabadell",
-    "type": "income",
-    "concept": "EXTRES",
-    "incomeType": "other"
-  },
-  {
-    "rawDate": "26/10/2026",
-    "isoDate": "2026-10-26",
-    "month": 10,
-    "year": 2026,
-    "rawConcept": "COMPRA TARJ. 5402XXXXXXXX8018 BK VILANOVA-VILANOVA GELT",
-    "amountEuros": -27.88,
-    "amountCents": 2788,
-    "saldoEuros": 181.35,
-    "saldoCents": 18135,
-    "ref1": "",
-    "ref2": "5402__8018",
-    "bank": "Banc Sabadell",
-    "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
-  },
-  {
-    "rawDate": "23/10/2026",
-    "isoDate": "2026-10-23",
-    "month": 10,
-    "year": 2026,
-    "rawConcept": "COMPRA TARJ. 5402XXXXXXXX8018 332 VILANOVA-VILANOVA I LA",
-    "amountEuros": -2.99,
-    "amountCents": 299,
-    "saldoEuros": 209.23,
-    "saldoCents": 20923,
-    "ref1": "",
-    "ref2": "5402__8018",
-    "bank": "Banc Sabadell",
-    "type": "expense",
-    "section": "fixed",
-    "category": "OTROS"
-  },
-  {
-    "rawDate": "22/10/2026",
-    "isoDate": "2026-10-22",
-    "month": 10,
-    "year": 2026,
-    "rawConcept": "COMPRA TARJ. 5402XXXXXXXX8018 8239 VILANOVA C CIMENT-VILANOVA I LA",
-    "amountEuros": -6,
-    "amountCents": 600,
-    "saldoEuros": 212.22,
-    "saldoCents": 21222,
-    "ref1": "",
-    "ref2": "5402__8018",
-    "bank": "Banc Sabadell",
-    "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
-  },
-  {
-    "rawDate": "22/10/2026",
-    "isoDate": "2026-10-22",
-    "month": 10,
-    "year": 2026,
-    "rawConcept": "COMPRA TARJ. 5402XXXXXXXX8018 BAR RESTAURANTE LA TAVERN-VILANOVA I LA",
-    "amountEuros": -1.7,
-    "amountCents": 170,
-    "saldoEuros": 218.22,
-    "saldoCents": 21822,
-    "ref1": "",
-    "ref2": "5402__8018",
-    "bank": "Banc Sabadell",
-    "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
-  },
-  {
-    "rawDate": "21/10/2026",
-    "isoDate": "2026-10-21",
-    "month": 10,
-    "year": 2026,
-    "rawConcept": "COMPRA TARJ. 5402XXXXXXXX8018 MGP*Vinted-Vilnius",
-    "amountEuros": -68.1,
-    "amountCents": 6810,
-    "saldoEuros": 219.92,
-    "saldoCents": 21992,
-    "ref1": "",
-    "ref2": "5402__8018",
-    "bank": "Banc Sabadell",
-    "type": "expense",
-    "section": "leisure",
-    "category": "ROPA"
-  },
-  {
-    "rawDate": "21/10/2026",
-    "isoDate": "2026-10-21",
-    "month": 10,
-    "year": 2026,
-    "rawConcept": "DEVOLUCION TAR.5402XXXXXXXX8018 21.10 MGP*Vinted-Vilnius",
-    "amountEuros": 73.35,
-    "amountCents": 7335,
-    "saldoEuros": 288.02,
-    "saldoCents": 28802,
-    "ref1": "",
-    "ref2": "5402__8018",
-    "bank": "Banc Sabadell",
-    "type": "income",
-    "concept": "EXTRES",
-    "incomeType": "refund"
-  },
-  {
-    "rawDate": "21/10/2026",
-    "isoDate": "2026-10-21",
-    "month": 10,
-    "year": 2026,
-    "rawConcept": "COMPRA TARJ. 5402XXXXXXXX8018 MGP*Vinted-Vilnius",
-    "amountEuros": -73.35,
-    "amountCents": 7335,
-    "saldoEuros": 214.67,
-    "saldoCents": 21467,
-    "ref1": "",
-    "ref2": "5402__8018",
-    "bank": "Banc Sabadell",
-    "type": "expense",
-    "section": "leisure",
-    "category": "ROPA"
-  },
-  {
-    "rawDate": "21/10/2026",
-    "isoDate": "2026-10-21",
-    "month": 10,
-    "year": 2026,
-    "rawConcept": "COMPRA TARJ. 5402XXXXXXXX8018 DIA_5963-SANT PERE DE",
-    "amountEuros": -3.88,
-    "amountCents": 388,
-    "saldoEuros": 288.02,
-    "saldoCents": 28802,
-    "ref1": "",
-    "ref2": "5402__8018",
-    "bank": "Banc Sabadell",
-    "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
-  },
-  {
-    "rawDate": "19/10/2026",
-    "isoDate": "2026-10-19",
-    "month": 10,
-    "year": 2026,
-    "rawConcept": "COMPRA TARJ. 5402XXXXXXXX8018 ESCLATOIL 4088SP S PERE R-MAS D'EN SERR",
-    "amountEuros": -30.36,
-    "amountCents": 3036,
-    "saldoEuros": 291.9,
-    "saldoCents": 29190,
-    "ref1": "",
-    "ref2": "5402__8018",
-    "bank": "Banc Sabadell",
-    "type": "expense",
-    "section": "leisure",
-    "category": "GASOLINA MOTO"
-  },
-  {
-    "rawDate": "19/10/2026",
-    "isoDate": "2026-10-19",
-    "month": 10,
-    "year": 2026,
-    "rawConcept": "ABONO BIZUM DE LAURA G. V.",
-    "amountEuros": 30,
-    "amountCents": 3000,
-    "saldoEuros": 322.26,
-    "saldoCents": 32226,
-    "ref1": "",
-    "ref2": "777887526418",
-    "bank": "Banc Sabadell",
-    "type": "income",
-    "concept": "EXTRES",
-    "incomeType": "other"
-  },
-  {
-    "rawDate": "19/10/2026",
-    "isoDate": "2026-10-19",
-    "month": 10,
-    "year": 2026,
-    "rawConcept": "ABONO BIZUM DE LAURA G. V.",
-    "amountEuros": 9.18,
-    "amountCents": 918,
-    "saldoEuros": 292.26,
-    "saldoCents": 29226,
-    "ref1": "",
-    "ref2": "708372376829",
-    "bank": "Banc Sabadell",
-    "type": "income",
-    "concept": "EXTRES",
-    "incomeType": "other"
-  },
-  {
-    "rawDate": "16/10/2026",
-    "isoDate": "2026-10-16",
-    "month": 10,
-    "year": 2026,
-    "rawConcept": "COMPRA TARJ. 5402XXXXXXXX8018 ESCLATOIL 4088SP S PERE R-MAS D'EN SERR",
-    "amountEuros": -13.05,
-    "amountCents": 1305,
-    "saldoEuros": 283.08,
-    "saldoCents": 28308,
-    "ref1": "",
-    "ref2": "5402__8018",
-    "bank": "Banc Sabadell",
-    "type": "expense",
-    "section": "leisure",
-    "category": "GASOLINA MOTO"
-  },
-  {
-    "rawDate": "16/10/2026",
-    "isoDate": "2026-10-16",
-    "month": 10,
-    "year": 2026,
-    "rawConcept": "COMPRA TARJ. 5402XXXXXXXX8018 MGP*Wallapop SLU-Barcelona",
-    "amountEuros": -110.58,
-    "amountCents": 11058,
-    "saldoEuros": 296.13,
-    "saldoCents": 29613,
-    "ref1": "",
-    "ref2": "5402__8018",
-    "bank": "Banc Sabadell",
-    "type": "expense",
-    "section": "leisure",
-    "category": "PIEZAS MOTO"
-  },
-  {
-    "rawDate": "15/10/2026",
-    "isoDate": "2026-10-15",
-    "month": 10,
-    "year": 2026,
-    "rawConcept": "COMPRA TARJ. 5402XXXXXXXX8018 GEMINIS STYLE-BARCELONA",
-    "amountEuros": -13,
-    "amountCents": 1300,
-    "saldoEuros": 406.71,
-    "saldoCents": 40671,
-    "ref1": "",
-    "ref2": "5402__8018",
-    "bank": "Banc Sabadell",
-    "type": "expense",
-    "section": "fixed",
-    "category": "CORTE DE PELO"
-  },
-  {
-    "rawDate": "14/10/2026",
-    "isoDate": "2026-10-14",
-    "month": 10,
-    "year": 2026,
-    "rawConcept": "DEVOLUCION TAR.5402XXXXXXXX8018 13.10 TIKTOK SHOP SELLER-DUBLIN",
-    "amountEuros": 29,
-    "amountCents": 2900,
-    "saldoEuros": 419.71,
-    "saldoCents": 41971,
-    "ref1": "",
-    "ref2": "5402__8018",
-    "bank": "Banc Sabadell",
-    "type": "income",
-    "concept": "EXTRES",
-    "incomeType": "refund"
-  },
-  {
-    "rawDate": "13/10/2026",
-    "isoDate": "2026-10-13",
-    "month": 10,
-    "year": 2026,
-    "rawConcept": "COMPRA TARJ. 5402XXXXXXXX8018 TIKTOK SHOP SELLER-DUBLIN",
-    "amountEuros": -9.18,
-    "amountCents": 918,
-    "saldoEuros": 390.71,
-    "saldoCents": 39071,
-    "ref1": "",
-    "ref2": "5402__8018",
-    "bank": "Banc Sabadell",
-    "type": "expense",
-    "section": "leisure",
-    "category": "HOTWHEELS"
-  },
-  {
-    "rawDate": "13/10/2026",
-    "isoDate": "2026-10-13",
-    "month": 10,
-    "year": 2026,
-    "rawConcept": "COMPRA TARJ. 5402XXXXXXXX8018 PSP*MOTOBLOUZ-CARVIN",
-    "amountEuros": -89.5,
-    "amountCents": 8950,
-    "saldoEuros": 399.89,
-    "saldoCents": 39989,
-    "ref1": "",
-    "ref2": "5402__8018",
-    "bank": "Banc Sabadell",
-    "type": "expense",
-    "section": "leisure",
-    "category": "PIEZAS MOTO"
-  },
-  {
-    "rawDate": "09/10/2026",
-    "isoDate": "2026-10-09",
-    "month": 10,
-    "year": 2026,
-    "rawConcept": "COMPRA TARJ. 5402XXXXXXXX8018 DNI/PASAPORTE VILANOVA Y-VILANOVA I LA",
-    "amountEuros": -12,
-    "amountCents": 1200,
-    "saldoEuros": 489.39,
-    "saldoCents": 48939,
-    "ref1": "",
-    "ref2": "5402__8018",
-    "bank": "Banc Sabadell",
-    "type": "expense",
-    "section": "fixed",
-    "category": "OTROS"
-  },
-  {
-    "rawDate": "09/10/2026",
-    "isoDate": "2026-10-09",
-    "month": 10,
-    "year": 2026,
-    "rawConcept": "TELEFONOS Simyo Simyo",
-    "amountEuros": -1,
-    "amountCents": 100,
-    "saldoEuros": 501.39,
-    "saldoCents": 50139,
-    "ref1": "B85057974006",
-    "ref2": "5080330849000617",
-    "bank": "Banc Sabadell",
-    "type": "expense",
-    "section": "fixed",
-    "category": "OTROS"
-  },
-  {
-    "rawDate": "08/10/2026",
-    "isoDate": "2026-10-08",
-    "month": 10,
-    "year": 2026,
-    "rawConcept": "COMPRA TARJ. 5402XXXXXXXX8018 TikTok Shop Seller-DUBLIN",
-    "amountEuros": -30.27,
-    "amountCents": 3027,
-    "saldoEuros": 502.39,
-    "saldoCents": 50239,
-    "ref1": "",
-    "ref2": "5402__8018",
-    "bank": "Banc Sabadell",
-    "type": "expense",
-    "section": "leisure",
-    "category": "HOTWHEELS"
-  },
-  {
-    "rawDate": "08/10/2026",
-    "isoDate": "2026-10-08",
-    "month": 10,
-    "year": 2026,
-    "rawConcept": "COMPRA TARJ. 5402XXXXXXXX8018 RESTAURANTE CHINO SHANGHA-SANT PERE DE",
-    "amountEuros": -38.61,
-    "amountCents": 3861,
-    "saldoEuros": 532.66,
-    "saldoCents": 53266,
-    "ref1": "",
-    "ref2": "5402__8018",
-    "bank": "Banc Sabadell",
-    "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
-  },
-  {
-    "rawDate": "08/10/2026",
-    "isoDate": "2026-10-08",
-    "month": 10,
-    "year": 2026,
-    "rawConcept": "ABONO BIZUM DE LAURA G. V.",
-    "amountEuros": 38.61,
-    "amountCents": 3861,
-    "saldoEuros": 571.27,
-    "saldoCents": 57127,
-    "ref1": "",
-    "ref2": "144023108240",
-    "bank": "Banc Sabadell",
-    "type": "income",
-    "concept": "EXTRES",
-    "incomeType": "other"
-  },
-  {
-    "rawDate": "08/10/2026",
-    "isoDate": "2026-10-08",
-    "month": 10,
-    "year": 2026,
-    "rawConcept": "COMPRA TARJ. 5402XXXXXXXX8018 ALDI SANT PERE RIBES-SANT PERE DE",
-    "amountEuros": -1.99,
-    "amountCents": 199,
-    "saldoEuros": 532.66,
-    "saldoCents": 53266,
-    "ref1": "",
-    "ref2": "5402__8018",
-    "bank": "Banc Sabadell",
-    "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
-  },
-  {
-    "rawDate": "05/10/2026",
-    "isoDate": "2026-10-05",
-    "month": 10,
-    "year": 2026,
-    "rawConcept": "ADEUDO RECIBO XP - Energie Fitness VV",
-    "amountEuros": -49.95,
-    "amountCents": 4995,
-    "saldoEuros": 534.65,
-    "saldoCents": 53465,
-    "ref1": "801111060ZZZ",
-    "ref2": "RUMENC1452079002",
-    "bank": "Banc Sabadell",
-    "type": "expense",
-    "section": "fixed",
-    "category": "GYM - FIJO"
-  },
-  {
-    "rawDate": "05/10/2026",
-    "isoDate": "2026-10-05",
-    "month": 10,
-    "year": 2026,
-    "rawConcept": "COMPRA TARJ. 5402XXXXXXXX8018 TUBITO GOLOSO-SANT PERE DE",
-    "amountEuros": -6,
-    "amountCents": 600,
-    "saldoEuros": 584.6,
-    "saldoCents": 58460,
-    "ref1": "",
-    "ref2": "5402__8018",
-    "bank": "Banc Sabadell",
-    "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
-  },
-  {
-    "rawDate": "02/10/2026",
-    "isoDate": "2026-10-02",
-    "month": 10,
-    "year": 2026,
-    "rawConcept": "ABONO TRANSFERENCIA DE Mangopay",
-    "amountEuros": 34.01,
-    "amountCents": 3401,
-    "saldoEuros": 590.6,
-    "saldoCents": 59060,
-    "ref1": "",
-    "ref2": "Mangopay",
-    "bank": "Banc Sabadell",
-    "type": "income",
-    "concept": "EXTRES",
-    "incomeType": "other"
-  },
-  {
     "rawDate": "30/09/2026",
     "isoDate": "2026-09-30",
     "month": 9,
@@ -566,8 +45,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "HOTWHEELS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "29/09/2026",
@@ -583,25 +62,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "HOTWHEELS"
-  },
-  {
-    "rawDate": "28/09/2026",
-    "isoDate": "2026-09-28",
-    "month": 9,
-    "year": 2026,
-    "rawConcept": "TRANSFERENCIA A Oriol Vidal Gonzalez",
-    "amountEuros": -587.5,
-    "amountCents": 58750,
-    "saldoEuros": 588.39,
-    "saldoCents": 58839,
-    "ref1": "281241487",
-    "ref2": "",
-    "bank": "Banc Sabadell",
-    "type": "expense",
-    "section": "savings",
-    "category": "INVERSIÓ"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "28/09/2026",
@@ -634,8 +96,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "SALIDAS/VIAGES"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "28/09/2026",
@@ -668,8 +130,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "25/09/2026",
@@ -703,7 +165,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "25/09/2026",
@@ -720,7 +182,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "25/09/2026",
@@ -737,41 +199,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
-  },
-  {
-    "rawDate": "24/09/2026",
-    "isoDate": "2026-09-24",
-    "month": 9,
-    "year": 2026,
-    "rawConcept": "BONIFIC. COMISION MANT. CUENTA",
-    "amountEuros": 60,
-    "amountCents": 6000,
-    "saldoEuros": 405.75,
-    "saldoCents": 40575,
-    "ref1": "",
-    "ref2": "",
-    "bank": "Banc Sabadell",
-    "type": "income",
-    "concept": "EXTRES",
-    "incomeType": "other"
-  },
-  {
-    "rawDate": "24/09/2026",
-    "isoDate": "2026-09-24",
-    "month": 9,
-    "year": 2026,
-    "rawConcept": "INTERESES Y/O COMISIONES CUENTA",
-    "amountEuros": -60,
-    "amountCents": 6000,
-    "saldoEuros": 345.75,
-    "saldoCents": 34575,
-    "ref1": "",
-    "ref2": "",
-    "bank": "Banc Sabadell",
-    "type": "expense",
-    "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "24/09/2026",
@@ -788,7 +216,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "23/09/2026",
@@ -804,8 +232,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "23/09/2026",
@@ -821,8 +249,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "22/09/2026",
@@ -838,8 +266,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "22/09/2026",
@@ -873,7 +301,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "21/09/2026",
@@ -889,8 +317,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "21/09/2026",
@@ -906,42 +334,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "GASOLINA MOTO"
-  },
-  {
-    "rawDate": "21/09/2026",
-    "isoDate": "2026-09-21",
-    "month": 9,
-    "year": 2026,
-    "rawConcept": "ABONO BIZUM DE NAIARA S. C.",
-    "amountEuros": 149,
-    "amountCents": 14900,
-    "saldoEuros": 466.47,
-    "saldoCents": 46647,
-    "ref1": "",
-    "ref2": "312942191641",
-    "bank": "Banc Sabadell",
-    "type": "income",
-    "concept": "EXTRES",
-    "incomeType": "other"
-  },
-  {
-    "rawDate": "21/09/2026",
-    "isoDate": "2026-09-21",
-    "month": 9,
-    "year": 2026,
-    "rawConcept": "COMPRA TARJ. 5402XXXXXXXX8018 MEDIA MARKT VILANOVA-VILANOVA I LA",
-    "amountEuros": -149,
-    "amountCents": 14900,
-    "saldoEuros": 317.47,
-    "saldoCents": 31747,
-    "ref1": "",
-    "ref2": "5402__8018",
-    "bank": "Banc Sabadell",
-    "type": "expense",
-    "section": "leisure",
-    "category": "DEPORTES"
+    "section": "fixed",
+    "category": "BENZINA COTXE"
   },
   {
     "rawDate": "21/09/2026",
@@ -957,8 +351,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "18/09/2026",
@@ -974,8 +368,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "18/09/2026",
@@ -1008,8 +402,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "14/09/2026",
@@ -1025,8 +419,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "378559942377",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "14/09/2026",
@@ -1042,8 +436,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "14/09/2026",
@@ -1059,8 +453,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "14/09/2026",
@@ -1076,8 +470,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "SALIDAS/VIAGES"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "14/09/2026",
@@ -1093,8 +487,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "SALIDAS/VIAGES"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "11/09/2026",
@@ -1127,8 +521,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "SALIDAS/VIAGES"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "10/09/2026",
@@ -1162,7 +556,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "income",
     "concept": "EXTRES",
-    "incomeType": "refund"
+    "incomeType": "other"
   },
   {
     "rawDate": "09/09/2026",
@@ -1178,8 +572,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "ASIMETRICS INTEL",
     "bank": "Banc Sabadell",
     "type": "income",
-    "concept": "NÒMINA",
-    "incomeType": "salary"
+    "concept": "EXTRES",
+    "incomeType": "other"
   },
   {
     "rawDate": "08/09/2026",
@@ -1195,8 +589,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "SALIDAS/VIAGES"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "07/09/2026",
@@ -1212,8 +606,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "SALIDAS/VIAGES"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "07/09/2026",
@@ -1229,8 +623,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "GASOLINA MOTO"
+    "section": "fixed",
+    "category": "BENZINA COTXE"
   },
   {
     "rawDate": "07/09/2026",
@@ -1246,8 +640,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "07/09/2026",
@@ -1263,8 +657,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "GASOLINA MOTO"
+    "section": "fixed",
+    "category": "BENZINA MOTO"
   },
   {
     "rawDate": "04/09/2026",
@@ -1280,8 +674,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "04/09/2026",
@@ -1298,7 +692,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "04/09/2026",
@@ -1314,8 +708,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "GASOLINA MOTO"
+    "section": "fixed",
+    "category": "BENZINA MOTO"
   },
   {
     "rawDate": "03/09/2026",
@@ -1331,8 +725,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "03/09/2026",
@@ -1348,25 +742,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "GASOLINA MOTO"
-  },
-  {
-    "rawDate": "31/08/2026",
-    "isoDate": "2026-08-31",
-    "month": 8,
-    "year": 2026,
-    "rawConcept": "TRANSFERENCIA A Oriol Vidal Gonzalez",
-    "amountEuros": -350,
-    "amountCents": 35000,
-    "saldoEuros": 350.7,
-    "saldoCents": 35070,
-    "ref1": "274443361",
-    "ref2": "",
-    "bank": "Banc Sabadell",
-    "type": "expense",
-    "section": "savings",
-    "category": "INVERSIÓ"
+    "section": "fixed",
+    "category": "BENZINA COTXE"
   },
   {
     "rawDate": "31/08/2026",
@@ -1400,24 +777,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
-  },
-  {
-    "rawDate": "27/08/2026",
-    "isoDate": "2026-08-27",
-    "month": 8,
-    "year": 2026,
-    "rawConcept": "TRANSFERENCIA A Oriol Vidal Gonzalez",
-    "amountEuros": -516,
-    "amountCents": 51600,
-    "saldoEuros": 516.7,
-    "saldoCents": 51670,
-    "ref1": "273134977",
-    "ref2": "",
-    "bank": "Banc Sabadell",
-    "type": "expense",
-    "section": "savings",
-    "category": "INVERSIÓ"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "27/08/2026",
@@ -1450,8 +810,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "25/08/2026",
@@ -1468,7 +828,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "25/08/2026",
@@ -1484,8 +844,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "24/08/2026",
@@ -1501,8 +861,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "24/08/2026",
@@ -1519,7 +879,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "24/08/2026",
@@ -1535,8 +895,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "REGALS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "24/08/2026",
@@ -1552,8 +912,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "24/08/2026",
@@ -1570,7 +930,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "20/08/2026",
@@ -1586,8 +946,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "DEPORTES"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "17/08/2026",
@@ -1604,7 +964,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "income",
     "concept": "EXTRES",
-    "incomeType": "refund"
+    "incomeType": "other"
   },
   {
     "rawDate": "17/08/2026",
@@ -1654,8 +1014,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "794254079590",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "17/08/2026",
@@ -1671,8 +1031,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "585715094914",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "14/08/2026",
@@ -1688,8 +1048,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "SALIDAS/VIAGES"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "14/08/2026",
@@ -1705,8 +1065,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "REGALS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "14/08/2026",
@@ -1722,8 +1082,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "SALIDAS/VIAGES"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "14/08/2026",
@@ -1739,8 +1099,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "SALIDAS/VIAGES"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "13/08/2026",
@@ -1757,7 +1117,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "13/08/2026",
@@ -1773,8 +1133,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "SALIDAS/VIAGES"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "13/08/2026",
@@ -1791,41 +1151,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
-  },
-  {
-    "rawDate": "13/08/2026",
-    "isoDate": "2026-08-13",
-    "month": 8,
-    "year": 2026,
-    "rawConcept": "ABONO BIZUM DE LAURA G. V.",
-    "amountEuros": 19.26,
-    "amountCents": 1926,
-    "saldoEuros": 364.8,
-    "saldoCents": 36480,
-    "ref1": "",
-    "ref2": "584976719482",
-    "bank": "Banc Sabadell",
-    "type": "income",
-    "concept": "EXTRES",
-    "incomeType": "other"
-  },
-  {
-    "rawDate": "13/08/2026",
-    "isoDate": "2026-08-13",
-    "month": 8,
-    "year": 2026,
-    "rawConcept": "COMPRA TARJ. 5402XXXXXXXX8018 ESCLATOIL 4088SP SANT PER-MAS D'EN SERR",
-    "amountEuros": -19.26,
-    "amountCents": 1926,
-    "saldoEuros": 345.54,
-    "saldoCents": 34554,
-    "ref1": "",
-    "ref2": "5402__8018",
-    "bank": "Banc Sabadell",
-    "type": "expense",
-    "section": "leisure",
-    "category": "GASOLINA MOTO"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "11/08/2026",
@@ -1841,8 +1167,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "HOTWHEELS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "11/08/2026",
@@ -1892,8 +1218,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "10/08/2026",
@@ -1909,8 +1235,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "10/08/2026",
@@ -1926,8 +1252,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "GASOLINA MOTO"
+    "section": "fixed",
+    "category": "BENZINA MOTO"
   },
   {
     "rawDate": "10/08/2026",
@@ -1943,8 +1269,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "SALIDAS/VIAGES"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "07/08/2026",
@@ -1960,8 +1286,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "SALIDAS/VIAGES"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "07/08/2026",
@@ -1977,8 +1303,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "SALIDAS/VIAGES"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "06/08/2026",
@@ -1994,8 +1320,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "SALIDAS/VIAGES"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "06/08/2026",
@@ -2011,8 +1337,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "06/08/2026",
@@ -2028,8 +1354,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "06/08/2026",
@@ -2045,8 +1371,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "GASOLINA MOTO"
+    "section": "fixed",
+    "category": "BENZINA MOTO"
   },
   {
     "rawDate": "06/08/2026",
@@ -2063,7 +1389,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "06/08/2026",
@@ -2079,8 +1405,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "04/08/2026",
@@ -2096,8 +1422,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "04/08/2026",
@@ -2114,7 +1440,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "03/08/2026",
@@ -2131,7 +1457,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "03/08/2026",
@@ -2148,7 +1474,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "03/08/2026",
@@ -2165,7 +1491,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "03/08/2026",
@@ -2181,8 +1507,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "705818973097",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "03/08/2026",
@@ -2216,7 +1542,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "03/08/2026",
@@ -2232,8 +1558,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "GASOLINA MOTO"
+    "section": "fixed",
+    "category": "BENZINA MOTO"
   },
   {
     "rawDate": "03/08/2026",
@@ -2266,8 +1592,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "ASIMETRICS INTEL",
     "bank": "Banc Sabadell",
     "type": "income",
-    "concept": "NÒMINA",
-    "incomeType": "salary"
+    "concept": "EXTRES",
+    "incomeType": "other"
   },
   {
     "rawDate": "29/07/2026",
@@ -2284,24 +1610,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
-  },
-  {
-    "rawDate": "28/07/2026",
-    "isoDate": "2026-07-28",
-    "month": 7,
-    "year": 2026,
-    "rawConcept": "TRANSFERENCIA A Oriol Vidal Gonzalez",
-    "amountEuros": -513,
-    "amountCents": 51300,
-    "saldoEuros": 513.35,
-    "saldoCents": 51335,
-    "ref1": "266183672",
-    "ref2": "",
-    "bank": "Banc Sabadell",
-    "type": "expense",
-    "section": "savings",
-    "category": "INVERSIÓ"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "28/07/2026",
@@ -2334,8 +1643,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "DEPORTES"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "28/07/2026",
@@ -2352,7 +1661,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "27/07/2026",
@@ -2368,8 +1677,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "GASOLINA MOTO"
+    "section": "fixed",
+    "category": "BENZINA MOTO"
   },
   {
     "rawDate": "27/07/2026",
@@ -2385,8 +1694,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "GASOLINA MOTO"
+    "section": "fixed",
+    "category": "BENZINA MOTO"
   },
   {
     "rawDate": "24/07/2026",
@@ -2403,7 +1712,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "23/07/2026",
@@ -2419,8 +1728,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "ROPA"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "23/07/2026",
@@ -2470,8 +1779,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "SALIDAS/VIAGES"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "23/07/2026",
@@ -2488,7 +1797,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "income",
     "concept": "EXTRES",
-    "incomeType": "refund"
+    "incomeType": "other"
   },
   {
     "rawDate": "22/07/2026",
@@ -2505,7 +1814,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "21/07/2026",
@@ -2521,8 +1830,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "ASIMETRICS INTEL",
     "bank": "Banc Sabadell",
     "type": "income",
-    "concept": "NÒMINA",
-    "incomeType": "salary"
+    "concept": "EXTRES",
+    "incomeType": "other"
   },
   {
     "rawDate": "21/07/2026",
@@ -2538,8 +1847,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "21/07/2026",
@@ -2555,8 +1864,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "GASOLINA MOTO"
+    "section": "fixed",
+    "category": "BENZINA COTXE"
   },
   {
     "rawDate": "21/07/2026",
@@ -2573,7 +1882,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "20/07/2026",
@@ -2589,8 +1898,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "SALIDAS/VIAGES"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "20/07/2026",
@@ -2606,8 +1915,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "20/07/2026",
@@ -2623,8 +1932,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "17/07/2026",
@@ -2641,7 +1950,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "15/07/2026",
@@ -2675,7 +1984,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "14/07/2026",
@@ -2691,8 +2000,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "ASIMETRICS INTEL",
     "bank": "Banc Sabadell",
     "type": "income",
-    "concept": "NÒMINA",
-    "incomeType": "salary"
+    "concept": "EXTRES",
+    "incomeType": "other"
   },
   {
     "rawDate": "14/07/2026",
@@ -2708,8 +2017,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "HOTWHEELS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "13/07/2026",
@@ -2725,8 +2034,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "GASOLINA MOTO"
+    "section": "fixed",
+    "category": "BENZINA MOTO"
   },
   {
     "rawDate": "13/07/2026",
@@ -2776,8 +2085,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "DEPORTES"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "10/07/2026",
@@ -2793,8 +2102,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "DEPORTES"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "10/07/2026",
@@ -2810,8 +2119,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "DEPORTES"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "10/07/2026",
@@ -2828,7 +2137,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "income",
     "concept": "EXTRES",
-    "incomeType": "refund"
+    "incomeType": "other"
   },
   {
     "rawDate": "09/07/2026",
@@ -2844,8 +2153,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "SALIDAS/VIAGES"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "09/07/2026",
@@ -2861,8 +2170,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "08/07/2026",
@@ -2879,7 +2188,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "08/07/2026",
@@ -2895,8 +2204,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "PIEZAS MOTO"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "08/07/2026",
@@ -2913,7 +2222,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "08/07/2026",
@@ -2929,8 +2238,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "SALIDAS/VIAGES"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "08/07/2026",
@@ -2947,7 +2256,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "08/07/2026",
@@ -2963,8 +2272,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "SALIDAS/VIAGES"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "08/07/2026",
@@ -2980,8 +2289,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "GASOLINA MOTO"
+    "section": "fixed",
+    "category": "BENZINA MOTO"
   },
   {
     "rawDate": "07/07/2026",
@@ -3049,7 +2358,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "06/07/2026",
@@ -3065,8 +2374,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "03/07/2026",
@@ -3082,8 +2391,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "GASOLINA MOTO"
+    "section": "fixed",
+    "category": "BENZINA MOTO"
   },
   {
     "rawDate": "02/07/2026",
@@ -3099,8 +2408,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "01/07/2026",
@@ -3116,8 +2425,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "GASOLINA MOTO"
+    "section": "fixed",
+    "category": "BENZINA MOTO"
   },
   {
     "rawDate": "30/06/2026",
@@ -3168,7 +2477,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "29/06/2026",
@@ -3185,7 +2494,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "29/06/2026",
@@ -3202,7 +2511,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "29/06/2026",
@@ -3218,8 +2527,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "GASOLINA MOTO"
+    "section": "fixed",
+    "category": "BENZINA MOTO"
   },
   {
     "rawDate": "29/06/2026",
@@ -3235,8 +2544,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "HOTWHEELS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "29/06/2026",
@@ -3252,8 +2561,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "GASOLINA MOTO"
+    "section": "fixed",
+    "category": "BENZINA MOTO"
   },
   {
     "rawDate": "26/06/2026",
@@ -3270,7 +2579,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "income",
     "concept": "EXTRES",
-    "incomeType": "refund"
+    "incomeType": "other"
   },
   {
     "rawDate": "26/06/2026",
@@ -3320,42 +2629,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
-  },
-  {
-    "rawDate": "24/06/2026",
-    "isoDate": "2026-06-24",
-    "month": 6,
-    "year": 2026,
-    "rawConcept": "BONIFIC. COMISION MANT. CUENTA",
-    "amountEuros": 60,
-    "amountCents": 6000,
-    "saldoEuros": 520.63,
-    "saldoCents": 52063,
-    "ref1": "",
-    "ref2": "",
-    "bank": "Banc Sabadell",
-    "type": "income",
-    "concept": "EXTRES",
-    "incomeType": "other"
-  },
-  {
-    "rawDate": "24/06/2026",
-    "isoDate": "2026-06-24",
-    "month": 6,
-    "year": 2026,
-    "rawConcept": "INTERESES Y/O COMISIONES CUENTA",
-    "amountEuros": -60,
-    "amountCents": 6000,
-    "saldoEuros": 460.63,
-    "saldoCents": 46063,
-    "ref1": "",
-    "ref2": "",
-    "bank": "Banc Sabadell",
-    "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "24/06/2026",
@@ -3371,8 +2646,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "SALIDAS/VIAGES"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "23/06/2026",
@@ -3388,42 +2663,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "308270274939",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
-  },
-  {
-    "rawDate": "22/06/2026",
-    "isoDate": "2026-06-22",
-    "month": 6,
-    "year": 2026,
-    "rawConcept": "ABONO BIZUM DE LAURA G. V.",
-    "amountEuros": 26.7,
-    "amountCents": 2670,
-    "saldoEuros": 549.38,
-    "saldoCents": 54938,
-    "ref1": "",
-    "ref2": "348456612313",
-    "bank": "Banc Sabadell",
-    "type": "income",
-    "concept": "EXTRES",
-    "incomeType": "other"
-  },
-  {
-    "rawDate": "22/06/2026",
-    "isoDate": "2026-06-22",
-    "month": 6,
-    "year": 2026,
-    "rawConcept": "COMPRA TARJ. 5402XXXXXXXX8018 BK22543 VILANOVA-VILANOVA I LA",
-    "amountEuros": -26.7,
-    "amountCents": 2670,
-    "saldoEuros": 522.68,
-    "saldoCents": 52268,
-    "ref1": "",
-    "ref2": "5402__8018",
-    "bank": "Banc Sabadell",
-    "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "22/06/2026",
@@ -3439,8 +2680,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "127209779110",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "22/06/2026",
@@ -3456,8 +2697,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "22/06/2026",
@@ -3473,8 +2714,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "SALIDAS/VIAGES"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "22/06/2026",
@@ -3490,8 +2731,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "19/06/2026",
@@ -3507,8 +2748,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "19/06/2026",
@@ -3524,8 +2765,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "19/06/2026",
@@ -3542,7 +2783,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "19/06/2026",
@@ -3558,8 +2799,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "ASIMETRICS INTEL",
     "bank": "Banc Sabadell",
     "type": "income",
-    "concept": "NÒMINA",
-    "incomeType": "salary"
+    "concept": "EXTRES",
+    "incomeType": "other"
   },
   {
     "rawDate": "17/06/2026",
@@ -3575,25 +2816,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
-  },
-  {
-    "rawDate": "17/06/2026",
-    "isoDate": "2026-06-17",
-    "month": 6,
-    "year": 2026,
-    "rawConcept": "TRANSFERENCIA A Oriol Vidal Gonzalez",
-    "amountEuros": -39,
-    "amountCents": 3900,
-    "saldoEuros": 500.34,
-    "saldoCents": 50034,
-    "ref1": "255742030",
-    "ref2": "",
-    "bank": "Banc Sabadell",
-    "type": "expense",
-    "section": "savings",
-    "category": "INVERSIÓ"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "16/06/2026",
@@ -3610,7 +2834,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "income",
     "concept": "EXTRES",
-    "incomeType": "refund"
+    "incomeType": "other"
   },
   {
     "rawDate": "12/06/2026",
@@ -3627,7 +2851,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "12/06/2026",
@@ -3643,8 +2867,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "GASOLINA MOTO"
+    "section": "fixed",
+    "category": "BENZINA MOTO"
   },
   {
     "rawDate": "12/06/2026",
@@ -3661,7 +2885,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "11/06/2026",
@@ -3694,8 +2918,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "10/06/2026",
@@ -3711,25 +2935,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
-  },
-  {
-    "rawDate": "08/06/2026",
-    "isoDate": "2026-06-08",
-    "month": 6,
-    "year": 2026,
-    "rawConcept": "TRANSFERENCIA A Oriol Vidal Gonzalez",
-    "amountEuros": -34.76,
-    "amountCents": 3476,
-    "saldoEuros": 566.77,
-    "saldoCents": 56677,
-    "ref1": "253803900",
-    "ref2": "",
-    "bank": "Banc Sabadell",
-    "type": "expense",
-    "section": "savings",
-    "category": "INVERSIÓ"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "08/06/2026",
@@ -3745,8 +2952,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "08/06/2026",
@@ -3762,8 +2969,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "HOTWHEELS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "08/06/2026",
@@ -3779,8 +2986,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "HOTWHEELS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "08/06/2026",
@@ -3796,8 +3003,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "HOTWHEELS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "08/06/2026",
@@ -3814,7 +3021,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "08/06/2026",
@@ -3831,7 +3038,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "05/06/2026",
@@ -3848,7 +3055,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "05/06/2026",
@@ -3881,8 +3088,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "01/06/2026",
@@ -3899,7 +3106,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "29/05/2026",
@@ -3915,8 +3122,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "29/05/2026",
@@ -3932,8 +3139,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "GASOLINA MOTO"
+    "section": "fixed",
+    "category": "BENZINA MOTO"
   },
   {
     "rawDate": "29/05/2026",
@@ -3967,7 +3174,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "28/05/2026",
@@ -4001,24 +3208,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
-  },
-  {
-    "rawDate": "27/05/2026",
-    "isoDate": "2026-05-27",
-    "month": 5,
-    "year": 2026,
-    "rawConcept": "DEVOLUCION TAR.5402XXXXXXXX8018 27.05 SP ESCAPES SERGIO-BADAJOZ",
-    "amountEuros": 385,
-    "amountCents": 38500,
-    "saldoEuros": 1044.46,
-    "saldoCents": 104446,
-    "ref1": "",
-    "ref2": "5402__8018",
-    "bank": "Banc Sabadell",
-    "type": "income",
-    "concept": "EXTRES",
-    "incomeType": "refund"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "27/05/2026",
@@ -4034,8 +3224,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "22/05/2026",
@@ -4051,8 +3241,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "SALIDAS/VIAGES"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "21/05/2026",
@@ -4069,7 +3259,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "20/05/2026",
@@ -4085,8 +3275,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "20/05/2026",
@@ -4102,8 +3292,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "GASOLINA MOTO"
+    "section": "fixed",
+    "category": "BENZINA MOTO"
   },
   {
     "rawDate": "19/05/2026",
@@ -4137,7 +3327,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "18/05/2026",
@@ -4153,8 +3343,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "18/05/2026",
@@ -4171,7 +3361,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "15/05/2026",
@@ -4225,23 +3415,6 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "category": "OTROS"
   },
   {
-    "rawDate": "12/05/2026",
-    "isoDate": "2026-05-12",
-    "month": 5,
-    "year": 2026,
-    "rawConcept": "COMPRA TARJ. 5402XXXXXXXX8018 SP ESCAPES SERGIO-BADAJOZ",
-    "amountEuros": -385,
-    "amountCents": 38500,
-    "saldoEuros": 611.58,
-    "saldoCents": 61158,
-    "ref1": "",
-    "ref2": "5402__8018",
-    "bank": "Banc Sabadell",
-    "type": "expense",
-    "section": "leisure",
-    "category": "PIEZAS MOTO"
-  },
-  {
     "rawDate": "11/05/2026",
     "isoDate": "2026-05-11",
     "month": 5,
@@ -4272,8 +3445,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "GASOLINA MOTO"
+    "section": "fixed",
+    "category": "BENZINA COTXE"
   },
   {
     "rawDate": "11/05/2026",
@@ -4290,7 +3463,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "income",
     "concept": "EXTRES",
-    "incomeType": "refund"
+    "incomeType": "other"
   },
   {
     "rawDate": "11/05/2026",
@@ -4323,8 +3496,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "11/05/2026",
@@ -4341,7 +3514,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "05/05/2026",
@@ -4358,7 +3531,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "04/05/2026",
@@ -4374,8 +3547,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "PIEZAS MOTO"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "04/05/2026",
@@ -4391,8 +3564,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "GASOLINA MOTO"
+    "section": "fixed",
+    "category": "BENZINA MOTO"
   },
   {
     "rawDate": "30/04/2026",
@@ -4409,7 +3582,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "29/04/2026",
@@ -4443,7 +3616,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "28/04/2026",
@@ -4459,8 +3632,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "GASOLINA MOTO"
+    "section": "fixed",
+    "category": "BENZINA COTXE"
   },
   {
     "rawDate": "27/04/2026",
@@ -4477,7 +3650,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "income",
     "concept": "EXTRES",
-    "incomeType": "refund"
+    "incomeType": "other"
   },
   {
     "rawDate": "27/04/2026",
@@ -4493,8 +3666,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "SALIDAS/VIAGES"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "24/04/2026",
@@ -4528,7 +3701,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "23/04/2026",
@@ -4544,8 +3717,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "23/04/2026",
@@ -4579,7 +3752,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "20/04/2026",
@@ -4596,7 +3769,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "20/04/2026",
@@ -4630,7 +3803,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "20/04/2026",
@@ -4647,7 +3820,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "20/04/2026",
@@ -4680,8 +3853,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "16/04/2026",
@@ -4714,8 +3887,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "14/04/2026",
@@ -4732,7 +3905,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "income",
     "concept": "EXTRES",
-    "incomeType": "refund"
+    "incomeType": "other"
   },
   {
     "rawDate": "13/04/2026",
@@ -4748,8 +3921,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "13/04/2026",
@@ -4765,8 +3938,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "793826671409",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "13/04/2026",
@@ -4782,8 +3955,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "GASOLINA MOTO"
+    "section": "fixed",
+    "category": "BENZINA MOTO"
   },
   {
     "rawDate": "10/04/2026",
@@ -4816,8 +3989,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "PIEZAS MOTO"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "07/04/2026",
@@ -4833,8 +4006,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "PIEZAS MOTO"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "06/04/2026",
@@ -4851,7 +4024,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "income",
     "concept": "EXTRES",
-    "incomeType": "refund"
+    "incomeType": "other"
   },
   {
     "rawDate": "06/04/2026",
@@ -4868,7 +4041,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "income",
     "concept": "EXTRES",
-    "incomeType": "refund"
+    "incomeType": "other"
   },
   {
     "rawDate": "06/04/2026",
@@ -4884,8 +4057,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "HOTWHEELS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "06/04/2026",
@@ -4901,42 +4074,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "HOTWHEELS"
-  },
-  {
-    "rawDate": "06/04/2026",
-    "isoDate": "2026-04-06",
-    "month": 4,
-    "year": 2026,
-    "rawConcept": "PAGO BIZUM LAURA G V",
-    "amountEuros": -4.5,
-    "amountCents": 450,
-    "saldoEuros": 230.09,
-    "saldoCents": 23009,
-    "ref1": "",
-    "ref2": "556158028562",
-    "bank": "Banc Sabadell",
-    "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
-  },
-  {
-    "rawDate": "06/04/2026",
-    "isoDate": "2026-04-06",
-    "month": 4,
-    "year": 2026,
-    "rawConcept": "ABONO BIZUM DE ALEIX S R",
-    "amountEuros": 4.5,
-    "amountCents": 450,
-    "saldoEuros": 234.59,
-    "saldoCents": 23459,
-    "ref1": "",
-    "ref2": "942353552534",
-    "bank": "Banc Sabadell",
-    "type": "income",
-    "concept": "EXTRES",
-    "incomeType": "other"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "06/04/2026",
@@ -4952,8 +4091,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "931360216347",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "06/04/2026",
@@ -4969,8 +4108,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "DEPORTES"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "02/04/2026",
@@ -5037,8 +4176,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "143113526124",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "30/03/2026",
@@ -5054,8 +4193,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "GASOLINA MOTO"
+    "section": "fixed",
+    "category": "BENZINA MOTO"
   },
   {
     "rawDate": "30/03/2026",
@@ -5071,8 +4210,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "HOTWHEELS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "27/03/2026",
@@ -5089,41 +4228,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
-  },
-  {
-    "rawDate": "27/03/2026",
-    "isoDate": "2026-03-27",
-    "month": 3,
-    "year": 2026,
-    "rawConcept": "ABONO BIZUM DE LAURA G V",
-    "amountEuros": 35,
-    "amountCents": 3500,
-    "saldoEuros": 177.99,
-    "saldoCents": 17799,
-    "ref1": "",
-    "ref2": "922042743862",
-    "bank": "Banc Sabadell",
-    "type": "income",
-    "concept": "EXTRES",
-    "incomeType": "other"
-  },
-  {
-    "rawDate": "27/03/2026",
-    "isoDate": "2026-03-27",
-    "month": 3,
-    "year": 2026,
-    "rawConcept": "COMPRA TARJ. 5402XXXXXXXX8018 ESCLATOIL 4088SP SANT PER-MAS D'EN SERR",
-    "amountEuros": -35,
-    "amountCents": 3500,
-    "saldoEuros": 142.99,
-    "saldoCents": 14299,
-    "ref1": "",
-    "ref2": "5402__8018",
-    "bank": "Banc Sabadell",
-    "type": "expense",
-    "section": "leisure",
-    "category": "GASOLINA MOTO"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "26/03/2026",
@@ -5143,40 +4248,6 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "incomeType": "other"
   },
   {
-    "rawDate": "24/03/2026",
-    "isoDate": "2026-03-24",
-    "month": 3,
-    "year": 2026,
-    "rawConcept": "BONIFIC. COMISION MANT. CUENTA",
-    "amountEuros": 60,
-    "amountCents": 6000,
-    "saldoEuros": 27.99,
-    "saldoCents": 2799,
-    "ref1": "",
-    "ref2": "",
-    "bank": "Banc Sabadell",
-    "type": "income",
-    "concept": "EXTRES",
-    "incomeType": "other"
-  },
-  {
-    "rawDate": "24/03/2026",
-    "isoDate": "2026-03-24",
-    "month": 3,
-    "year": 2026,
-    "rawConcept": "INTERESES Y/O COMISIONES CUENTA",
-    "amountEuros": -60,
-    "amountCents": 6000,
-    "saldoEuros": -32.01,
-    "saldoCents": -3201,
-    "ref1": "",
-    "ref2": "",
-    "bank": "Banc Sabadell",
-    "type": "expense",
-    "section": "fixed",
-    "category": "OTROS"
-  },
-  {
     "rawDate": "18/03/2026",
     "isoDate": "2026-03-18",
     "month": 3,
@@ -5190,8 +4261,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "PIEZAS MOTO"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "18/03/2026",
@@ -5208,14 +4279,14 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "ASSEG. MOTO"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "16/03/2026",
     "isoDate": "2026-03-16",
     "month": 3,
     "year": 2026,
-    "rawConcept": "COMPRA TARJ. 5402XXXXXXXX8018 GESTORIA TRAFIC SABA-CUBELLES",
+    "rawConcept": "Cambio de nombre moto nueva (Gestoria Trafic)",
     "amountEuros": -230,
     "amountCents": 23000,
     "saldoEuros": 767.35,
@@ -5241,8 +4312,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "GASOLINA MOTO"
+    "section": "fixed",
+    "category": "BENZINA MOTO"
   },
   {
     "rawDate": "16/03/2026",
@@ -5258,8 +4329,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "PIEZAS MOTO"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "16/03/2026",
@@ -5276,7 +4347,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "16/03/2026",
@@ -5300,23 +4371,6 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "isoDate": "2026-03-12",
     "month": 3,
     "year": 2026,
-    "rawConcept": "TRANSFERENCIA A Oriol Vidal Gonzalez",
-    "amountEuros": -300,
-    "amountCents": 30000,
-    "saldoEuros": 1047.77,
-    "saldoCents": 104777,
-    "ref1": "231017291",
-    "ref2": "",
-    "bank": "Banc Sabadell",
-    "type": "expense",
-    "section": "savings",
-    "category": "INVERSIÓ"
-  },
-  {
-    "rawDate": "12/03/2026",
-    "isoDate": "2026-03-12",
-    "month": 3,
-    "year": 2026,
     "rawConcept": "COMPRA TARJ. 5402XXXXXXXX8018 LA GRANJA FOODS 1959, S.L-MOJA",
     "amountEuros": -8,
     "amountCents": 800,
@@ -5327,7 +4381,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "11/03/2026",
@@ -5360,8 +4414,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "10/03/2026",
@@ -5378,7 +4432,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "10/03/2026",
@@ -5394,8 +4448,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "09/03/2026",
@@ -5411,8 +4465,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "906580303903",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "09/03/2026",
@@ -5429,7 +4483,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "09/03/2026",
@@ -5446,7 +4500,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "04/03/2026",
@@ -5480,7 +4534,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "TRANSPORT PÚBLIC"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "04/03/2026",
@@ -5497,41 +4551,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
-  },
-  {
-    "rawDate": "03/03/2026",
-    "isoDate": "2026-03-03",
-    "month": 3,
-    "year": 2026,
-    "rawConcept": "ABONO BIZUM DE LAURA G V",
-    "amountEuros": 35,
-    "amountCents": 3500,
-    "saldoEuros": 1408.4,
-    "saldoCents": 140840,
-    "ref1": "",
-    "ref2": "902918666044",
-    "bank": "Banc Sabadell",
-    "type": "income",
-    "concept": "EXTRES",
-    "incomeType": "other"
-  },
-  {
-    "rawDate": "03/03/2026",
-    "isoDate": "2026-03-03",
-    "month": 3,
-    "year": 2026,
-    "rawConcept": "COMPRA TARJ. 5402XXXXXXXX8018 ESCLATOIL 4088SP SANT PER-MAS D'EN SERR",
-    "amountEuros": -35,
-    "amountCents": 3500,
-    "saldoEuros": 1373.4,
-    "saldoCents": 137340,
-    "ref1": "",
-    "ref2": "5402__8018",
-    "bank": "Banc Sabadell",
-    "type": "expense",
-    "section": "leisure",
-    "category": "GASOLINA MOTO"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "03/03/2026",
@@ -5564,8 +4584,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "GASOLINA MOTO"
+    "section": "fixed",
+    "category": "BENZINA MOTO"
   },
   {
     "rawDate": "26/02/2026",
@@ -5581,25 +4601,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "GASOLINA MOTO"
-  },
-  {
-    "rawDate": "25/02/2026",
-    "isoDate": "2026-02-25",
-    "month": 2,
-    "year": 2026,
-    "rawConcept": "TRANSFERENCIA A Oriol Vidal Gonzalez",
-    "amountEuros": -50,
-    "amountCents": 5000,
-    "saldoEuros": 1428.4,
-    "saldoCents": 142840,
-    "ref1": "226064246",
-    "ref2": "",
-    "bank": "Banc Sabadell",
-    "type": "expense",
-    "section": "savings",
-    "category": "INVERSIÓ"
+    "section": "fixed",
+    "category": "BENZINA MOTO"
   },
   {
     "rawDate": "23/02/2026",
@@ -5623,40 +4626,6 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "isoDate": "2026-02-23",
     "month": 2,
     "year": 2026,
-    "rawConcept": "ABONO BIZUM DE LAURA G V",
-    "amountEuros": 20,
-    "amountCents": 2000,
-    "saldoEuros": 1428.4,
-    "saldoCents": 142840,
-    "ref1": "",
-    "ref2": "116881073258",
-    "bank": "Banc Sabadell",
-    "type": "income",
-    "concept": "EXTRES",
-    "incomeType": "other"
-  },
-  {
-    "rawDate": "23/02/2026",
-    "isoDate": "2026-02-23",
-    "month": 2,
-    "year": 2026,
-    "rawConcept": "COMPRA TARJ. 5402XXXXXXXX8018 ESCLATOIL 4088SP SANT PER-MAS D'EN SERR",
-    "amountEuros": -20,
-    "amountCents": 2000,
-    "saldoEuros": 1408.4,
-    "saldoCents": 140840,
-    "ref1": "",
-    "ref2": "5402__8018",
-    "bank": "Banc Sabadell",
-    "type": "expense",
-    "section": "leisure",
-    "category": "GASOLINA MOTO"
-  },
-  {
-    "rawDate": "23/02/2026",
-    "isoDate": "2026-02-23",
-    "month": 2,
-    "year": 2026,
     "rawConcept": "COMPRA TARJ. 5402XXXXXXXX8018 MINI MARKET 3 SITGES-GARRAF",
     "amountEuros": -0.85,
     "amountCents": 85,
@@ -5666,8 +4635,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "SALIDAS/VIAGES"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "23/02/2026",
@@ -5683,8 +4652,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "SALIDAS/VIAGES"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "23/02/2026",
@@ -5708,40 +4677,6 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "isoDate": "2026-02-16",
     "month": 2,
     "year": 2026,
-    "rawConcept": "ABONO BIZUM DE LAURA G V",
-    "amountEuros": 30,
-    "amountCents": 3000,
-    "saldoEuros": 1446.25,
-    "saldoCents": 144625,
-    "ref1": "",
-    "ref2": "584592352046",
-    "bank": "Banc Sabadell",
-    "type": "income",
-    "concept": "EXTRES",
-    "incomeType": "other"
-  },
-  {
-    "rawDate": "16/02/2026",
-    "isoDate": "2026-02-16",
-    "month": 2,
-    "year": 2026,
-    "rawConcept": "COMPRA TARJ. 5402XXXXXXXX8018 ESCLATOIL 4088SP SANT PER-MAS D'EN SERR",
-    "amountEuros": -30,
-    "amountCents": 3000,
-    "saldoEuros": 1416.25,
-    "saldoCents": 141625,
-    "ref1": "",
-    "ref2": "5402__8018",
-    "bank": "Banc Sabadell",
-    "type": "expense",
-    "section": "leisure",
-    "category": "GASOLINA MOTO"
-  },
-  {
-    "rawDate": "16/02/2026",
-    "isoDate": "2026-02-16",
-    "month": 2,
-    "year": 2026,
     "rawConcept": "COMPRA TARJ. 5402XXXXXXXX8018 TAGLIATELLA SITGES-SITGES",
     "amountEuros": -40.7,
     "amountCents": 4070,
@@ -5751,8 +4686,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "SALIDAS/VIAGES"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "16/02/2026",
@@ -5768,8 +4703,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "13/02/2026",
@@ -5785,8 +4720,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "13/02/2026",
@@ -5802,8 +4737,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "13/02/2026",
@@ -5819,8 +4754,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "ROPA"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "12/02/2026",
@@ -5837,7 +4772,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "12/02/2026",
@@ -5854,7 +4789,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "12/02/2026",
@@ -5870,8 +4805,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "12/02/2026",
@@ -5887,8 +4822,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "GASOLINA MOTO"
+    "section": "fixed",
+    "category": "BENZINA MOTO"
   },
   {
     "rawDate": "12/02/2026",
@@ -5905,7 +4840,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "12/02/2026",
@@ -5922,7 +4857,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "11/02/2026",
@@ -5939,7 +4874,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "income",
     "concept": "EXTRES",
-    "incomeType": "refund"
+    "incomeType": "other"
   },
   {
     "rawDate": "11/02/2026",
@@ -5972,8 +4907,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "312396017011",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "09/02/2026",
@@ -6004,23 +4939,6 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "saldoCents": 120553,
     "ref1": "",
     "ref2": "391296645516",
-    "bank": "Banc Sabadell",
-    "type": "income",
-    "concept": "EXTRES",
-    "incomeType": "other"
-  },
-  {
-    "rawDate": "09/02/2026",
-    "isoDate": "2026-02-09",
-    "month": 2,
-    "year": 2026,
-    "rawConcept": "ABONO BIZUM DE SEBASTIANO J G",
-    "amountEuros": 10,
-    "amountCents": 1000,
-    "saldoEuros": 1191.53,
-    "saldoCents": 119153,
-    "ref1": "",
-    "ref2": "312044577670",
     "bank": "Banc Sabadell",
     "type": "income",
     "concept": "EXTRES",
@@ -6075,7 +4993,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "09/02/2026",
@@ -6091,25 +5009,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "GASOLINA MOTO"
-  },
-  {
-    "rawDate": "09/02/2026",
-    "isoDate": "2026-02-09",
-    "month": 2,
-    "year": 2026,
-    "rawConcept": "COMPRA TARJ. 5402XXXXXXXX8018 ESCLATOIL VILAFRANCA 2-VILAFRANCA DE",
-    "amountEuros": -10,
-    "amountCents": 1000,
-    "saldoEuros": 1184.53,
-    "saldoCents": 118453,
-    "ref1": "",
-    "ref2": "5402__8018",
-    "bank": "Banc Sabadell",
-    "type": "expense",
-    "section": "leisure",
-    "category": "GASOLINA MOTO"
+    "section": "fixed",
+    "category": "BENZINA MOTO"
   },
   {
     "rawDate": "09/02/2026",
@@ -6142,8 +5043,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "09/02/2026",
@@ -6159,8 +5060,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "05/02/2026",
@@ -6176,8 +5077,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "04/02/2026",
@@ -6193,8 +5094,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "HOTWHEELS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "03/02/2026",
@@ -6210,8 +5111,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "02/02/2026",
@@ -6228,7 +5129,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "02/02/2026",
@@ -6245,41 +5146,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
-  },
-  {
-    "rawDate": "02/02/2026",
-    "isoDate": "2026-02-02",
-    "month": 2,
-    "year": 2026,
-    "rawConcept": "ABONO BIZUM DE LAURA G V",
-    "amountEuros": 20,
-    "amountCents": 2000,
-    "saldoEuros": 1242.27,
-    "saldoCents": 124227,
-    "ref1": "",
-    "ref2": "564512273011",
-    "bank": "Banc Sabadell",
-    "type": "income",
-    "concept": "EXTRES",
-    "incomeType": "other"
-  },
-  {
-    "rawDate": "02/02/2026",
-    "isoDate": "2026-02-02",
-    "month": 2,
-    "year": 2026,
-    "rawConcept": "COMPRA TARJ. 5402XXXXXXXX8018 ESCLATOIL 4088SP SANT PER-MAS D'EN SERR",
-    "amountEuros": -20,
-    "amountCents": 2000,
-    "saldoEuros": 1222.27,
-    "saldoCents": 122227,
-    "ref1": "",
-    "ref2": "5402__8018",
-    "bank": "Banc Sabadell",
-    "type": "expense",
-    "section": "leisure",
-    "category": "GASOLINA MOTO"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "02/02/2026",
@@ -6295,42 +5162,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
-  },
-  {
-    "rawDate": "29/01/2026",
-    "isoDate": "2026-01-29",
-    "month": 1,
-    "year": 2026,
-    "rawConcept": "ABONO BIZUM DE IZAN D T",
-    "amountEuros": 1.2,
-    "amountCents": 120,
-    "saldoEuros": 1244.82,
-    "saldoCents": 124482,
-    "ref1": "",
-    "ref2": "544458126340",
-    "bank": "Banc Sabadell",
-    "type": "income",
-    "concept": "EXTRES",
-    "incomeType": "other"
-  },
-  {
-    "rawDate": "29/01/2026",
-    "isoDate": "2026-01-29",
-    "month": 1,
-    "year": 2026,
-    "rawConcept": "COMPRA TARJ. 5402XXXXXXXX8018 NEW KASHMIR-VILANOVA I LA",
-    "amountEuros": -1.2,
-    "amountCents": 120,
-    "saldoEuros": 1243.62,
-    "saldoCents": 124362,
-    "ref1": "",
-    "ref2": "5402__8018",
-    "bank": "Banc Sabadell",
-    "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "29/01/2026",
@@ -6364,7 +5197,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "26/01/2026",
@@ -6397,8 +5230,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "26/01/2026",
@@ -6415,7 +5248,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "23/01/2026",
@@ -6431,8 +5264,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "HOTWHEELS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "21/01/2026",
@@ -6448,8 +5281,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "561220853728",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "20/01/2026",
@@ -6465,8 +5298,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "DEPORTES"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "20/01/2026",
@@ -6500,7 +5333,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "19/01/2026",
@@ -6533,8 +5366,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "14/01/2026",
@@ -6550,15 +5383,15 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "13/01/2026",
     "isoDate": "2026-01-13",
     "month": 1,
     "year": 2026,
-    "rawConcept": "COMPRA TARJ. 5402XXXXXXXX8018 AUTOESCOLA GINER-VILANOVA I LA",
+    "rawConcept": "Carnet A2 moto (Autoescola Giner)",
     "amountEuros": -320,
     "amountCents": 32000,
     "saldoEuros": 1380.47,
@@ -6635,8 +5468,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "ROPA"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "07/01/2026",
@@ -6652,8 +5485,8 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
-    "section": "leisure",
-    "category": "COMIDAS"
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "07/01/2026",
@@ -6687,7 +5520,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "OTROS"
+    "category": "GASTOS GENERALES"
   },
   {
     "rawDate": "05/01/2026",
@@ -6703,7 +5536,187 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "ref2": "5402__8018",
     "bank": "Banc Sabadell",
     "type": "expense",
+    "section": "fixed",
+    "category": "GASTOS GENERALES"
+  },
+  {
+    "rawDate": "28/07/2026",
+    "isoDate": "2026-07-28",
+    "month": 7,
+    "year": 2026,
+    "rawConcept": "Cuenta de emergencia (Ahorro Julio)",
+    "amountEuros": -514,
+    "amountCents": 51400,
+    "saldoEuros": 0,
+    "saldoCents": 0,
+    "bank": "Revolut / Fondo Emergencia",
+    "type": "expense",
+    "section": "savings",
+    "category": "FONS EMERGENCIA"
+  },
+  {
+    "rawDate": "31/08/2026",
+    "isoDate": "2026-08-31",
+    "month": 8,
+    "year": 2026,
+    "rawConcept": "Cuenta de emergencia (Ahorro Agosto)",
+    "amountEuros": -867,
+    "amountCents": 86700,
+    "saldoEuros": 0,
+    "saldoCents": 0,
+    "bank": "Revolut / Fondo Emergencia",
+    "type": "expense",
+    "section": "savings",
+    "category": "FONS EMERGENCIA"
+  },
+  {
+    "rawDate": "28/09/2026",
+    "isoDate": "2026-09-28",
+    "month": 9,
+    "year": 2026,
+    "rawConcept": "Cuenta de emergencia (Ahorro Septiembre)",
+    "amountEuros": -587,
+    "amountCents": 58700,
+    "saldoEuros": 0,
+    "saldoCents": 0,
+    "bank": "Revolut / Fondo Emergencia",
+    "type": "expense",
+    "section": "savings",
+    "category": "FONS EMERGENCIA"
+  },
+  {
+    "rawDate": "27/10/2026",
+    "isoDate": "2026-10-27",
+    "month": 10,
+    "year": 2026,
+    "rawConcept": "NOMINA ASIMETRICS INTELLIGENTIA",
+    "amountEuros": 723.98,
+    "amountCents": 72398,
+    "saldoEuros": 1001.32,
+    "saldoCents": 100132,
+    "bank": "Banc Sabadell",
+    "type": "income",
+    "concept": "NÒMINA",
+    "incomeType": "salary"
+  },
+  {
+    "rawDate": "05/10/2026",
+    "isoDate": "2026-10-05",
+    "month": 10,
+    "year": 2026,
+    "rawConcept": "ADEUDO RECIBO XP - Energie Fitness VV",
+    "amountEuros": -49.95,
+    "amountCents": 4995,
+    "saldoEuros": 534.65,
+    "saldoCents": 53465,
+    "bank": "Banc Sabadell",
+    "type": "expense",
+    "section": "fixed",
+    "category": "GYM - FIJO"
+  },
+  {
+    "rawDate": "15/10/2026",
+    "isoDate": "2026-10-15",
+    "month": 10,
+    "year": 2026,
+    "rawConcept": "COMPRA GEMINIS STYLE-BARCELONA",
+    "amountEuros": -13,
+    "amountCents": 1300,
+    "saldoEuros": 0,
+    "saldoCents": 0,
+    "bank": "Banc Sabadell",
+    "type": "expense",
+    "section": "fixed",
+    "category": "CORTE DE PELO"
+  },
+  {
+    "rawDate": "09/10/2026",
+    "isoDate": "2026-10-09",
+    "month": 10,
+    "year": 2026,
+    "rawConcept": "TELEFONOS Simyo Simyo y otros fijos",
+    "amountEuros": -12,
+    "amountCents": 1200,
+    "saldoEuros": 0,
+    "saldoCents": 0,
+    "bank": "Banc Sabadell",
+    "type": "expense",
+    "section": "fixed",
+    "category": "OTROS"
+  },
+  {
+    "rawDate": "06/10/2026",
+    "isoDate": "2026-10-06",
+    "month": 10,
+    "year": 2026,
+    "rawConcept": "BENZINA MOTO",
+    "amountEuros": -13.41,
+    "amountCents": 1341,
+    "saldoEuros": 0,
+    "saldoCents": 0,
+    "bank": "Banc Sabadell",
+    "type": "expense",
+    "section": "fixed",
+    "category": "BENZINA MOTO"
+  },
+  {
+    "rawDate": "20/10/2026",
+    "isoDate": "2026-10-20",
+    "month": 10,
+    "year": 2026,
+    "rawConcept": "Comidas y cenas (Sushi & comidas)",
+    "amountEuros": -18.58,
+    "amountCents": 1858,
+    "saldoEuros": 0,
+    "saldoCents": 0,
+    "bank": "Banc Sabadell",
+    "type": "expense",
     "section": "leisure",
-    "category": "HOTWHEELS"
+    "category": "COMIDAS"
+  },
+  {
+    "rawDate": "18/10/2026",
+    "isoDate": "2026-10-18",
+    "month": 10,
+    "year": 2026,
+    "rawConcept": "Regalos Octubre",
+    "amountEuros": -30.27,
+    "amountCents": 3027,
+    "saldoEuros": 0,
+    "saldoCents": 0,
+    "bank": "Banc Sabadell",
+    "type": "expense",
+    "section": "leisure",
+    "category": "REGALOS"
+  },
+  {
+    "rawDate": "12/10/2026",
+    "isoDate": "2026-10-12",
+    "month": 10,
+    "year": 2026,
+    "rawConcept": "Piezas moto Octubre",
+    "amountEuros": -200.08,
+    "amountCents": 20008,
+    "saldoEuros": 0,
+    "saldoCents": 0,
+    "bank": "Banc Sabadell",
+    "type": "expense",
+    "section": "leisure",
+    "category": "PIEZAS MOTO"
+  },
+  {
+    "rawDate": "08/10/2026",
+    "isoDate": "2026-10-08",
+    "month": 10,
+    "year": 2026,
+    "rawConcept": "Hot Wheels colección Octubre",
+    "amountEuros": -75.6,
+    "amountCents": 7560,
+    "saldoEuros": 0,
+    "saldoCents": 0,
+    "bank": "Banc Sabadell",
+    "type": "expense",
+    "section": "leisure",
+    "category": "HOT WHEELS"
   }
 ];

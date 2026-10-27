@@ -214,7 +214,7 @@ export function AppLayout() {
 
         {/* Sidebar Footer info */}
         <div className="border-t border-surface-200 dark:border-surface-800 p-3 shrink-0 text-center">
-          <p className="text-[11px] text-surface-400 font-mono">Personal Treasury · 2026</p>
+          <p className="text-[11px] text-surface-600 dark:text-surface-400 font-mono font-medium">Personal Treasury · 2026</p>
         </div>
       </aside>
 

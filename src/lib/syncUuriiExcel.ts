@@ -2,6 +2,7 @@ import { supabase } from '@/lib/supabase';
 import { GASSTOS_BANK_MOVEMENTS } from '@/data/gasstos2026';
 import type { User } from '@supabase/supabase-js';
 import type { UserProfile, BudgetSection } from '@/types';
+import { getBankAccounts, saveBankAccounts } from '@/lib/banks';
 
 /**
  * Checks if the user/profile corresponds to uurii99_
@@ -38,18 +39,18 @@ const ALL_STANDARD_CATEGORIES: { name: string; section: BudgetSection }[] = [
   { name: 'IMPOST CIRCULACIO MOTO', section: 'fixed' },
   { name: 'TRANSPORT PÚBLIC', section: 'fixed' },
   { name: 'BENZINA MOTO', section: 'fixed' },
+  { name: 'BENZINA COTXE', section: 'fixed' },
   { name: 'CORTE DE PELO', section: 'fixed' },
+  { name: 'GASTOS GENERALES', section: 'fixed' },
   { name: 'OTROS', section: 'fixed' },
 
   // 2. Gastos Opcionales / Ocio (30%)
-  { name: 'SALIDAS/VIAGES', section: 'leisure' },
-  { name: 'ROPA', section: 'leisure' },
   { name: 'COMIDAS', section: 'leisure' },
-  { name: 'DEPORTES', section: 'leisure' },
-  { name: 'REGALS', section: 'leisure' },
+  { name: 'REGALOS', section: 'leisure' },
   { name: 'PIEZAS MOTO', section: 'leisure' },
-  { name: 'GASOLINA MOTO', section: 'leisure' },
-  { name: 'HOTWHEELS', section: 'leisure' },
+  { name: 'HOT WHEELS', section: 'leisure' },
+  { name: 'ROPA', section: 'leisure' },
+  { name: 'SALIDAS/VIAGES', section: 'leisure' },
 
   // 3. Inversiones y Ahorro (30%)
   { name: 'INVERSIÓ', section: 'savings' },
@@ -57,7 +58,7 @@ const ALL_STANDARD_CATEGORIES: { name: string; section: BudgetSection }[] = [
 ];
 
 /**
- * Syncs the entire GASSTOS.xls bank statement (393 movements for 2026) for uurii99_ ONLY.
+ * Syncs the entire GASSTOS.xls bank statement (336 verified movements for 2026) for uurii99_ ONLY.
  * Strictly ignores and NEVER modifies other users' data.
  */
 export async function syncUuriiExcelData(
@@ -77,7 +78,7 @@ export async function syncUuriiExcelData(
     };
   }
 
-  const syncKey = `uurii_gasstos_synced_${user.id}_v3`;
+  const syncKey = `uurii_gasstos_synced_${user.id}_v4`;
   if (!force && localStorage.getItem(syncKey) === 'true') {
     return {
       success: true,
@@ -86,7 +87,7 @@ export async function syncUuriiExcelData(
   }
 
   try {
-    // 1. Purge legacy mock items
+    // 1. Purge legacy mock items & duplicate categories (duplicate gym, sports, old hotwheels names)
     const unwantedMock = [
       'Hot Wheels 1',
       'Hot Wheels pack',
@@ -104,11 +105,11 @@ export async function syncUuriiExcelData(
         .eq('user_id', user.id)
         .ilike('description', desc);
     }
-    await supabase
-      .from('categories')
-      .delete()
-      .eq('user_id', user.id)
-      .ilike('name', 'Otros fijos');
+
+    const unwantedCats = ['Otros fijos', 'DEPORTES', 'GYM', 'Gimnasio', 'GASOLINA MOTO', 'HOTWHEELS', 'REGALS'];
+    for (const c of unwantedCats) {
+      await supabase.from('categories').delete().eq('user_id', user.id).ilike('name', c);
+    }
 
     // 2. Fetch or create all standard categories for this user
     const { data: existingCats } = await supabase
@@ -118,7 +119,7 @@ export async function syncUuriiExcelData(
 
     const categoryMap = new Map<string, string>(); // lowercase name -> category id
     existingCats?.forEach((c) => {
-      if (c.name.trim().toLowerCase() !== 'otros fijos') {
+      if (!unwantedCats.some((u) => u.toLowerCase() === c.name.trim().toLowerCase())) {
         categoryMap.set(c.name.trim().toLowerCase(), c.id);
       }
     });
@@ -209,20 +210,44 @@ export async function syncUuriiExcelData(
       }
     }
 
-    // 6. Update Banc Sabadell bank account balance to exact saldo from GASSTOS.xls (1.001,32 €)
+    // 6. Update bank account balances: Sabadell (1.001,32 €), Fondo Emergencia (2.558,77 €), MyInvestor (0 €)
     const sabadellSaldoCents = 100132;
+    const emergencySaldoCents = 255877;
+
     try {
+      // Local storage accounts update
+      const localAccs = getBankAccounts(user.id);
+      const updatedLocal = localAccs.map((acc) => {
+        if (acc.name.toLowerCase().includes('sabadell')) {
+          return { ...acc, balance: sabadellSaldoCents, updated_at: new Date().toISOString() };
+        }
+        if (acc.name.toLowerCase().includes('trade') || acc.name.toLowerCase().includes('emergencia')) {
+          return { ...acc, balance: emergencySaldoCents, updated_at: new Date().toISOString() };
+        }
+        if (acc.name.toLowerCase().includes('myinvestor') || acc.name.toLowerCase().includes('invers')) {
+          return { ...acc, balance: 0, updated_at: new Date().toISOString() };
+        }
+        return acc;
+      });
+      saveBankAccounts(user.id, updatedLocal);
+
+      // Supabase bank_accounts table update if available
       const { data: bankAccs } = await supabase
         .from('bank_accounts')
         .select('*')
         .eq('user_id', user.id);
 
-      const sabadellAcc = bankAccs?.find((b) => b.name?.toLowerCase().includes('sabadell'));
-      if (sabadellAcc) {
-        await supabase
-          .from('bank_accounts')
-          .update({ balance_cents: sabadellSaldoCents, updated_at: new Date().toISOString() })
-          .eq('id', sabadellAcc.id);
+      if (bankAccs && bankAccs.length > 0) {
+        for (const b of bankAccs) {
+          const lower = b.name?.toLowerCase() || '';
+          if (lower.includes('sabadell')) {
+            await supabase.from('bank_accounts').update({ balance_cents: sabadellSaldoCents, updated_at: new Date().toISOString() }).eq('id', b.id);
+          } else if (lower.includes('trade') || lower.includes('emergencia')) {
+            await supabase.from('bank_accounts').update({ balance_cents: emergencySaldoCents, updated_at: new Date().toISOString() }).eq('id', b.id);
+          } else if (lower.includes('myinvestor') || lower.includes('invers')) {
+            await supabase.from('bank_accounts').update({ balance_cents: 0, updated_at: new Date().toISOString() }).eq('id', b.id);
+          }
+        }
       }
     } catch {
       // Ignore if bank_accounts table is not present

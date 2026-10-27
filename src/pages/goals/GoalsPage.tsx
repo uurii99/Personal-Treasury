@@ -232,7 +232,7 @@ export function GoalsPage() {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-bold text-surface-900 dark:text-surface-100">{t.goals.title}</h1>
-            <span className="text-xs px-2.5 py-0.5 rounded-full bg-brand-100 text-brand-800 dark:bg-brand-950/60 dark:text-brand-300 font-semibold">
+            <span className="text-xs px-2.5 py-0.5 rounded-full bg-surface-200 dark:bg-surface-800 text-surface-900 dark:text-white font-bold border border-surface-300 dark:border-surface-700 shadow-xs">
               Año {currentMY.year}
             </span>
           </div>

@@ -7,7 +7,7 @@ export const DEFAULT_BANKS: Omit<BankAccount, 'user_id'>[] = [
   {
     id: 'b-sabadell',
     name: 'Banc Sabadell',
-    balance: 85000, // 850,00 €
+    balance: 100132, // 1.001,32 €
     purpose: 'fixed',
     interest_rate: '0% TAE',
     color: '#0066B3',
@@ -19,11 +19,11 @@ export const DEFAULT_BANKS: Omit<BankAccount, 'user_id'>[] = [
   {
     id: 'b-trade-republic',
     name: 'Trade Republic',
-    balance: 200000, // 2.000,00 €
+    balance: 255877, // 2.558,77 €
     purpose: 'savings',
     interest_rate: '2% TAE',
     color: '#121212',
-    notes: 'Donde tengo la cuenta de emergencia.',
+    notes: 'Donde tengo la cuenta de emergencia (ingresos Jul, Ago, Sep).',
     last_reconciled_at: new Date().toISOString(),
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
@@ -43,11 +43,11 @@ export const DEFAULT_BANKS: Omit<BankAccount, 'user_id'>[] = [
   {
     id: 'b-myinvestor',
     name: 'MyInvestor',
-    balance: 150000, // 1.500,00 €
+    balance: 0, // 0,00 € (todavía no hay nada invertido)
     purpose: 'savings',
     interest_rate: 'Fondos Indexados',
     color: '#8A2BE2',
-    notes: 'Donde tengo las inversiones/carteras inversión.',
+    notes: 'Inversiones y carteras indexadas (pendiente de iniciar).',
     last_reconciled_at: new Date().toISOString(),
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),

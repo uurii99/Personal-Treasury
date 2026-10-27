@@ -288,7 +288,7 @@ export function StatisticsPage() {
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold px-3 py-1 rounded-full bg-surface-100 dark:bg-surface-800 text-surface-700 dark:text-surface-300">
+          <span className="text-xs font-bold px-3 py-1 rounded-full bg-surface-200 dark:bg-surface-800 text-surface-900 dark:text-white border border-surface-300 dark:border-surface-700 shadow-xs">
             Año Fiscal {currentYear}
           </span>
         </div>
