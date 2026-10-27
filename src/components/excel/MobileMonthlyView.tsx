@@ -10,6 +10,8 @@ import {
   Calendar,
   Layers,
   Sparkles,
+  ArrowUp,
+  ArrowDown,
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/money';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -56,6 +58,7 @@ interface MobileMonthlyViewProps {
   }) => void;
   onAddIncome: () => void;
   onAddMovement: () => void;
+  onMoveCategory?: (catId: string, direction: 'up' | 'down', section: BudgetSection) => void;
 }
 
 export function MobileMonthlyView({
@@ -86,6 +89,7 @@ export function MobileMonthlyView({
   onDrilldown,
   onAddIncome,
   onAddMovement,
+  onMoveCategory,
 }: MobileMonthlyViewProps) {
   const { language, t } = useLanguage();
   const [showMonthDrawer, setShowMonthDrawer] = useState(false);
@@ -340,7 +344,7 @@ export function MobileMonthlyView({
                 className="px-3.5 py-2 flex items-center justify-between hover:bg-surface-50 dark:hover:bg-surface-800/40 transition-colors"
               >
                 <div
-                  className="flex-1 min-w-0 pr-3 cursor-pointer"
+                  className="flex-1 min-w-0 pr-3 cursor-pointer flex items-center justify-between"
                   onClick={() =>
                     onDrilldown({
                       type: 'expense',
@@ -354,6 +358,26 @@ export function MobileMonthlyView({
                   <p className="text-xs font-medium text-surface-900 dark:text-surface-100 truncate">
                     {row.name}
                   </p>
+                  {onMoveCategory && row.catId && (
+                    <div className="flex items-center gap-0.5 ml-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                      <button
+                        type="button"
+                        onClick={() => onMoveCategory(row.catId, 'up', 'fixed')}
+                        className="p-1 rounded text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 active:scale-95 transition-all"
+                        title="Mover arriba"
+                      >
+                        <ArrowUp className="h-3 w-3" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onMoveCategory(row.catId, 'down', 'fixed')}
+                        className="p-1 rounded text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 active:scale-95 transition-all"
+                        title="Mover abajo"
+                      >
+                        <ArrowDown className="h-3 w-3" />
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 <button
@@ -430,7 +454,7 @@ export function MobileMonthlyView({
                 className="px-3.5 py-2 flex items-center justify-between hover:bg-surface-50 dark:hover:bg-surface-800/40 transition-colors"
               >
                 <div
-                  className="flex-1 min-w-0 pr-3 cursor-pointer"
+                  className="flex-1 min-w-0 pr-3 cursor-pointer flex items-center justify-between"
                   onClick={() =>
                     onDrilldown({
                       type: 'expense',
@@ -444,6 +468,26 @@ export function MobileMonthlyView({
                   <p className="text-xs font-medium text-surface-900 dark:text-surface-100 truncate">
                     {row.name}
                   </p>
+                  {onMoveCategory && row.catId && (
+                    <div className="flex items-center gap-0.5 ml-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                      <button
+                        type="button"
+                        onClick={() => onMoveCategory(row.catId, 'up', 'leisure')}
+                        className="p-1 rounded text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 active:scale-95 transition-all"
+                        title="Mover arriba"
+                      >
+                        <ArrowUp className="h-3 w-3" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onMoveCategory(row.catId, 'down', 'leisure')}
+                        className="p-1 rounded text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 active:scale-95 transition-all"
+                        title="Mover abajo"
+                      >
+                        <ArrowDown className="h-3 w-3" />
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 <button
@@ -518,7 +562,7 @@ export function MobileMonthlyView({
                 className="px-3.5 py-2 flex items-center justify-between hover:bg-surface-50 dark:hover:bg-surface-800/40 transition-colors"
               >
                 <div
-                  className="flex-1 min-w-0 pr-3 cursor-pointer"
+                  className="flex-1 min-w-0 pr-3 cursor-pointer flex items-center justify-between"
                   onClick={() =>
                     onDrilldown({
                       type: 'expense',
@@ -532,6 +576,26 @@ export function MobileMonthlyView({
                   <p className="text-xs font-medium text-surface-900 dark:text-surface-100 truncate">
                     {row.name}
                   </p>
+                  {onMoveCategory && row.catId && (
+                    <div className="flex items-center gap-0.5 ml-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                      <button
+                        type="button"
+                        onClick={() => onMoveCategory(row.catId, 'up', 'savings')}
+                        className="p-1 rounded text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 active:scale-95 transition-all"
+                        title="Mover arriba"
+                      >
+                        <ArrowUp className="h-3 w-3" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onMoveCategory(row.catId, 'down', 'savings')}
+                        className="p-1 rounded text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 active:scale-95 transition-all"
+                        title="Mover abajo"
+                      >
+                        <ArrowDown className="h-3 w-3" />
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 <button

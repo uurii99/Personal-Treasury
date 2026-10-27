@@ -130,17 +130,6 @@ export function SettingsPage() {
         </div>
       </Card>
 
-      {/* Initial balance */}
-      <Card>
-        <CardHeader title="Saldo inicial" description="Punto de partida para el seguimiento de tu patrimonio." icon={<Wallet className="h-5 w-5" />} />
-        <Input
-          label="Saldo inicial"
-          placeholder="0,00"
-          suffix="€"
-          value={initialBalance}
-          onChange={(e) => setInitialBalance(e.target.value)}
-        />
-      </Card>
 
       <div className="flex justify-end">
         <Button onClick={handleSave} loading={saving} disabled={!validation.valid}>

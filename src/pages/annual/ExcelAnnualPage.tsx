@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   ChevronLeft,
   ChevronRight,
@@ -15,6 +15,9 @@ import {
   Calendar,
   ArrowUp,
   ArrowDown,
+  Undo2,
+  Redo2,
+  AlertTriangle,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
@@ -31,6 +34,7 @@ import { AddMovementModal } from '@/components/modals/AddMovementModal';
 import { AddIncomeModal } from '@/components/modals/AddIncomeModal';
 import { MobileMonthlyView } from '@/components/excel/MobileMonthlyView';
 import { isUuriiProfile, syncUuriiExcelData } from '@/lib/syncUuriiExcel';
+import { GASSTOS_BANK_MOVEMENTS } from '@/data/gasstos2026';
 import { recordMovementInBank } from '@/lib/banks';
 import type { Category, BudgetSection, IncomeEntry, Transaction } from '@/types';
 
@@ -139,10 +143,52 @@ export function ExcelAnnualPage() {
 
   // Search filter
   const [searchTerm, setSearchTerm] = useState('');
-  const [viewMode, setViewMode] = useState<'month' | 'annual'>(() =>
-    typeof window !== 'undefined' && window.innerWidth < 768 ? 'month' : 'annual'
-  );
+  const [viewMode, setViewMode] = useState<'month' | 'annual'>('annual');
   const [excelDensity, setExcelDensity] = useState<'normal' | 'compact' | 'mini'>('compact');
+
+  // Undo/Redo history
+  type HistoryEntry = { incomes: IncomeEntry[]; transactions: Transaction[]; categories: Category[] };
+  const [undoHistory, setUndoHistory] = useState<HistoryEntry[]>([]);
+  const [redoHistory, setRedoHistory] = useState<HistoryEntry[]>([]);
+  const isUndoRedoOp = useRef(false);
+
+  const pushHistory = useCallback((inc: IncomeEntry[], txs: Transaction[], cats: Category[]) => {
+    setUndoHistory((prev) => [...prev.slice(-19), { incomes: inc, transactions: txs, categories: cats }]);
+    setRedoHistory([]);
+  }, []);
+
+  // Custom confirm dialog state
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    message: string;
+    onConfirm: () => void;
+  }>({ open: false, message: '', onConfirm: () => {} });
+
+  const showConfirm = useCallback((message: string, onConfirm: () => void) => {
+    setConfirmDialog({ open: true, message, onConfirm });
+  }, []);
+
+  const handleUndo = useCallback(async () => {
+    if (undoHistory.length === 0) return;
+    const prev = undoHistory[undoHistory.length - 1];
+    setRedoHistory((r) => [...r, { incomes, transactions, categories }]);
+    setUndoHistory((h) => h.slice(0, -1));
+    isUndoRedoOp.current = true;
+    setIncomes(prev.incomes);
+    setTransactions(prev.transactions);
+    setCategories(prev.categories);
+  }, [undoHistory, incomes, transactions, categories]);
+
+  const handleRedo = useCallback(async () => {
+    if (redoHistory.length === 0) return;
+    const next = redoHistory[redoHistory.length - 1];
+    setUndoHistory((h) => [...h, { incomes, transactions, categories }]);
+    setRedoHistory((r) => r.slice(0, -1));
+    isUndoRedoOp.current = true;
+    setIncomes(next.incomes);
+    setTransactions(next.transactions);
+    setCategories(next.categories);
+  }, [redoHistory, incomes, transactions, categories]);
 
   // 1. Load data
   const loadYearData = useCallback(async () => {
@@ -195,6 +241,48 @@ export function ExcelAnnualPage() {
           .select('*');
         cats = insertedCats ?? [];
       }
+
+      // Auto-recover BENZINA MOTO row if it was deleted
+      const hasBenzina = cats?.some((c) => c.name.trim().toUpperCase() === 'BENZINA MOTO');
+      if (!hasBenzina && user) {
+        try {
+          const { data: newCat } = await supabase
+            .from('categories')
+            .insert({
+              user_id: user.id,
+              name: 'BENZINA MOTO',
+              section: 'fixed',
+              sort_order: 6,
+            })
+            .select()
+            .single();
+
+          if (newCat) {
+            cats = [...(cats || []), newCat];
+            const benzinaTxs = GASSTOS_BANK_MOVEMENTS
+              .filter((m) => m.category === 'BENZINA MOTO' && m.type === 'expense')
+              .map((m) => ({
+                user_id: user.id,
+                category_id: newCat.id,
+                amount: Math.abs(m.amountCents),
+                description: m.rawConcept || 'BENZINA MOTO',
+                date: m.isoDate,
+                budget_month: m.month,
+                budget_year: m.year || year,
+                type: 'expense' as const,
+                section: 'fixed' as const,
+                is_recurring: false,
+              }));
+
+            if (benzinaTxs.length > 0) {
+              await supabase.from('transactions').insert(benzinaTxs);
+            }
+          }
+        } catch (e) {
+          console.error('Error auto-recovering BENZINA MOTO:', e);
+        }
+      }
+
       setCategories(cats ?? []);
 
       // Load year incomes & transactions in parallel
@@ -213,18 +301,41 @@ export function ExcelAnnualPage() {
       ]);
 
       setIncomes(incData ?? []);
-      setTransactions((transData ?? []).filter((t) => !unwantedMock.some((u) => t.description?.toLowerCase().includes(u.toLowerCase()))));
+      const filteredTxs = (transData ?? []).filter((t) => !unwantedMock.some((u) => t.description?.toLowerCase().includes(u.toLowerCase())));
+      setTransactions(filteredTxs);
+
+      // Push to history only for real loads (not undo/redo)
+      if (!isUndoRedoOp.current) {
+        pushHistory(incData ?? [], filteredTxs, cats ?? []);
+      }
+      isUndoRedoOp.current = false;
     } catch (e) {
       console.error('Error loading annual excel data:', e);
       showError('Error al cargar datos del año ' + year);
     } finally {
       setLoading(false);
     }
-  }, [user, profile, year, showError]);
+  }, [user, profile, year, showError, pushHistory]);
 
   useEffect(() => {
     loadYearData();
   }, [loadYearData]);
+
+  // Keyboard shortcut for undo/redo
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        handleUndo();
+      }
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
+        e.preventDefault();
+        handleRedo();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleUndo, handleRedo]);
 
   const handleSaveRename = async () => {
     if (!user || !renameTarget.newName.trim()) return;
@@ -268,66 +379,69 @@ export function ExcelAnnualPage() {
     const confirmMsg = language === 'ca'
       ? `Segur que vols eliminar "${name}" i tots els seus moviments associats? S'actualitzaran els saldos bancaris corresponents.`
       : `¿Seguro que deseas eliminar "${name}" y todos sus movimientos asociados? Se actualizarán los saldos bancarios correspondientes.`;
-    if (!window.confirm(confirmMsg)) {
-      return;
-    }
-    try {
-      if (type === 'income') {
-        const { data: incs } = await supabase
-          .from('income_entries')
-          .select('*')
-          .eq('user_id', user.id)
-          .eq('description', name);
-        if (incs && incs.length > 0) {
-          for (const inc of incs) {
-            recordMovementInBank(user.id, {
-              type: 'income',
-              amountCents: inc.amount,
-              description: inc.description,
-              operation: 'remove',
-            });
-          }
-          await supabase
+
+    showConfirm(confirmMsg, async () => {
+      try {
+        // Snapshot for undo
+        pushHistory(incomes, transactions, categories);
+
+        if (type === 'income') {
+          const { data: incs } = await supabase
             .from('income_entries')
-            .delete()
+            .select('*')
             .eq('user_id', user.id)
             .eq('description', name);
-        }
-      } else {
-        let query = supabase.from('transactions').select('*').eq('user_id', user.id);
-        if (catId) {
-          query = query.eq('category_id', catId);
+          if (incs && incs.length > 0) {
+            for (const inc of incs) {
+              recordMovementInBank(user.id, {
+                type: 'income',
+                amountCents: inc.amount,
+                description: inc.description,
+                operation: 'remove',
+              });
+            }
+            await supabase
+              .from('income_entries')
+              .delete()
+              .eq('user_id', user.id)
+              .eq('description', name);
+          }
         } else {
-          query = query.eq('description', name);
-        }
-        const { data: txs } = await query;
-        if (txs && txs.length > 0) {
-          for (const tx of txs) {
-            recordMovementInBank(user.id, {
-              type: 'expense',
-              amountCents: tx.amount,
-              section: (tx.section || section) as BudgetSection,
-              description: tx.description,
-              operation: 'remove',
-            });
+          let query = supabase.from('transactions').select('*').eq('user_id', user.id);
+          if (catId) {
+            query = query.eq('category_id', catId);
+          } else {
+            query = query.eq('description', name);
+          }
+          const { data: txs } = await query;
+          if (txs && txs.length > 0) {
+            for (const tx of txs) {
+              recordMovementInBank(user.id, {
+                type: 'expense',
+                amountCents: tx.amount,
+                section: (tx.section || section) as BudgetSection,
+                description: tx.description,
+                operation: 'remove',
+              });
+            }
+          }
+          if (catId) {
+            await supabase.from('transactions').delete().eq('category_id', catId);
+            await supabase.from('categories').delete().eq('id', catId);
+          } else {
+            await supabase.from('transactions').delete().eq('user_id', user.id).eq('description', name);
           }
         }
-        if (catId) {
-          await supabase.from('transactions').delete().eq('category_id', catId);
-          await supabase.from('categories').delete().eq('id', catId);
-        } else {
-          await supabase.from('transactions').delete().eq('user_id', user.id).eq('description', name);
-        }
-      }
 
-      success(language === 'ca' ? 'Concepte i moviments eliminats' : 'Concepto y movimientos eliminados', name);
-      window.dispatchEvent(new CustomEvent('excel-data-updated'));
-      window.dispatchEvent(new CustomEvent('bank-accounts-updated'));
-      loadYearData();
-    } catch (err) {
-      console.error(err);
-      showError(language === 'ca' ? 'Error en eliminar el concepte' : 'Error al eliminar el concepto');
-    }
+        success(language === 'ca' ? 'Concepte i moviments eliminats' : 'Concepto y movimientos eliminados', name);
+        window.dispatchEvent(new CustomEvent('excel-data-updated'));
+        window.dispatchEvent(new CustomEvent('bank-accounts-updated'));
+        loadYearData();
+      } catch (err) {
+        console.error(err);
+        showError(language === 'ca' ? 'Error en eliminar el concepte' : 'Error al eliminar el concepto');
+      }
+    });
   };
 
   const handleMoveCategory = async (catId: string, direction: 'up' | 'down', section: BudgetSection) => {
@@ -782,6 +896,26 @@ export function ExcelAnnualPage() {
 
           {/* Quick buttons */}
           <div className="flex flex-wrap items-center gap-2">
+            {/* Undo/Redo */}
+            <div className="flex items-center bg-surface-100 dark:bg-surface-800 rounded-lg border border-surface-200 dark:border-surface-700 overflow-hidden">
+              <button
+                onClick={handleUndo}
+                disabled={undoHistory.length === 0}
+                className="px-2 py-1.5 text-surface-600 dark:text-surface-400 hover:bg-surface-200 dark:hover:bg-surface-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
+                title="Deshacer (Ctrl+Z)"
+              >
+                <Undo2 className="h-3.5 w-3.5" />
+              </button>
+              <div className="w-px h-4 bg-surface-300 dark:bg-surface-600" />
+              <button
+                onClick={handleRedo}
+                disabled={redoHistory.length === 0}
+                className="px-2 py-1.5 text-surface-600 dark:text-surface-400 hover:bg-surface-200 dark:hover:bg-surface-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
+                title="Rehacer (Ctrl+Y)"
+              >
+                <Redo2 className="h-3.5 w-3.5" />
+              </button>
+            </div>
             <Button
               size="sm"
               variant="outline"
@@ -936,6 +1070,7 @@ export function ExcelAnnualPage() {
               }}
               onAddIncome={() => setShowAddIncome(true)}
               onAddMovement={() => setShowAddMovement(true)}
+              onMoveCategory={handleMoveCategory}
             />
           </div>
         ) : (
@@ -2107,6 +2242,48 @@ export function ExcelAnnualPage() {
           </div>
         </form>
       </Modal>
+
+      {/* ===== CUSTOM CONFIRM DIALOG (replaces window.confirm) ===== */}
+      {confirmDialog.open && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setConfirmDialog((d) => ({ ...d, open: false }))}
+          />
+          <div className="relative z-10 bg-white dark:bg-surface-900 rounded-2xl shadow-2xl border border-surface-200 dark:border-surface-700 max-w-md w-full p-6 animate-slideUp">
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-950/60 flex items-center justify-center shrink-0">
+                <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-base font-bold text-surface-900 dark:text-surface-100 mb-1">
+                  {language === 'ca' ? 'Confirmar acció' : 'Confirmar acción'}
+                </h3>
+                <p className="text-sm text-surface-600 dark:text-surface-400 leading-relaxed">
+                  {confirmDialog.message}
+                </p>
+              </div>
+            </div>
+            <div className="flex justify-end gap-3 mt-6">
+              <Button
+                variant="ghost"
+                onClick={() => setConfirmDialog((d) => ({ ...d, open: false }))}
+              >
+                {language === 'ca' ? 'Cancel·lar' : 'Cancelar'}
+              </Button>
+              <Button
+                onClick={() => {
+                  confirmDialog.onConfirm();
+                  setConfirmDialog((d) => ({ ...d, open: false }));
+                }}
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
+                {language === 'ca' ? 'Sí, eliminar' : 'Sí, eliminar'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

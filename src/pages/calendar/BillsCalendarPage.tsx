@@ -21,7 +21,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Button, Input, Select, Modal } from '@/components/ui';
+import { Button, Input, Select, Modal, ConfirmDialog } from '@/components/ui';
 import { formatCurrency, eurosToCents } from '@/lib/money';
 import {
   getBankAccounts,
@@ -52,8 +52,16 @@ export function BillsCalendarPage() {
   const today = useMemo(() => new Date(), []);
   const [selectedYear, setSelectedYear] = useState<number>(today.getFullYear());
   const [selectedMonth, setSelectedMonth] = useState<number>(today.getMonth() + 1); // 1 - 12
-  const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar');
+  const [viewMode, setViewMode] = useState<'calendar' | 'annual' | 'list'>('annual');
   const [frequencyFilter, setFrequencyFilter] = useState<'all' | 'monthly' | 'annual' | 'one_time'>('all');
+
+  // Custom confirm dialog state
+  const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; message: string; onConfirm: () => void }>({
+    open: false, message: '', onConfirm: () => {},
+  });
+  const showConfirm = (message: string, onConfirm: () => void) => {
+    setConfirmDialog({ open: true, message, onConfirm });
+  };
 
   // Modal State for Add/Edit Debit
   const [showDebitModal, setShowDebitModal] = useState(false);
@@ -61,7 +69,7 @@ export function BillsCalendarPage() {
   const [debitTitle, setDebitTitle] = useState('');
   const [debitAmount, setDebitAmount] = useState('');
   const [debitBankId, setDebitBankId] = useState('');
-  const [debitDay, setDebitDay] = useState(1);
+  const [debitDay, setDebitDay] = useState(() => Math.min(new Date().getDate(), 28));
   const [debitRecurrence, setDebitRecurrence] = useState<'annual' | 'monthly' | 'one_time'>('monthly');
   const [debitNotes, setDebitNotes] = useState('');
 
@@ -174,19 +182,17 @@ export function BillsCalendarPage() {
   const handleDeleteDebit = (id: string) => {
     if (!user) return;
     const deb = debits.find((d) => d.id === id);
-    if (
-      !confirm(
-        language === 'ca'
-          ? `Segur que vols eliminar l'avís de "${deb?.title || 'rebut'}"?`
-          : `¿Seguro que quieres eliminar el aviso de "${deb?.title || 'recibo'}"?`
-      )
-    ) {
-      return;
-    }
-    const updated = debits.filter((d) => d.id !== id);
-    setDebits(updated);
-    saveScheduledDebits(user.id, updated);
-    success(language === 'ca' ? 'Avís eliminat' : 'Aviso de cobro eliminado');
+    showConfirm(
+      language === 'ca'
+        ? `Segur que vols eliminar l'avís de "${deb?.title || 'rebut'}"?`
+        : `¿Seguro que quieres eliminar el aviso de "${deb?.title || 'recibo'}"?`,
+      () => {
+        const updated = debits.filter((d) => d.id !== id);
+        setDebits(updated);
+        saveScheduledDebits(user.id, updated);
+        success(language === 'ca' ? 'Avís eliminat' : 'Aviso de cobro eliminado');
+      }
+    );
   };
 
   // Email alert settings updates
@@ -362,6 +368,30 @@ export function BillsCalendarPage() {
     return days;
   }, [selectedYear, selectedMonth, debits, today]);
 
+  // Annual view data: for all 12 months of selectedYear
+  const annualMonthsData = useMemo(() => {
+    return Array.from({ length: 12 }, (_, idx) => {
+      const m = idx + 1;
+      const mDebits = debits.filter((d) => {
+        if (d.recurrence === 'monthly') return true;
+        return true;
+      });
+      const totalAmount = mDebits.reduce((acc, d) => acc + d.amount, 0);
+      const isCurrentMonth = selectedYear === today.getFullYear() && m === today.getMonth() + 1;
+      return {
+        month: m,
+        monthName: new Date(selectedYear, m - 1, 1).toLocaleDateString(language === 'ca' ? 'ca-ES' : 'es-ES', { month: 'long' }),
+        debits: mDebits,
+        totalAmount,
+        isCurrentMonth,
+      };
+    });
+  }, [debits, selectedYear, today, language]);
+
+  const annualTotalAmount = useMemo(() => {
+    return annualMonthsData.reduce((acc, md) => acc + md.totalAmount, 0);
+  }, [annualMonthsData]);
+
   // Month navigation handlers
   const handlePrevMonth = () => {
     if (selectedMonth === 1) {
@@ -426,6 +456,17 @@ export function BillsCalendarPage() {
           {/* View Mode Toggle */}
           <div className="flex items-center bg-surface-100 dark:bg-surface-800 p-0.5 rounded-xl border border-surface-200 dark:border-surface-700">
             <button
+              onClick={() => setViewMode('annual')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                viewMode === 'annual'
+                  ? 'bg-white dark:bg-surface-700 text-purple-700 dark:text-purple-300 shadow-sm'
+                  : 'text-surface-500 hover:text-surface-900 dark:hover:text-surface-200'
+              }`}
+            >
+              <CalendarDays className="h-3.5 w-3.5" />
+              <span>{language === 'ca' ? 'Anual' : 'Anual'}</span>
+            </button>
+            <button
               onClick={() => setViewMode('calendar')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                 viewMode === 'calendar'
@@ -434,7 +475,7 @@ export function BillsCalendarPage() {
               }`}
             >
               <CalendarDays className="h-3.5 w-3.5" />
-              <span>{language === 'ca' ? 'Calendari' : 'Calendario'}</span>
+              <span>{language === 'ca' ? 'Mensual' : 'Mensual'}</span>
             </button>
             <button
               onClick={() => setViewMode('list')}
@@ -806,6 +847,175 @@ export function BillsCalendarPage() {
             })}
           </div>
         </div>
+      ) : viewMode === 'annual' ? (
+        /* Annual Calendar View */
+        <div className="space-y-6">
+          {/* Year selector & summary stats toolbar */}
+          <div className="bg-white dark:bg-surface-900 rounded-2xl border border-surface-200 dark:border-surface-800 p-4 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setSelectedYear((y) => y - 1)}
+                className="p-1.5 rounded-lg border border-surface-200 dark:border-surface-700 hover:bg-surface-100 dark:hover:bg-surface-800 text-surface-700 dark:text-surface-300 transition-colors"
+                title="Año anterior"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <span className="px-4 py-1.5 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800 text-base font-extrabold text-purple-700 dark:text-purple-300">
+                {selectedYear}
+              </span>
+              <button
+                onClick={() => setSelectedYear((y) => y + 1)}
+                className="p-1.5 rounded-lg border border-surface-200 dark:border-surface-700 hover:bg-surface-100 dark:hover:bg-surface-800 text-surface-700 dark:text-surface-300 transition-colors"
+                title="Año siguiente"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+              {selectedYear !== today.getFullYear() && (
+                <button
+                  onClick={() => setSelectedYear(today.getFullYear())}
+                  className="px-2.5 py-1 text-xs font-semibold rounded-lg text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 border border-purple-200 dark:border-purple-800 transition-colors"
+                >
+                  {today.getFullYear()}
+                </button>
+              )}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3 text-xs font-medium text-surface-600 dark:text-surface-400">
+              <div className="flex items-center gap-2 bg-surface-50 dark:bg-surface-800 px-3 py-1.5 rounded-xl border border-surface-200 dark:border-surface-700">
+                <span className="text-surface-500">{language === 'ca' ? 'Total anual previst:' : 'Total anual previsto:'}</span>
+                <span className="font-mono font-bold text-red-600 dark:text-red-400 text-sm">
+                  -{formatCurrency(annualTotalAmount)}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 bg-surface-50 dark:bg-surface-800 px-3 py-1.5 rounded-xl border border-surface-200 dark:border-surface-700">
+                <span className="text-surface-500">{language === 'ca' ? 'Mitjana mensual:' : 'Media mensual:'}</span>
+                <span className="font-mono font-bold text-surface-900 dark:text-surface-100 text-sm">
+                  {formatCurrency(Math.round(annualTotalAmount / 12))}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* 12 Months Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {annualMonthsData.map((item) => {
+              const daysInM = new Date(selectedYear, item.month, 0).getDate();
+              return (
+                <div
+                  key={item.month}
+                  className={`bg-white dark:bg-surface-900 rounded-2xl border transition-all shadow-xs p-4 flex flex-col justify-between ${
+                    item.isCurrentMonth
+                      ? 'border-purple-400 dark:border-purple-600 ring-2 ring-purple-400/20 shadow-md'
+                      : 'border-surface-200 dark:border-surface-800 hover:border-surface-300 dark:hover:border-surface-700'
+                  }`}
+                >
+                  <div>
+                    {/* Month card header */}
+                    <div className="flex items-center justify-between pb-2 border-b border-surface-100 dark:border-surface-800">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-sm text-surface-900 dark:text-surface-100 capitalize">
+                          {item.monthName}
+                        </span>
+                        {item.isCurrentMonth && (
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-300">
+                            {language === 'ca' ? 'Actual' : 'Actual'}
+                          </span>
+                        )}
+                      </div>
+                      <span className="font-mono font-bold text-xs text-red-600 dark:text-red-400">
+                        -{formatCurrency(item.totalAmount)}
+                      </span>
+                    </div>
+
+                    {/* Mini Calendar Dots Grid */}
+                    <div className="grid grid-cols-7 gap-1 text-center py-2.5">
+                      {Array.from({ length: daysInM }, (_, i) => {
+                        const dayNum = i + 1;
+                        const dayDebits = item.debits.filter((d) => d.due_day === dayNum);
+                        const hasBills = dayDebits.length > 0;
+                        const isTodayCell = item.isCurrentMonth && dayNum === today.getDate();
+                        return (
+                          <div
+                            key={dayNum}
+                            onClick={() => {
+                              setSelectedMonth(item.month);
+                              handleOpenAddModal(dayNum);
+                            }}
+                            className={`h-6 rounded flex items-center justify-center text-[10px] font-medium cursor-pointer transition-all relative ${
+                              isTodayCell
+                                ? 'bg-purple-600 text-white font-bold ring-1 ring-purple-600'
+                                : hasBills
+                                ? 'bg-purple-100 dark:bg-purple-950/70 text-purple-800 dark:text-purple-300 font-bold border border-purple-300 dark:border-purple-800'
+                                : 'hover:bg-surface-100 dark:hover:bg-surface-800 text-surface-600 dark:text-surface-400'
+                            }`}
+                            title={hasBills ? `${dayDebits.map((d) => d.title).join(', ')}` : `Día ${dayNum}`}
+                          >
+                            {dayNum}
+                            {hasBills && (
+                              <span className="absolute bottom-0.5 w-1 h-1 rounded-full bg-purple-600 dark:bg-purple-400" />
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Debits list in this month */}
+                    <div className="space-y-1.5 pt-2 border-t border-surface-100 dark:border-surface-800">
+                      {item.debits.length === 0 ? (
+                        <p className="text-[11px] text-surface-400 italic py-1">
+                          {language === 'ca' ? 'Sense rebuts programats' : 'Sin recibos programados'}
+                        </p>
+                      ) : (
+                        item.debits.slice(0, 3).map((deb) => (
+                          <div
+                            key={deb.id}
+                            onClick={() => handleOpenEditModal(deb)}
+                            className="flex items-center justify-between text-xs py-1 px-1.5 rounded hover:bg-surface-50 dark:hover:bg-surface-800 cursor-pointer transition-colors"
+                          >
+                            <span className="text-surface-700 dark:text-surface-300 truncate font-medium">
+                              {deb.title}
+                            </span>
+                            <span className="font-mono text-[11px] font-bold text-red-600 dark:text-red-400 shrink-0 ml-1.5">
+                              -{formatCurrency(deb.amount)}
+                            </span>
+                          </div>
+                        ))
+                      )}
+                      {item.debits.length > 3 && (
+                        <p className="text-[10px] text-purple-600 dark:text-purple-400 font-semibold text-center pt-0.5">
+                          +{item.debits.length - 3} {language === 'ca' ? 'més' : 'más'}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Actions footer */}
+                  <div className="pt-3 mt-3 border-t border-surface-100 dark:border-surface-800 flex items-center justify-between">
+                    <button
+                      onClick={() => {
+                        setSelectedMonth(item.month);
+                        setViewMode('calendar');
+                      }}
+                      className="text-xs font-semibold text-purple-600 dark:text-purple-400 hover:text-purple-700 transition-colors"
+                    >
+                      {language === 'ca' ? 'Veure mes →' : 'Ver mes →'}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setSelectedMonth(item.month);
+                        handleOpenAddModal();
+                      }}
+                      className="p-1 rounded-lg text-surface-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/50 transition-colors"
+                      title="Añadir recibo"
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       ) : (
         /* List Mode View */
         <div className="space-y-4">
@@ -1106,6 +1316,21 @@ export function BillsCalendarPage() {
           </div>
         </form>
       </Modal>
+
+      {/* Custom Confirm Dialog for debit deletion */}
+      <ConfirmDialog
+        open={confirmDialog.open}
+        onOpenChange={(open) => setConfirmDialog((d) => ({ ...d, open }))}
+        title={language === 'ca' ? 'Eliminar avís de cobrament' : 'Eliminar aviso de cobro'}
+        description={confirmDialog.message}
+        confirmLabel={language === 'ca' ? 'Eliminar' : 'Eliminar'}
+        cancelLabel={language === 'ca' ? 'Cancel·lar' : 'Cancelar'}
+        variant="danger"
+        onConfirm={() => {
+          confirmDialog.onConfirm();
+          setConfirmDialog((d) => ({ ...d, open: false }));
+        }}
+      />
     </div>
   );
 }

@@ -109,8 +109,9 @@ export function CellDetailModal({ target, onClose, onUpdated }: CellDetailModalP
   useEffect(() => {
     if (target) {
       loadSubMovements();
-      const defaultDay = '01';
-      setDateStr(`${target.year}-${String(target.month).padStart(2, '0')}-${defaultDay}`);
+      // Default date = today (not day 01)
+      const todayStr = new Date().toISOString().split('T')[0];
+      setDateStr(todayStr);
     }
   }, [target, loadSubMovements]);
 
@@ -154,7 +155,11 @@ export function CellDetailModal({ target, onClose, onUpdated }: CellDetailModalP
     setSavingSubItem(true);
     try {
       const cents = eurosToCents(parsed);
-      const notesObj = JSON.stringify({ bank: bank });
+      const notesObj = JSON.stringify({
+        bank: bank,
+        rawConcept: trimmedDesc,
+        description: trimmedDesc,
+      });
 
       if (target.type === 'income') {
         const { error } = await supabase.from('income_entries').insert({
@@ -173,7 +178,7 @@ export function CellDetailModal({ target, onClose, onUpdated }: CellDetailModalP
         recordMovementInBank(user.id, {
           amount: cents,
           type: 'income',
-          concept: target.conceptName,
+          concept: trimmedDesc || target.conceptName,
           bank,
         });
 
@@ -254,7 +259,16 @@ export function CellDetailModal({ target, onClose, onUpdated }: CellDetailModalP
 
   const handleStartEdit = (item: any) => {
     setEditingId(item.id);
-    setEditDesc(item.description);
+    let desc = item.description;
+    if (item.notes && item.notes.startsWith('{')) {
+      try {
+        const parsed = JSON.parse(item.notes);
+        if (parsed.rawConcept || parsed.description) {
+          desc = parsed.rawConcept || parsed.description;
+        }
+      } catch {}
+    }
+    setEditDesc(desc);
     setEditAmountStr(centsToEuros(item.amount).toString().replace('.', ','));
     setEditBank(getBankFromNotes(item.notes));
   };
@@ -270,7 +284,11 @@ export function CellDetailModal({ target, onClose, onUpdated }: CellDetailModalP
     const oldItem = items.find((it) => it.id === id);
     try {
       const cents = eurosToCents(parsed);
-      const notesObj = JSON.stringify({ bank: editBank });
+      const notesObj = JSON.stringify({
+        bank: editBank,
+        rawConcept: editDesc.trim(),
+        description: editDesc.trim(),
+      });
 
       if (target.type === 'income') {
         await supabase
@@ -407,100 +425,100 @@ export function CellDetailModal({ target, onClose, onUpdated }: CellDetailModalP
                 const isEditing = editingId === item.id;
                 const bankName = getBankFromNotes(item.notes);
 
-                if (isEditing) {
-                  return (
-                    <div key={item.id} className="p-3 bg-brand-50/40 dark:bg-brand-950/20 space-y-2">
-                      <div className="grid grid-cols-2 gap-2">
-                        <Input
-                          placeholder="Descripción"
-                          value={editDesc}
-                          onChange={(e) => setEditDesc(e.target.value)}
-                        />
-                        <Input
-                          placeholder="Importe €"
-                          value={editAmountStr}
-                          onChange={(e) => setEditAmountStr(e.target.value)}
-                          suffix="€"
-                        />
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <Select
-                          value={editBank}
-                          onChange={(e) => setEditBank(e.target.value)}
-                          options={[
-                            { value: 'Banc Sabadell', label: 'Banc Sabadell' },
-                            { value: 'Revolut', label: 'Revolut' },
-                            { value: 'Trade Republic', label: 'Trade Republic' },
-                            { value: 'MyInversor', label: 'MyInversor' },
-                            { value: 'Efectivo', label: 'Efectivo' },
-                          ]}
-                        />
-                        <div className="flex gap-2">
-                          <Button size="sm" variant="ghost" onClick={() => setEditingId(null)}>
-                            {language === 'ca' ? 'Cancel·lar' : 'Cancelar'}
-                          </Button>
-                          <Button size="sm" onClick={() => handleSaveEdit(item.id)}>
-                            {language === 'ca' ? 'Guardar' : 'Guardar'}
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                }
 
                 return (
                   <div
                     key={item.id}
-                    className="p-3 flex items-center justify-between hover:bg-surface-50 dark:hover:bg-surface-800/50 transition-colors"
+                    className="p-3 hover:bg-surface-50 dark:hover:bg-surface-800/50 transition-colors"
                   >
-                    <div className="min-w-0 pr-3">
-                      <p className="text-sm font-semibold text-surface-900 dark:text-surface-100 truncate">
-                        {(() => {
-                          if (item.notes && item.notes.startsWith('{')) {
-                            try {
-                              const parsed = JSON.parse(item.notes);
-                              if (parsed.rawConcept) return parsed.rawConcept;
-                            } catch {}
-                          }
-                          return item.description;
-                        })()}
-                      </p>
-                      <div className="flex items-center gap-2 text-xs text-surface-400 mt-0.5">
-                        <span className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3" /> {item.date}
-                        </span>
-                        {bankName && (
-                          <>
-                            <span>·</span>
-                            <span className="flex items-center gap-1 font-medium text-surface-600 dark:text-surface-300">
-                              <Building2 className="h-3 w-3 text-surface-400" /> {bankName}
+                    {isEditing ? (
+                      <div className="space-y-2">
+                        <div className="grid grid-cols-2 gap-2">
+                          <Input
+                            placeholder="Descripción"
+                            value={editDesc}
+                            onChange={(e) => setEditDesc(e.target.value)}
+                          />
+                          <Input
+                            placeholder="Importe €"
+                            value={editAmountStr}
+                            onChange={(e) => setEditAmountStr(e.target.value)}
+                            suffix="€"
+                          />
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <Select
+                            value={editBank}
+                            onChange={(e) => setEditBank(e.target.value)}
+                            options={[
+                              { value: 'Banc Sabadell', label: 'Banc Sabadell' },
+                              { value: 'Revolut', label: 'Revolut' },
+                              { value: 'Trade Republic', label: 'Trade Republic' },
+                              { value: 'MyInversor', label: 'MyInversor' },
+                              { value: 'Efectivo', label: 'Efectivo' },
+                            ]}
+                          />
+                          <div className="flex gap-2">
+                            <Button size="sm" variant="ghost" onClick={() => setEditingId(null)}>
+                              {language === 'ca' ? 'Cancel·lar' : 'Cancelar'}
+                            </Button>
+                            <Button size="sm" onClick={() => handleSaveEdit(item.id)}>
+                              {language === 'ca' ? 'Guardar' : 'Guardar'}
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-semibold text-surface-900 dark:text-surface-100 truncate">
+                            {(() => {
+                              if (item.notes && item.notes.startsWith('{')) {
+                                try {
+                                  const parsed = JSON.parse(item.notes);
+                                  if (parsed.rawConcept) return parsed.rawConcept;
+                                } catch {}
+                              }
+                              return item.description;
+                            })()}
+                          </p>
+                          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-surface-400 mt-0.5">
+                            <span className="flex items-center gap-1">
+                              <Calendar className="h-3 w-3" /> {item.date}
                             </span>
-                          </>
-                        )}
+                            {bankName && (
+                              <>
+                                <span>·</span>
+                                <span className="flex items-center gap-1 font-medium text-surface-600 dark:text-surface-300 bg-surface-100 dark:bg-surface-700 px-1.5 py-0.5 rounded-md">
+                                  <Building2 className="h-3 w-3" /> {bankName}
+                                </span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className="font-mono font-bold text-sm tabular-nums text-surface-900 dark:text-surface-100">
+                            {formatCurrency(item.amount)}
+                          </span>
+                          <div className="flex items-center gap-0.5">
+                            <button
+                              onClick={() => handleStartEdit(item)}
+                              className="p-1.5 rounded-lg text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors"
+                              title="Editar"
+                            >
+                              <Edit2 className="h-3.5 w-3.5" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteSubMovement(item.id)}
+                              className="p-1.5 rounded-lg text-danger-400 hover:text-danger-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+                              title="Eliminar"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-
-                    <div className="flex items-center gap-3 shrink-0">
-                      <span className="font-mono font-bold text-sm tabular-nums text-surface-900 dark:text-surface-100">
-                        {formatCurrency(item.amount)}
-                      </span>
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => handleStartEdit(item)}
-                          className="p-1 rounded text-surface-400 hover:text-surface-700 dark:hover:text-surface-200"
-                          title="Editar"
-                        >
-                          <Edit2 className="h-3.5 w-3.5" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteSubMovement(item.id)}
-                          className="p-1 rounded text-danger-400 hover:text-danger-600"
-                          title="Eliminar"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-                    </div>
+                    )}
                   </div>
                 );
               })}
