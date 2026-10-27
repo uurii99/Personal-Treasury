@@ -338,25 +338,29 @@ export function ExcelAnnualPage() {
     const targetIdx = direction === 'up' ? idx - 1 : idx + 1;
     if (targetIdx < 0 || targetIdx >= sectionCats.length) return;
 
-    const currentCat = sectionCats[idx];
-    const targetCat = sectionCats[targetIdx];
+    // Build a reordered copy of sectionCats with the swap applied
+    const reordered = [...sectionCats];
+    [reordered[idx], reordered[targetIdx]] = [reordered[targetIdx], reordered[idx]];
 
-    const currentOrder = currentCat.sort_order ?? idx;
-    const targetOrder = targetCat.sort_order ?? targetIdx;
+    // Assign new sort_order values based on position (guaranteed distinct)
+    const sortOrderMap: Record<string, number> = {};
+    reordered.forEach((c, i) => {
+      sortOrderMap[c.id] = i * 10; // multiples of 10 to leave room
+    });
 
     const updated = categories.map((c) => {
-      if (c.id === currentCat.id) return { ...c, sort_order: targetOrder };
-      if (c.id === targetCat.id) return { ...c, sort_order: currentOrder };
+      if (sortOrderMap[c.id] !== undefined) return { ...c, sort_order: sortOrderMap[c.id] };
       return c;
     }).sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
 
     setCategories(updated);
 
     try {
-      await Promise.all([
-        supabase.from('categories').update({ sort_order: targetOrder }).eq('id', currentCat.id),
-        supabase.from('categories').update({ sort_order: currentOrder }).eq('id', targetCat.id),
-      ]);
+      await Promise.all(
+        Object.entries(sortOrderMap).map(([id, order]) =>
+          supabase.from('categories').update({ sort_order: order }).eq('id', id)
+        )
+      );
     } catch (err) {
       console.error('Error reordering category:', err);
     }
@@ -945,7 +949,7 @@ export function ExcelAnnualPage() {
                   <th className="excel-row-num excel-sticky-col bg-surface-200 dark:bg-surface-800 border-b border-surface-300 dark:border-surface-700">
                     #
                   </th>
-                  <th className="excel-col-header excel-sticky-concept min-w-[88px] sm:min-w-[130px] sm:max-w-[155px] text-left px-2 sm:px-3 truncate">
+                  <th className="excel-col-header excel-sticky-concept min-w-[76px] sm:min-w-[110px] sm:max-w-[130px] text-left px-2 sm:px-3 truncate">
                     {language === 'ca' ? 'A · CONCEPTE' : 'A · CONCEPTO'}
                   </th>
                   {MONTHS.map((m, idx) => {
@@ -1025,7 +1029,7 @@ export function ExcelAnnualPage() {
                         <td className="excel-cell excel-sticky-concept bg-[#E2F0D9] dark:bg-emerald-950/70 font-semibold text-emerald-950 dark:text-emerald-100">
                           <div className="flex items-center justify-between gap-1">
                             <span className="truncate">{concept}</span>
-                            <div className="flex items-center gap-0.5 opacity-60 group-hover:opacity-100 transition-opacity">
+                            <div className="flex items-center gap-0.5 invisible group-hover:visible transition-all">
                               <button
                                 onClick={() => handleMoveIncome(concept, 'up')}
                                 disabled={idx === 0}
@@ -1178,7 +1182,7 @@ export function ExcelAnnualPage() {
                         <td className="excel-cell excel-sticky-concept bg-[#D9E1F2] dark:bg-blue-950/70 font-semibold text-blue-950 dark:text-blue-100">
                           <div className="flex items-center justify-between gap-1">
                             <span className="truncate">{rowItem.name}</span>
-                            <div className="flex items-center gap-0.5 opacity-60 group-hover:opacity-100 transition-opacity">
+                            <div className="flex items-center gap-0.5 invisible group-hover:visible transition-all">
                               <button
                                 onClick={() => handleMoveCategory(rowItem.catId, 'up', 'fixed')}
                                 disabled={idx === 0 || !rowItem.catId}
@@ -1387,7 +1391,7 @@ export function ExcelAnnualPage() {
                         <td className="excel-cell excel-sticky-concept bg-[#FFF2CC] dark:bg-amber-950/70 font-semibold text-amber-950 dark:text-amber-100">
                           <div className="flex items-center justify-between gap-1">
                             <span className="truncate">{rowItem.name}</span>
-                            <div className="flex items-center gap-0.5 opacity-60 group-hover:opacity-100 transition-opacity">
+                            <div className="flex items-center gap-0.5 invisible group-hover:visible transition-all">
                               <button
                                 onClick={() => handleMoveCategory(rowItem.catId, 'up', 'leisure')}
                                 disabled={idx === 0 || !rowItem.catId}
@@ -1596,7 +1600,7 @@ export function ExcelAnnualPage() {
                         <td className="excel-cell excel-sticky-concept bg-[#EAD1DC] dark:bg-purple-950/70 font-semibold text-purple-950 dark:text-purple-100">
                           <div className="flex items-center justify-between gap-1">
                             <span className="truncate">{rowItem.name}</span>
-                            <div className="flex items-center gap-0.5 opacity-60 group-hover:opacity-100 transition-opacity">
+                            <div className="flex items-center gap-0.5 invisible group-hover:visible transition-all">
                               <button
                                 onClick={() => handleMoveCategory(rowItem.catId, 'up', 'savings')}
                                 disabled={idx === 0 || !rowItem.catId}
@@ -2145,3 +2149,4 @@ export function ExcelAnnualPage() {
     </div>
   );
 }
+

@@ -408,10 +408,10 @@ body {
 
   .excel-sticky-concept {
     left: 1.25rem !important;
-    min-width: 88px !important;
-    max-width: 105px !important;
+    min-width: 76px !important;
+    max-width: 90px !important;
     font-size: 0.62rem !important;
-    padding: 0.2rem 0.25rem !important;
+    padding: 0.2rem 0.2rem !important;
     white-space: nowrap !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
@@ -446,9 +446,9 @@ body {
 }
 
 .excel-density-compact .excel-sticky-concept {
-  min-width: 130px !important;
-  max-width: 155px !important;
-  padding: 0.25rem 0.35rem !important;
+  min-width: 110px !important;
+  max-width: 130px !important;
+  padding: 0.25rem 0.3rem !important;
   font-size: 0.7rem !important;
 }
 
