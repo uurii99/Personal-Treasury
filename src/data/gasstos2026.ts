@@ -3361,7 +3361,7 @@ export const GASSTOS_BANK_MOVEMENTS: BankMovementItem[] = [
     "bank": "Banc Sabadell",
     "type": "expense",
     "section": "fixed",
-    "category": "GASTOS GENERALES"
+    "category": "BENZINA MOTO"
   },
   {
     "rawDate": "15/05/2026",

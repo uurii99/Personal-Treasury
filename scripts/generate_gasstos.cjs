@@ -60,7 +60,7 @@ for (let i = 0; i < raw.length; i++) {
   if (/TRANSFERENCIA A Oriol Vidal Gonzalez/i.test(raw[i].rawConcept)) excludedIndices.add(i);
 }
 
-const gasRegex = /ESCLATOIL|FAMILY ENERGY|REPSOL|CEPSA|GALP|BALLENOIL|PLENOIL|BONAREA|PETRONOR/i;
+const gasRegex = /ESCLATOIL|FAMILY ENERGY|REPSOL|CEPSA|GALP|BALLENOIL|PLENOIL|BONAREA|PETRONOR|PETRO G24|BENZINERA/i;
 
 const outputMovements = [];
 

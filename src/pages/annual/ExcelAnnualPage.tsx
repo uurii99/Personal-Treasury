@@ -198,7 +198,7 @@ export function ExcelAnnualPage() {
     // Auto-sync for uurii99_ profile from full bank statement GASSTOS.xls
     // Strictly ignores and NEVER modifies any other user's data
     if (isUuriiProfile(user, profile)) {
-      const syncKey = `uurii_gasstos_synced_${user.id}_v5`;
+      const syncKey = `uurii_gasstos_synced_${user.id}_v6`;
       if (localStorage.getItem(syncKey) !== 'true') {
         try {
           await syncUuriiExcelData(user, profile, true);
@@ -738,6 +738,16 @@ export function ExcelAnnualPage() {
       conceptName,
     });
     setSelectedInspectorMonth(month);
+
+    // Open detailed drilldown modal showing itemized movements on cell click
+    setCellDetailTarget({
+      type: _type,
+      section: _section,
+      categoryId: _categoryId,
+      conceptName,
+      month,
+      year,
+    });
   };
 
   const handleCellDoubleClick = (
@@ -2025,12 +2035,12 @@ export function ExcelAnnualPage() {
                     return (
                       <td
                         key={m}
-                        className={`excel-cell text-right font-mono font-extrabold tabular-nums ${
+                        className={`excel-cell text-right font-mono font-extrabold tabular-nums transition-colors ${
                           isPositive
-                            ? 'text-emerald-700 dark:text-emerald-300 bg-emerald-100/80 dark:bg-emerald-950/80'
+                            ? 'text-emerald-800 dark:text-emerald-200 bg-emerald-100/90 dark:bg-emerald-950/80 font-black'
                             : isZero
-                            ? 'text-surface-500 bg-surface-100/50'
-                            : 'text-rose-700 dark:text-rose-300 bg-rose-100/80 dark:bg-rose-950/80'
+                            ? 'text-surface-700 dark:text-surface-200 bg-surface-100 dark:bg-surface-800/90 font-bold border border-surface-200 dark:border-surface-700'
+                            : 'text-rose-800 dark:text-rose-200 bg-rose-100/90 dark:bg-rose-950/80 font-black'
                         }`}
                       >
                         {isPositive ? '+' : ''}
