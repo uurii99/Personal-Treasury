@@ -350,6 +350,9 @@ body {
   left: 2.25rem;
   z-index: 10;
   box-shadow: 4px 0 8px -2px rgba(0, 0, 0, 0.07);
+  width: 160px;
+  min-width: 150px;
+  max-width: 170px;
 }
 
 .dark .excel-sticky-concept {
@@ -396,60 +399,62 @@ body {
 /* Mobile-specific adjustments for Excel Grid (Ultra-compact to fit maximum columns) */
 @media (max-width: 640px) {
   .excel-table {
-    font-size: 0.62rem !important;
+    font-size: 0.65rem !important;
   }
 
   .excel-row-num {
     width: 1.25rem !important;
     min-width: 1.25rem !important;
     font-size: 0.58rem !important;
-    padding: 0.2rem 0.05rem !important;
+    padding: 0.25rem 0.05rem !important;
   }
 
   .excel-sticky-concept {
     left: 1.25rem !important;
-    min-width: 60px !important;
-    max-width: 72px !important;
-    font-size: 0.6rem !important;
-    padding: 0.2rem 0.15rem !important;
-    white-space: nowrap !important;
+    width: 95px !important;
+    min-width: 90px !important;
+    max-width: 105px !important;
     overflow: hidden !important;
-    text-overflow: ellipsis !important;
+    font-size: 0.65rem !important;
+    padding: 0.25rem 0.2rem !important;
   }
 
   .excel-cell {
-    padding: 0.2rem 0.2rem !important;
-    font-size: 0.62rem !important;
+    padding: 0.25rem 0.25rem !important;
+    font-size: 0.65rem !important;
   }
 
   .excel-col-header {
     min-width: 52px !important;
-    padding: 0.2rem 0.1rem !important;
-    font-size: 0.58rem !important;
+    padding: 0.25rem 0.1rem !important;
+    font-size: 0.6rem !important;
   }
 }
 
 /* Compact Density Mode (Default on desktop: 85% scale) */
 .excel-density-compact .excel-table {
-  font-size: 0.72rem;
+  font-size: 0.76rem;
 }
 
 .excel-density-compact .excel-cell {
-  padding: 0.25rem 0.35rem !important;
-  font-size: 0.7rem !important;
+  padding: 0.35rem 0.45rem !important;
+  font-size: 0.74rem !important;
 }
 
 .excel-density-compact .excel-col-header {
-  padding: 0.25rem 0.25rem !important;
+  padding: 0.35rem 0.35rem !important;
   min-width: 68px !important;
-  font-size: 0.65rem !important;
+  font-size: 0.68rem !important;
 }
 
 .excel-density-compact .excel-sticky-concept {
-  min-width: 90px !important;
-  max-width: 105px !important;
-  padding: 0.25rem 0.25rem !important;
-  font-size: 0.68rem !important;
+  width: 160px !important;
+  min-width: 150px !important;
+  max-width: 170px !important;
+  overflow: hidden !important;
+  padding: 0.35rem 0.45rem !important;
+  font-size: 0.74rem !important;
 }
+
 
 

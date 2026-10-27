@@ -949,7 +949,7 @@ export function ExcelAnnualPage() {
                   <th className="excel-row-num excel-sticky-col bg-surface-200 dark:bg-surface-800 border-b border-surface-300 dark:border-surface-700">
                     #
                   </th>
-                  <th className="excel-col-header excel-sticky-concept min-w-[60px] sm:min-w-[90px] sm:max-w-[105px] text-left px-1 sm:px-2 truncate">
+                  <th className="excel-col-header excel-sticky-concept min-w-[95px] sm:min-w-[150px] sm:max-w-[170px] text-left px-2 sm:px-2.5 truncate">
                     {language === 'ca' ? 'A · CONCEPTE' : 'A · CONCEPTO'}
                   </th>
                   {MONTHS.map((m, idx) => {
@@ -996,12 +996,14 @@ export function ExcelAnnualPage() {
                   </td>
                   <td
                     colSpan={15}
-                    className="px-2.5 py-1.5 flex items-center justify-between text-emerald-50 bg-[#38761D] dark:bg-emerald-900"
+                    className="px-2.5 py-1.5 text-emerald-50 bg-[#38761D] dark:bg-emerald-900"
                   >
-                    <span className="flex items-center gap-1.5 font-bold tracking-normal text-xs">
-                      <span className="w-2 h-2 rounded-sm bg-emerald-300 inline-block" />
-                      {language === 'ca' ? 'Ingressos 100%' : 'Ingresos 100%'}
-                    </span>
+                    <div className="flex items-center justify-between">
+                      <span className="flex items-center gap-1.5 font-bold tracking-normal text-xs">
+                        <span className="w-2 h-2 rounded-sm bg-emerald-300 inline-block" />
+                        {language === 'ca' ? 'Ingressos 100%' : 'Ingresos 100%'}
+                      </span>
+                    </div>
                   </td>
                 </tr>
 
@@ -1018,8 +1020,8 @@ export function ExcelAnnualPage() {
                         <td className="excel-row-num">{rowNum}</td>
                         <td className="excel-cell excel-sticky-concept bg-[#E2F0D9] dark:bg-emerald-950/70 font-semibold text-emerald-950 dark:text-emerald-100">
                           <div className="flex items-center justify-between gap-1">
-                            <span className="truncate">{concept}</span>
-                            <div className="flex items-center gap-0.5 invisible group-hover:visible transition-all">
+                            <span className="truncate" title={concept}>{concept}</span>
+                            <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                               <button
                                 onClick={() => handleMoveIncome(concept, 'up')}
                                 disabled={idx === 0}
@@ -1140,12 +1142,14 @@ export function ExcelAnnualPage() {
                   <td className="excel-row-num text-slate-300 bg-[#143263] dark:bg-slate-900 border-blue-900">9</td>
                   <td
                     colSpan={15}
-                    className="px-2.5 py-1.5 flex items-center justify-between text-blue-50 bg-[#1C4587] dark:bg-slate-800"
+                    className="px-2.5 py-1.5 text-blue-50 bg-[#1C4587] dark:bg-slate-800"
                   >
-                    <span className="flex items-center gap-1.5 font-bold tracking-normal text-xs">
-                      <span className="w-2 h-2 rounded-sm bg-blue-300 inline-block" />
-                      {language === 'ca' ? `Fixos ${fp}%` : `Fijos ${fp}%`}
-                    </span>
+                    <div className="flex items-center justify-between">
+                      <span className="flex items-center gap-1.5 font-bold tracking-normal text-xs">
+                        <span className="w-2 h-2 rounded-sm bg-blue-300 inline-block" />
+                        {language === 'ca' ? `Fixos ${fp}%` : `Fijos ${fp}%`}
+                      </span>
+                    </div>
                   </td>
                 </tr>
 
@@ -1161,8 +1165,8 @@ export function ExcelAnnualPage() {
                         <td className="excel-row-num">{rowNum}</td>
                         <td className="excel-cell excel-sticky-concept bg-[#D9E1F2] dark:bg-blue-950/70 font-semibold text-blue-950 dark:text-blue-100">
                           <div className="flex items-center justify-between gap-1">
-                            <span className="truncate">{rowItem.name}</span>
-                            <div className="flex items-center gap-0.5 invisible group-hover:visible transition-all">
+                            <span className="truncate" title={rowItem.name}>{rowItem.name}</span>
+                            <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                               <button
                                 onClick={() => handleMoveCategory(rowItem.catId, 'up', 'fixed')}
                                 disabled={idx === 0 || !rowItem.catId}
@@ -1339,12 +1343,14 @@ export function ExcelAnnualPage() {
                   <td className="excel-row-num text-amber-200 bg-[#8c6900] dark:bg-amber-950 border-amber-600">26</td>
                   <td
                     colSpan={15}
-                    className="px-2.5 py-1.5 flex items-center justify-between text-amber-50 bg-[#BF9000] dark:bg-amber-800"
+                    className="px-2.5 py-1.5 text-amber-50 bg-[#BF9000] dark:bg-amber-800"
                   >
-                    <span className="flex items-center gap-1.5 font-bold tracking-normal text-xs">
-                      <span className="w-2 h-2 rounded-sm bg-amber-200 inline-block" />
-                      {language === 'ca' ? `Opcional ${lp}%` : `Ocio ${lp}%`}
-                    </span>
+                    <div className="flex items-center justify-between">
+                      <span className="flex items-center gap-1.5 font-bold tracking-normal text-xs">
+                        <span className="w-2 h-2 rounded-sm bg-amber-200 inline-block" />
+                        {language === 'ca' ? `Opcional ${lp}%` : `Ocio ${lp}%`}
+                      </span>
+                    </div>
                   </td>
                 </tr>
 
@@ -1360,8 +1366,8 @@ export function ExcelAnnualPage() {
                         <td className="excel-row-num">{rowNum}</td>
                         <td className="excel-cell excel-sticky-concept bg-[#FFF2CC] dark:bg-amber-950/70 font-semibold text-amber-950 dark:text-amber-100">
                           <div className="flex items-center justify-between gap-1">
-                            <span className="truncate">{rowItem.name}</span>
-                            <div className="flex items-center gap-0.5 invisible group-hover:visible transition-all">
+                            <span className="truncate" title={rowItem.name}>{rowItem.name}</span>
+                            <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                               <button
                                 onClick={() => handleMoveCategory(rowItem.catId, 'up', 'leisure')}
                                 disabled={idx === 0 || !rowItem.catId}
@@ -1538,12 +1544,14 @@ export function ExcelAnnualPage() {
                   <td className="excel-row-num text-purple-200 bg-[#350d36] dark:bg-black border-purple-800">41</td>
                   <td
                     colSpan={15}
-                    className="px-2.5 py-1.5 flex items-center justify-between text-purple-100 bg-[#4A154B] dark:bg-purple-950"
+                    className="px-2.5 py-1.5 text-purple-100 bg-[#4A154B] dark:bg-purple-950"
                   >
-                    <span className="flex items-center gap-1.5 font-bold tracking-normal text-xs">
-                      <span className="w-2 h-2 rounded-sm bg-purple-300 inline-block" />
-                      {language === 'ca' ? `Estalvi ${sp}%` : `Ahorro ${sp}%`}
-                    </span>
+                    <div className="flex items-center justify-between">
+                      <span className="flex items-center gap-1.5 font-bold tracking-normal text-xs">
+                        <span className="w-2 h-2 rounded-sm bg-purple-300 inline-block" />
+                        {language === 'ca' ? `Estalvi ${sp}%` : `Ahorro ${sp}%`}
+                      </span>
+                    </div>
                   </td>
                 </tr>
 
@@ -1559,8 +1567,8 @@ export function ExcelAnnualPage() {
                         <td className="excel-row-num">{rowNum}</td>
                         <td className="excel-cell excel-sticky-concept bg-[#EAD1DC] dark:bg-purple-950/70 font-semibold text-purple-950 dark:text-purple-100">
                           <div className="flex items-center justify-between gap-1">
-                            <span className="truncate">{rowItem.name}</span>
-                            <div className="flex items-center gap-0.5 invisible group-hover:visible transition-all">
+                            <span className="truncate" title={rowItem.name}>{rowItem.name}</span>
+                            <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                               <button
                                 onClick={() => handleMoveCategory(rowItem.catId, 'up', 'savings')}
                                 disabled={idx === 0 || !rowItem.catId}
@@ -2109,4 +2117,5 @@ export function ExcelAnnualPage() {
     </div>
   );
 }
+
 
