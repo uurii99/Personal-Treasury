@@ -78,7 +78,7 @@ export async function syncUuriiExcelData(
     };
   }
 
-  const syncKey = `uurii_gasstos_synced_${user.id}_v4`;
+  const syncKey = `uurii_gasstos_synced_${user.id}_v5`;
   if (!force && localStorage.getItem(syncKey) === 'true') {
     return {
       success: true,

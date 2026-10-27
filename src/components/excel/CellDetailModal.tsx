@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Plus, Trash2, Edit2, Calendar, Building2 } from 'lucide-react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { Plus, Trash2, Edit2, Calendar, Building2, ArrowUpDown } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { Button, Input, Select } from '@/components/ui';
 import { useAuth } from '@/contexts/AuthContext';
@@ -34,6 +34,16 @@ export function CellDetailModal({ target, onClose, onUpdated }: CellDetailModalP
 
   const [loading, setLoading] = useState(false);
   const [items, setItems] = useState<any[]>([]);
+  const [sortBy, setSortBy] = useState<'date-desc' | 'amount-desc' | 'amount-asc' | 'date-asc'>('date-desc');
+
+  const sortedItems = useMemo(() => {
+    return [...items].sort((a, b) => {
+      if (sortBy === 'amount-desc') return (b.amount || 0) - (a.amount || 0);
+      if (sortBy === 'amount-asc') return (a.amount || 0) - (b.amount || 0);
+      if (sortBy === 'date-asc') return (a.date || '').localeCompare(b.date || '');
+      return (b.date || '').localeCompare(a.date || '');
+    });
+  }, [items, sortBy]);
 
   // Add sub-expense form
   const [description, setDescription] = useState('');
@@ -343,9 +353,43 @@ export function CellDetailModal({ target, onClose, onUpdated }: CellDetailModalP
 
         {/* List of individual movements */}
         <div className="space-y-2">
-          <label className="text-xs font-semibold uppercase tracking-wider text-surface-500 block">
-            {language === 'ca' ? 'Moviments que componen aquest import' : 'Movimientos que componen este importe'}
-          </label>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <label className="text-xs font-semibold uppercase tracking-wider text-surface-500">
+              {language === 'ca' ? 'Moviments que componen aquest import' : 'Movimientos que componen este importe'}
+            </label>
+
+            {items.length > 1 && (
+              <div className="flex items-center gap-1 bg-surface-100 dark:bg-surface-800 p-0.5 rounded-lg border border-surface-200 dark:border-surface-700 text-[11px]">
+                <button
+                  type="button"
+                  onClick={() => setSortBy((prev) => (prev === 'amount-desc' ? 'amount-asc' : 'amount-desc'))}
+                  className={`flex items-center gap-1 px-2 py-0.5 rounded font-semibold transition-colors ${
+                    sortBy.startsWith('amount')
+                      ? 'bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 shadow-xs'
+                      : 'text-surface-600 dark:text-surface-400 hover:text-surface-900'
+                  }`}
+                  title={sortBy === 'amount-desc' ? 'De mayor a menor importe. Clic para menor a mayor.' : 'De menor a mayor importe. Clic para mayor a menor.'}
+                >
+                  <ArrowUpDown className="h-3 w-3" />
+                  <span>{sortBy === 'amount-desc' ? 'Mayor €' : sortBy === 'amount-asc' ? 'Menor €' : 'Importe €'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setSortBy((prev) => (prev === 'date-desc' ? 'date-asc' : 'date-desc'))}
+                  className={`flex items-center gap-1 px-2 py-0.5 rounded font-semibold transition-colors ${
+                    sortBy.startsWith('date')
+                      ? 'bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 shadow-xs'
+                      : 'text-surface-600 dark:text-surface-400 hover:text-surface-900'
+                  }`}
+                  title={sortBy === 'date-desc' ? 'Más recientes primero. Clic para más antiguos.' : 'Más antiguos primero. Clic para más recientes.'}
+                >
+                  <Calendar className="h-3 w-3" />
+                  <span>{sortBy === 'date-desc' ? 'Recientes' : 'Antiguos'}</span>
+                </button>
+              </div>
+            )}
+          </div>
 
           {loading ? (
             <div className="p-8 text-center text-xs text-surface-400">
@@ -359,7 +403,7 @@ export function CellDetailModal({ target, onClose, onUpdated }: CellDetailModalP
             </div>
           ) : (
             <div className="max-h-60 overflow-y-auto divide-y divide-surface-100 dark:divide-surface-800 border border-surface-200 dark:border-surface-700 rounded-xl bg-white dark:bg-surface-900 overflow-hidden shadow-sm">
-              {items.map((item) => {
+              {sortedItems.map((item) => {
                 const isEditing = editingId === item.id;
                 const bankName = getBankFromNotes(item.notes);
 

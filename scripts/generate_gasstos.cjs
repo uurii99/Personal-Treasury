@@ -98,9 +98,14 @@ for (let i = 0; i < raw.length; i++) {
     let category = 'GASTOS GENERALES';
     let section = 'fixed';
 
-    if (/GEMINIS STYLE/i.test(item.rawConcept)) {
+    if (/SEGUROS ALLIANZ/i.test(item.rawConcept)) {
+      category = 'ASSEG. MOTO';
+      section = 'fixed';
+      item.rawConcept = 'Seguro moto Allianz (Anual)';
+    } else if (/GEMINIS STYLE/i.test(item.rawConcept)) {
       category = 'CORTE DE PELO';
       section = 'fixed';
+      item.rawConcept = 'Corte de pelo (Geminis Style)';
     } else if (/AUTOESCOLA GINER/i.test(item.rawConcept)) {
       category = 'REV./REPARACIONS MOTO';
       section = 'fixed';
@@ -109,6 +114,25 @@ for (let i = 0; i < raw.length; i++) {
       category = 'REV./REPARACIONS MOTO';
       section = 'fixed';
       item.rawConcept = 'Cambio de nombre moto nueva (Gestoria Trafic)';
+    } else if (/MOTOFUSION/i.test(item.rawConcept)) {
+      category = 'PIEZAS MOTO';
+      section = 'leisure';
+      item.rawConcept = 'Intercom moto Cardo (Motofusion)';
+    } else if (/MOTOBLOUZ/i.test(item.rawConcept)) {
+      category = 'PIEZAS MOTO';
+      section = 'leisure';
+      item.rawConcept = 'Equipación / piezas moto (Motoblouz)';
+    } else if (/ACMOTOS/i.test(item.rawConcept)) {
+      category = 'PIEZAS MOTO';
+      section = 'leisure';
+      item.rawConcept = 'Recambios moto (AC Motos)';
+    } else if (/Baboon Automotive/i.test(item.rawConcept)) {
+      category = 'PIEZAS MOTO';
+      section = 'leisure';
+      item.rawConcept = 'Piezas recambio moto (Baboon Automotive)';
+    } else if (/HOTEL SAURAT|Booking\.com|AIRBNB/i.test(item.rawConcept)) {
+      category = 'SALIDAS/VIAGES';
+      section = 'leisure';
     } else if (gasRegex.test(item.rawConcept)) {
       if (Math.abs(item.amountEuros) > 20) {
         category = 'BENZINA COTXE';
@@ -119,6 +143,7 @@ for (let i = 0; i < raw.length; i++) {
     } else if (/Simyo/i.test(item.rawConcept)) {
       category = 'OTROS';
       section = 'fixed';
+      item.rawConcept = 'Móvil prepago (Simyo 1€)';
     }
 
     outputMovements.push({

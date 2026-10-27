@@ -803,8 +803,14 @@ Personal Treasury · Sistema Integral de Gestión Financiera`;
                   <h3 className="text-sm font-bold text-surface-900 dark:text-surface-100">
                     Avisos por Correo Electrónico ante Vencimientos
                   </h3>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-brand-100 text-brand-800 dark:bg-brand-950 dark:text-brand-300">
-                    {emailAlerts.enabled ? 'Activo' : 'Pausado'}
+                  <span
+                    className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border shadow-sm ${
+                      emailAlerts.enabled
+                        ? 'bg-emerald-100 text-emerald-950 border-emerald-400 dark:bg-emerald-950 dark:text-emerald-200 dark:border-emerald-700'
+                        : 'bg-surface-200 text-surface-700 border-surface-300 dark:bg-surface-800 dark:text-surface-300 dark:border-surface-700'
+                    }`}
+                  >
+                    {emailAlerts.enabled ? '● Activo' : '○ Pausado'}
                   </span>
                 </div>
                 <p className="text-xs text-surface-600 dark:text-surface-400 mt-0.5">
@@ -822,9 +828,9 @@ Personal Treasury · Sistema Integral de Gestión Financiera`;
                   onChange={(e) => handleUpdateEmailAlerts({ enabled: e.target.checked })}
                   className="sr-only peer"
                 />
-                <div className="w-11 h-6 bg-surface-200 peer-focus:outline-none rounded-full peer dark:bg-surface-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-surface-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-surface-600 peer-checked:bg-brand-600"></div>
+                <div className="w-11 h-6 bg-surface-300 peer-focus:outline-none rounded-full peer dark:bg-surface-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-surface-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-surface-600 peer-checked:bg-emerald-600"></div>
               </label>
-              <span className="text-xs font-semibold text-surface-700 dark:text-surface-300">
+              <span className={`text-xs font-bold ${emailAlerts.enabled ? 'text-emerald-700 dark:text-emerald-400' : 'text-surface-500'}`}>
                 {emailAlerts.enabled ? 'Activado' : 'Desactivado'}
               </span>
             </div>

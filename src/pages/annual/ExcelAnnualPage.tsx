@@ -13,6 +13,8 @@ import {
   Trash2,
   Loader2,
   Calendar,
+  ArrowUp,
+  ArrowDown,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
@@ -150,7 +152,7 @@ export function ExcelAnnualPage() {
     // Auto-sync for uurii99_ profile from full bank statement GASSTOS.xls
     // Strictly ignores and NEVER modifies any other user's data
     if (isUuriiProfile(user, profile)) {
-      const syncKey = `uurii_gasstos_synced_${user.id}_v4`;
+      const syncKey = `uurii_gasstos_synced_${user.id}_v5`;
       if (localStorage.getItem(syncKey) !== 'true') {
         try {
           await syncUuriiExcelData(user, profile, true);
@@ -328,6 +330,66 @@ export function ExcelAnnualPage() {
     }
   };
 
+  const handleMoveCategory = async (catId: string, direction: 'up' | 'down', section: BudgetSection) => {
+    if (!user || !catId) return;
+    const sectionCats = categories.filter((c) => c.section === section);
+    const idx = sectionCats.findIndex((c) => c.id === catId);
+    if (idx < 0) return;
+    const targetIdx = direction === 'up' ? idx - 1 : idx + 1;
+    if (targetIdx < 0 || targetIdx >= sectionCats.length) return;
+
+    const currentCat = sectionCats[idx];
+    const targetCat = sectionCats[targetIdx];
+
+    const currentOrder = currentCat.sort_order ?? idx;
+    const targetOrder = targetCat.sort_order ?? targetIdx;
+
+    const updated = categories.map((c) => {
+      if (c.id === currentCat.id) return { ...c, sort_order: targetOrder };
+      if (c.id === targetCat.id) return { ...c, sort_order: currentOrder };
+      return c;
+    }).sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+
+    setCategories(updated);
+
+    try {
+      await Promise.all([
+        supabase.from('categories').update({ sort_order: targetOrder }).eq('id', currentCat.id),
+        supabase.from('categories').update({ sort_order: currentOrder }).eq('id', targetCat.id),
+      ]);
+    } catch (err) {
+      console.error('Error reordering category:', err);
+    }
+  };
+
+  const [customIncomeOrder, setCustomIncomeOrder] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem(`custom_income_order_${user?.id}`);
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const handleMoveIncome = (concept: string, direction: 'up' | 'down') => {
+    const list = [...incomeConcepts];
+    const idx = list.indexOf(concept);
+    if (idx < 0) return;
+    const targetIdx = direction === 'up' ? idx - 1 : idx + 1;
+    if (targetIdx < 0 || targetIdx >= list.length) return;
+    const temp = list[idx];
+    list[idx] = list[targetIdx];
+    list[targetIdx] = temp;
+    setCustomIncomeOrder(list);
+    try {
+      if (user?.id) {
+        localStorage.setItem(`custom_income_order_${user.id}`, JSON.stringify(list));
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   // Settings percentages (default 40/30/30 matching TRESORERIA URI)
   const fp = settings?.fixed_percentage ?? 40;
   const lp = settings?.leisure_percentage ?? 30;
@@ -339,8 +401,19 @@ export function ExcelAnnualPage() {
     incomes.forEach((i) => {
       if (i.description?.trim()) set.add(i.description.trim());
     });
-    return Array.from(set);
-  }, [incomes]);
+    const all = Array.from(set);
+    if (customIncomeOrder && customIncomeOrder.length > 0) {
+      all.sort((a, b) => {
+        const ia = customIncomeOrder.indexOf(a);
+        const ib = customIncomeOrder.indexOf(b);
+        if (ia !== -1 && ib !== -1) return ia - ib;
+        if (ia !== -1) return -1;
+        if (ib !== -1) return 1;
+        return a.localeCompare(b);
+      });
+    }
+    return all;
+  }, [incomes, customIncomeOrder]);
 
   const incomeMatrix = useMemo(() => {
     const matrix: Record<string, Record<number, number>> = {};
@@ -940,7 +1013,7 @@ export function ExcelAnnualPage() {
 
                 {incomeConcepts
                   .filter((c) => !searchTerm || c.toLowerCase().includes(searchTerm.toLowerCase()))
-                  .map((concept, idx) => {
+                  .map((concept, idx, arr) => {
                     const row = incomeMatrix[concept] || {};
                     const rowTotal = MONTHS.reduce((s, m) => s + (row[m] || 0), 0);
                     const rowAvg = rowTotal / 12;
@@ -952,7 +1025,23 @@ export function ExcelAnnualPage() {
                         <td className="excel-cell excel-sticky-concept bg-[#E2F0D9] dark:bg-emerald-950/70 font-semibold text-emerald-950 dark:text-emerald-100">
                           <div className="flex items-center justify-between gap-1">
                             <span className="truncate">{concept}</span>
-                            <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="flex items-center gap-0.5 opacity-60 group-hover:opacity-100 transition-opacity">
+                              <button
+                                onClick={() => handleMoveIncome(concept, 'up')}
+                                disabled={idx === 0}
+                                className="p-0.5 rounded text-emerald-700 hover:text-emerald-950 dark:hover:text-emerald-100 hover:bg-emerald-200/60 dark:hover:bg-emerald-900/60 disabled:opacity-20 transition-colors"
+                                title={language === 'ca' ? 'Pujar fila' : 'Subir fila'}
+                              >
+                                <ArrowUp className="h-3 w-3" />
+                              </button>
+                              <button
+                                onClick={() => handleMoveIncome(concept, 'down')}
+                                disabled={idx === arr.length - 1}
+                                className="p-0.5 rounded text-emerald-700 hover:text-emerald-950 dark:hover:text-emerald-100 hover:bg-emerald-200/60 dark:hover:bg-emerald-900/60 disabled:opacity-20 transition-colors"
+                                title={language === 'ca' ? 'Baixar fila' : 'Bajar fila'}
+                              >
+                                <ArrowDown className="h-3 w-3" />
+                              </button>
                               <button
                                 onClick={() => {
                                   setRenameTarget({
@@ -1078,7 +1167,7 @@ export function ExcelAnnualPage() {
 
                 {Object.values(fixedMatrix)
                   .filter((r) => !searchTerm || r.name.toLowerCase().includes(searchTerm.toLowerCase()))
-                  .map((rowItem, idx) => {
+                  .map((rowItem, idx, arr) => {
                     const rowTotal = MONTHS.reduce((s, m) => s + (rowItem.months[m] || 0), 0);
                     const rowAvg = rowTotal / 12;
                     const rowNum = idx + 11;
@@ -1089,7 +1178,23 @@ export function ExcelAnnualPage() {
                         <td className="excel-cell excel-sticky-concept bg-[#D9E1F2] dark:bg-blue-950/70 font-semibold text-blue-950 dark:text-blue-100">
                           <div className="flex items-center justify-between gap-1">
                             <span className="truncate">{rowItem.name}</span>
-                            <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="flex items-center gap-0.5 opacity-60 group-hover:opacity-100 transition-opacity">
+                              <button
+                                onClick={() => handleMoveCategory(rowItem.catId, 'up', 'fixed')}
+                                disabled={idx === 0 || !rowItem.catId}
+                                className="p-0.5 rounded text-blue-700 hover:text-blue-950 dark:hover:text-blue-100 hover:bg-blue-200/60 dark:hover:bg-blue-900/60 disabled:opacity-20 transition-colors"
+                                title={language === 'ca' ? 'Pujar fila' : 'Subir fila'}
+                              >
+                                <ArrowUp className="h-3 w-3" />
+                              </button>
+                              <button
+                                onClick={() => handleMoveCategory(rowItem.catId, 'down', 'fixed')}
+                                disabled={idx === arr.length - 1 || !rowItem.catId}
+                                className="p-0.5 rounded text-blue-700 hover:text-blue-950 dark:hover:text-blue-100 hover:bg-blue-200/60 dark:hover:bg-blue-900/60 disabled:opacity-20 transition-colors"
+                                title={language === 'ca' ? 'Baixar fila' : 'Bajar fila'}
+                              >
+                                <ArrowDown className="h-3 w-3" />
+                              </button>
                               <button
                                 onClick={() => {
                                   setRenameTarget({
@@ -1271,7 +1376,7 @@ export function ExcelAnnualPage() {
 
                 {Object.values(leisureMatrix)
                   .filter((r) => !searchTerm || r.name.toLowerCase().includes(searchTerm.toLowerCase()))
-                  .map((rowItem, idx) => {
+                  .map((rowItem, idx, arr) => {
                     const rowTotal = MONTHS.reduce((s, m) => s + (rowItem.months[m] || 0), 0);
                     const rowAvg = rowTotal / 12;
                     const rowNum = idx + 28;
@@ -1282,7 +1387,23 @@ export function ExcelAnnualPage() {
                         <td className="excel-cell excel-sticky-concept bg-[#FFF2CC] dark:bg-amber-950/70 font-semibold text-amber-950 dark:text-amber-100">
                           <div className="flex items-center justify-between gap-1">
                             <span className="truncate">{rowItem.name}</span>
-                            <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="flex items-center gap-0.5 opacity-60 group-hover:opacity-100 transition-opacity">
+                              <button
+                                onClick={() => handleMoveCategory(rowItem.catId, 'up', 'leisure')}
+                                disabled={idx === 0 || !rowItem.catId}
+                                className="p-0.5 rounded text-amber-700 hover:text-amber-950 dark:hover:text-amber-100 hover:bg-amber-200/60 dark:hover:bg-amber-900/60 disabled:opacity-20 transition-colors"
+                                title={language === 'ca' ? 'Pujar fila' : 'Subir fila'}
+                              >
+                                <ArrowUp className="h-3 w-3" />
+                              </button>
+                              <button
+                                onClick={() => handleMoveCategory(rowItem.catId, 'down', 'leisure')}
+                                disabled={idx === arr.length - 1 || !rowItem.catId}
+                                className="p-0.5 rounded text-amber-700 hover:text-amber-950 dark:hover:text-amber-100 hover:bg-amber-200/60 dark:hover:bg-amber-900/60 disabled:opacity-20 transition-colors"
+                                title={language === 'ca' ? 'Baixar fila' : 'Bajar fila'}
+                              >
+                                <ArrowDown className="h-3 w-3" />
+                              </button>
                               <button
                                 onClick={() => {
                                   setRenameTarget({
@@ -1464,7 +1585,7 @@ export function ExcelAnnualPage() {
 
                 {Object.values(savingsMatrix)
                   .filter((r) => !searchTerm || r.name.toLowerCase().includes(searchTerm.toLowerCase()))
-                  .map((rowItem, idx) => {
+                  .map((rowItem, idx, arr) => {
                     const rowTotal = MONTHS.reduce((s, m) => s + (rowItem.months[m] || 0), 0);
                     const rowAvg = rowTotal / 12;
                     const rowNum = idx + 43;
@@ -1475,7 +1596,23 @@ export function ExcelAnnualPage() {
                         <td className="excel-cell excel-sticky-concept bg-[#EAD1DC] dark:bg-purple-950/70 font-semibold text-purple-950 dark:text-purple-100">
                           <div className="flex items-center justify-between gap-1">
                             <span className="truncate">{rowItem.name}</span>
-                            <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="flex items-center gap-0.5 opacity-60 group-hover:opacity-100 transition-opacity">
+                              <button
+                                onClick={() => handleMoveCategory(rowItem.catId, 'up', 'savings')}
+                                disabled={idx === 0 || !rowItem.catId}
+                                className="p-0.5 rounded text-purple-700 hover:text-purple-950 dark:hover:text-purple-100 hover:bg-purple-200/60 dark:hover:bg-purple-900/60 disabled:opacity-20 transition-colors"
+                                title={language === 'ca' ? 'Pujar fila' : 'Subir fila'}
+                              >
+                                <ArrowUp className="h-3 w-3" />
+                              </button>
+                              <button
+                                onClick={() => handleMoveCategory(rowItem.catId, 'down', 'savings')}
+                                disabled={idx === arr.length - 1 || !rowItem.catId}
+                                className="p-0.5 rounded text-purple-700 hover:text-purple-950 dark:hover:text-purple-100 hover:bg-purple-200/60 dark:hover:bg-purple-900/60 disabled:opacity-20 transition-colors"
+                                title={language === 'ca' ? 'Baixar fila' : 'Bajar fila'}
+                              >
+                                <ArrowDown className="h-3 w-3" />
+                              </button>
                               <button
                                 onClick={() => {
                                   setRenameTarget({
@@ -1569,33 +1706,50 @@ export function ExcelAnnualPage() {
                   </td>
                 </tr>
 
-                {/* RESTANT (Tabla 4) - C46 - C44 */}
-                <tr className="bg-surface-100 dark:bg-surface-800 font-bold">
-                  <td className="excel-row-num">45</td>
-                  <td className="excel-cell excel-sticky-concept bg-surface-100 dark:bg-surface-800 font-bold text-surface-900 dark:text-surface-100 text-right pr-4">
-                    {t.tables.remaining}
+                {/* RESTANT / SUPERÀVIT APORTAT (Tabla 4) */}
+                <tr className="bg-purple-50/60 dark:bg-purple-950/40 font-bold border-b border-purple-200 dark:border-purple-800">
+                  <td className="excel-row-num bg-purple-100/70 dark:bg-purple-900/50 text-purple-900 dark:text-purple-200">45</td>
+                  <td className="excel-cell excel-sticky-concept bg-purple-50 dark:bg-purple-950/60 font-bold text-purple-950 dark:text-purple-100 text-right pr-4">
+                    {language === 'ca' ? 'Superàvit / Restant Aportat:' : 'Superávit / Restante Aportado:'}
                   </td>
                   {MONTHS.map((m) => {
-                    const rem = monthlyRemainingSavings[m];
+                    const actual = monthlyTotalSavings[m];
+                    const budgeted = monthlyAllocatedSavings[m];
+                    const diff = actual - budgeted;
+                    const hasSurplus = diff > 0;
+                    const isExact = diff === 0 && budgeted > 0;
+
                     return (
                       <td
                         key={m}
                         className={`excel-cell text-right font-mono font-bold tabular-nums ${
-                          rem >= 0
+                          hasSurplus
+                            ? 'text-purple-950 dark:text-purple-100 bg-purple-200/90 dark:bg-purple-900/80 shadow-[inset_0_0_0_1px_rgba(147,51,234,0.35)]'
+                            : isExact
                             ? 'text-emerald-800 dark:text-emerald-300 bg-emerald-100/70 dark:bg-emerald-950/70'
-                            : 'text-rose-800 dark:text-rose-300 bg-rose-100/70 dark:bg-rose-950/70'
+                            : actual > 0
+                            ? 'text-amber-800 dark:text-amber-300 bg-amber-100/60 dark:bg-amber-950/60'
+                            : 'text-surface-500 dark:text-surface-400 bg-surface-100/50 dark:bg-surface-800/50'
                         }`}
+                        title={
+                          hasSurplus
+                            ? `¡Superávit! Has aportado ${formatCurrency(diff)} más de lo previsto 🎉`
+                            : isExact
+                            ? '¡Objetivo de ahorro 100% alcanzado!'
+                            : `Faltan ${formatCurrency(Math.abs(diff))} para alcanzar el presupuesto (${formatCurrency(budgeted)}).`
+                        }
                       >
-                        {formatCurrency(rem)}
+                        {hasSurplus ? `+${formatCurrency(diff)}` : isExact ? '✓ 100%' : formatCurrency(diff)}
                       </td>
                     );
                   })}
-                  <td className="excel-cell text-right font-mono font-bold text-surface-900 dark:text-surface-100 bg-surface-200 dark:bg-surface-700 tabular-nums">
-                    {formatCurrency(
-                      Object.values(monthlyRemainingSavings).reduce((a, b) => a + b, 0)
-                    )}
+                  <td className="excel-cell text-right font-mono font-bold text-purple-950 dark:text-purple-100 bg-purple-200/70 dark:bg-purple-900/70 tabular-nums">
+                    {(() => {
+                      const totalDiff = yearTotalSavings - Object.values(monthlyAllocatedSavings).reduce((a, b) => a + b, 0);
+                      return `${totalDiff > 0 ? '+' : ''}${formatCurrency(totalDiff)}`;
+                    })()}
                   </td>
-                  <td className="excel-cell text-right font-mono text-surface-500 bg-surface-200 dark:bg-surface-700 tabular-nums text-xs">
+                  <td className="excel-cell text-right font-mono text-surface-500 bg-purple-100/50 dark:bg-purple-900/40 tabular-nums text-xs">
                     -
                   </td>
                 </tr>
@@ -1630,94 +1784,198 @@ export function ExcelAnnualPage() {
                 </tr>
 
                 {/* ============================================================== */}
-                {/* RESUMEN GLOBAL: RESULTAT NET I CAIXA */}
+                {/* RESUMEN GLOBAL: INGRESSOS, DESPESES I RESULTAT NET */}
                 {/* ============================================================== */}
                 <tr className="bg-surface-900 text-white font-bold text-xs uppercase tracking-wider sticky top-[34px] z-10 shadow-sm">
                   <td className="excel-row-num text-surface-400 bg-black">★</td>
-                  <td colSpan={15} className="px-3 py-2 text-surface-100 bg-surface-900">
-                    {language === 'ca'
-                      ? 'RESUM GENERAL I RESULTAT NET (INGRESSOS - DESPESES)'
-                      : 'RESUMEN GENERAL Y RESULTADO NETO (INGRESOS - GASTOS)'}
+                  <td colSpan={15} className="px-3 py-2 text-surface-100 bg-surface-900 flex items-center justify-between">
+                    <span>
+                      {language === 'ca'
+                        ? 'RESUM GENERAL I RESULTAT NET (INGRESSOS - DESPESES)'
+                        : 'RESUMEN GENERAL Y RESULTADO NETO (INGRESOS - GASTOS)'}
+                    </span>
+                    <span className="text-[10px] text-surface-300 font-normal lowercase tracking-normal">
+                      {language === 'ca'
+                        ? 'Càlcul pas a pas: Ingressos - (Fixos + Oci + Aportació Estalvi)'
+                        : 'Cálculo paso a paso: Ingresos - (Fijos + Ocio + Aportación Ahorro)'}
+                    </span>
                   </td>
                 </tr>
 
-                {/* Total Despeses */}
-                <tr className="bg-surface-100/70 dark:bg-surface-800/60 font-semibold">
-                  <td className="excel-row-num">50</td>
-                  <td className="excel-cell excel-sticky-concept bg-surface-100 dark:bg-surface-800 font-semibold text-surface-800 dark:text-surface-200 text-right pr-4">
-                    {t.tables.totalExpenses}
+                {/* 1. (+) Total Ingressos */}
+                <tr className="bg-emerald-50/70 dark:bg-emerald-950/40 font-semibold text-xs border-b border-emerald-200 dark:border-emerald-800/60">
+                  <td className="excel-row-num bg-emerald-100/70 dark:bg-emerald-900/50 text-emerald-900 dark:text-emerald-200">50</td>
+                  <td className="excel-cell excel-sticky-concept bg-emerald-50 dark:bg-emerald-950/70 font-semibold text-emerald-950 dark:text-emerald-100 text-right pr-4">
+                    <span className="inline-flex items-center gap-1.5">
+                      <span className="text-emerald-700 dark:text-emerald-400 font-bold">(+)</span>
+                      <span>{language === 'ca' ? 'TOTAL INGRESSOS (100%)' : 'TOTAL INGRESOS (100%)'}</span>
+                    </span>
                   </td>
                   {MONTHS.map((m) => (
-                    <td key={m} className="excel-cell text-right font-mono font-semibold text-danger-600 dark:text-danger-400 tabular-nums">
-                      {formatCurrency(monthlyTotalExpenses[m])}
+                    <td key={m} className="excel-cell text-right font-mono font-semibold text-emerald-800 dark:text-emerald-200 tabular-nums">
+                      {formatCurrency(monthlyTotalIncome[m])}
                     </td>
                   ))}
-                  <td className="excel-cell text-right font-mono font-bold text-danger-600 dark:text-danger-400 tabular-nums bg-surface-200 dark:bg-surface-800">
+                  <td className="excel-cell text-right font-mono font-bold text-emerald-900 dark:text-emerald-100 bg-emerald-200/80 dark:bg-emerald-900/80 tabular-nums">
+                    {formatCurrency(yearTotalIncome)}
+                  </td>
+                  <td className="excel-cell text-right font-mono font-semibold text-emerald-800 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-900/50 tabular-nums text-xs">
+                    {formatCurrency(yearTotalIncome / 12)}
+                  </td>
+                </tr>
+
+                {/* 2. (-) Total Fixos */}
+                <tr className="bg-blue-50/40 dark:bg-blue-950/20 text-xs">
+                  <td className="excel-row-num bg-blue-100/50 dark:bg-blue-900/30 text-blue-900 dark:text-blue-300">51</td>
+                  <td className="excel-cell excel-sticky-concept bg-blue-50/70 dark:bg-blue-950/40 text-blue-950 dark:text-blue-100 text-right pr-4">
+                    <span className="inline-flex items-center gap-1.5">
+                      <span className="text-blue-700 dark:text-blue-400 font-bold">(-)</span>
+                      <span>{language === 'ca' ? `Gastos Fixos (${fp}%)` : `Gastos Fijos (${fp}%)`}</span>
+                    </span>
+                  </td>
+                  {MONTHS.map((m) => (
+                    <td key={m} className="excel-cell text-right font-mono text-blue-900 dark:text-blue-200 tabular-nums">
+                      {monthlyTotalFixed[m] > 0 ? formatCurrency(monthlyTotalFixed[m]) : '-'}
+                    </td>
+                  ))}
+                  <td className="excel-cell text-right font-mono font-semibold text-blue-950 dark:text-blue-100 bg-blue-100/70 dark:bg-blue-900/50 tabular-nums">
+                    {formatCurrency(yearTotalFixed)}
+                  </td>
+                  <td className="excel-cell text-right font-mono text-blue-800 dark:text-blue-300 bg-blue-100/50 dark:bg-blue-900/30 tabular-nums text-xs">
+                    {formatCurrency(yearTotalFixed / 12)}
+                  </td>
+                </tr>
+
+                {/* 3. (-) Total Oci */}
+                <tr className="bg-amber-50/40 dark:bg-amber-950/20 text-xs">
+                  <td className="excel-row-num bg-amber-100/50 dark:bg-amber-900/30 text-amber-900 dark:text-amber-300">52</td>
+                  <td className="excel-cell excel-sticky-concept bg-amber-50/70 dark:bg-amber-950/40 text-amber-950 dark:text-amber-100 text-right pr-4">
+                    <span className="inline-flex items-center gap-1.5">
+                      <span className="text-amber-700 dark:text-amber-400 font-bold">(-)</span>
+                      <span>{language === 'ca' ? `Gastos Oci (${lp}%)` : `Gastos Ocio (${lp}%)`}</span>
+                    </span>
+                  </td>
+                  {MONTHS.map((m) => (
+                    <td key={m} className="excel-cell text-right font-mono text-amber-900 dark:text-amber-200 tabular-nums">
+                      {monthlyTotalLeisure[m] > 0 ? formatCurrency(monthlyTotalLeisure[m]) : '-'}
+                    </td>
+                  ))}
+                  <td className="excel-cell text-right font-mono font-semibold text-amber-950 dark:text-amber-100 bg-amber-100/70 dark:bg-amber-900/50 tabular-nums">
+                    {formatCurrency(yearTotalLeisure)}
+                  </td>
+                  <td className="excel-cell text-right font-mono text-amber-800 dark:text-amber-300 bg-amber-100/50 dark:bg-amber-900/30 tabular-nums text-xs">
+                    {formatCurrency(yearTotalLeisure / 12)}
+                  </td>
+                </tr>
+
+                {/* 4. (-) Total Estalvi Aportat */}
+                <tr className="bg-purple-50/40 dark:bg-purple-950/20 text-xs border-b border-surface-200 dark:border-surface-800">
+                  <td className="excel-row-num bg-purple-100/50 dark:bg-purple-900/30 text-purple-900 dark:text-purple-300">53</td>
+                  <td className="excel-cell excel-sticky-concept bg-purple-50/70 dark:bg-purple-950/40 text-purple-950 dark:text-purple-100 text-right pr-4">
+                    <span className="inline-flex items-center gap-1.5">
+                      <span className="text-purple-700 dark:text-purple-400 font-bold">(-)</span>
+                      <span>{language === 'ca' ? `Aportat Estalvi (${sp}%)` : `Aportado Ahorro (${sp}%)`}</span>
+                    </span>
+                  </td>
+                  {MONTHS.map((m) => (
+                    <td key={m} className="excel-cell text-right font-mono text-purple-900 dark:text-purple-200 tabular-nums">
+                      {monthlyTotalSavings[m] > 0 ? formatCurrency(monthlyTotalSavings[m]) : '-'}
+                    </td>
+                  ))}
+                  <td className="excel-cell text-right font-mono font-semibold text-purple-950 dark:text-purple-100 bg-purple-100/70 dark:bg-purple-900/50 tabular-nums">
+                    {formatCurrency(yearTotalSavings)}
+                  </td>
+                  <td className="excel-cell text-right font-mono text-purple-800 dark:text-purple-300 bg-purple-100/50 dark:bg-purple-900/30 tabular-nums text-xs">
+                    {formatCurrency(yearTotalSavings / 12)}
+                  </td>
+                </tr>
+
+                {/* 5. (=) TOTAL DESPESES I APORTACIONS */}
+                <tr className="bg-rose-50/60 dark:bg-rose-950/30 font-bold text-xs border-b-2 border-rose-200 dark:border-rose-900">
+                  <td className="excel-row-num bg-rose-100 dark:bg-rose-900/60 text-rose-900 dark:text-rose-200">54</td>
+                  <td className="excel-cell excel-sticky-concept bg-rose-50 dark:bg-rose-950/60 font-bold text-rose-950 dark:text-rose-100 text-right pr-4">
+                    <span className="inline-flex items-center gap-1.5">
+                      <span className="text-rose-600 font-bold">(=)</span>
+                      <span>{language === 'ca' ? 'TOTAL DESPESES I APORTACIONS' : 'TOTAL GASTOS Y APORTACIONES'}</span>
+                    </span>
+                  </td>
+                  {MONTHS.map((m) => (
+                    <td key={m} className="excel-cell text-right font-mono font-bold text-rose-700 dark:text-rose-300 tabular-nums">
+                      {monthlyTotalExpenses[m] > 0 ? formatCurrency(monthlyTotalExpenses[m]) : '-'}
+                    </td>
+                  ))}
+                  <td className="excel-cell text-right font-mono font-bold text-rose-900 dark:text-rose-100 tabular-nums bg-rose-100 dark:bg-rose-900/70">
                     {formatCurrency(yearTotalExpenses)}
                   </td>
-                  <td className="excel-cell text-right font-mono text-danger-600 dark:text-danger-400 tabular-nums text-xs bg-surface-200 dark:bg-surface-800">
+                  <td className="excel-cell text-right font-mono font-bold text-rose-800 dark:text-rose-200 tabular-nums text-xs bg-rose-100 dark:bg-rose-900/70">
                     {formatCurrency(yearTotalExpenses / 12)}
                   </td>
                 </tr>
 
-                {/* Resultat Net */}
-                <tr className="bg-white dark:bg-surface-900 font-bold border-t-2 border-b-2 border-surface-300 dark:border-surface-700">
-                  <td className="excel-row-num bg-surface-200 dark:bg-surface-800">51</td>
-                  <td className="excel-cell excel-sticky-concept bg-white dark:bg-surface-900 font-bold text-surface-900 dark:text-surface-100 text-right pr-4">
-                    {t.tables.netBalance}
+                {/* 6. RESULTAT NET (INGRESSOS - DESPESES) */}
+                <tr className="bg-white dark:bg-surface-900 font-extrabold text-sm border-t-2 border-b-2 border-surface-900 dark:border-white shadow-sm">
+                  <td className="excel-row-num bg-surface-800 text-white font-black">55</td>
+                  <td className="excel-cell excel-sticky-concept bg-surface-100 dark:bg-surface-800 font-black text-surface-900 dark:text-white text-right pr-4">
+                    {language === 'ca' ? 'RESULTAT NET (INGRESSOS - DESPESES):' : 'RESULTADO NETO (INGRESOS - GASTOS):'}
                   </td>
                   {MONTHS.map((m) => {
                     const net = monthlyNetBalance[m];
+                    const isPositive = net > 0;
+                    const isZero = net === 0;
                     return (
                       <td
                         key={m}
-                        className={`excel-cell text-right font-mono font-bold tabular-nums ${
-                          net >= 0
-                            ? 'text-success-600 dark:text-success-400 bg-success-50/30'
-                            : 'text-danger-600 dark:text-danger-400 bg-danger-50/30'
+                        className={`excel-cell text-right font-mono font-extrabold tabular-nums ${
+                          isPositive
+                            ? 'text-emerald-700 dark:text-emerald-300 bg-emerald-100/80 dark:bg-emerald-950/80'
+                            : isZero
+                            ? 'text-surface-500 bg-surface-100/50'
+                            : 'text-rose-700 dark:text-rose-300 bg-rose-100/80 dark:bg-rose-950/80'
                         }`}
                       >
-                        {net > 0 ? '+' : ''}
+                        {isPositive ? '+' : ''}
                         {formatCurrency(net)}
                       </td>
                     );
                   })}
                   <td
-                    className={`excel-cell text-right font-mono font-bold tabular-nums bg-surface-100 dark:bg-surface-800 ${
-                      yearNetBalance >= 0 ? 'text-success-600 dark:text-success-400' : 'text-danger-600'
+                    className={`excel-cell text-right font-mono font-extrabold tabular-nums ${
+                      yearNetBalance >= 0
+                        ? 'text-emerald-800 dark:text-emerald-200 bg-emerald-200 dark:bg-emerald-900'
+                        : 'text-rose-800 dark:text-rose-200 bg-rose-200 dark:bg-rose-900'
                     }`}
                   >
                     {yearNetBalance > 0 ? '+' : ''}
                     {formatCurrency(yearNetBalance)}
                   </td>
-                  <td className="excel-cell text-right font-mono font-bold tabular-nums text-xs bg-surface-100 dark:bg-surface-800">
+                  <td className="excel-cell text-right font-mono font-bold tabular-nums text-xs bg-surface-200 dark:bg-surface-800">
                     {formatCurrency(yearNetBalance / 12)}
                   </td>
                 </tr>
 
-                {/* Saldo Acumulat */}
-                <tr className="bg-emerald-50/40 dark:bg-emerald-950/20 text-xs font-semibold">
-                  <td className="excel-row-num bg-emerald-100 dark:bg-emerald-900/40">52</td>
-                  <td className="excel-cell excel-sticky-concept bg-emerald-50 dark:bg-emerald-950/40 font-semibold text-emerald-950 dark:text-emerald-100 text-right pr-4">
-                    {language === 'ca' ? 'SALDO ACUMULAT:' : 'SALDO ACUMULADO:'}
+                {/* 7. SALDO TOTAL ACUMULAT (CAIXA / PATRIMONI) */}
+                <tr className="bg-emerald-50 dark:bg-emerald-950/40 text-xs font-bold border-b border-emerald-300 dark:border-emerald-700">
+                  <td className="excel-row-num bg-emerald-200 dark:bg-emerald-800 text-emerald-950 dark:text-emerald-100">56</td>
+                  <td className="excel-cell excel-sticky-concept bg-emerald-100/80 dark:bg-emerald-900/80 font-bold text-emerald-950 dark:text-emerald-100 text-right pr-4">
+                    {language === 'ca' ? 'SALDO TOTAL ACUMULAT (PATRIMONI/CAIXA):' : 'SALDO TOTAL ACUMULADO (PATRIMONIO/CAJA):'}
                   </td>
                   {MONTHS.map((m) => {
                     const acc = monthlyAccumulatedBalance[m];
                     return (
                       <td
                         key={m}
-                        className={`excel-cell text-right font-mono font-semibold tabular-nums ${
-                          acc >= 0 ? 'text-surface-900 dark:text-surface-100' : 'text-danger-600'
+                        className={`excel-cell text-right font-mono font-bold tabular-nums ${
+                          acc >= 0 ? 'text-emerald-950 dark:text-emerald-100' : 'text-rose-700 dark:text-rose-300'
                         }`}
                       >
                         {formatCurrency(acc)}
                       </td>
                     );
                   })}
-                  <td className="excel-cell text-right font-mono font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-900/60 tabular-nums">
+                  <td className="excel-cell text-right font-mono font-black text-emerald-950 dark:text-emerald-100 bg-emerald-300/80 dark:bg-emerald-800 tabular-nums">
                     {formatCurrency(monthlyAccumulatedBalance[12])}
                   </td>
-                  <td className="excel-cell text-right font-mono text-surface-400 bg-emerald-100 dark:bg-emerald-900/60">-</td>
+                  <td className="excel-cell text-right font-mono text-emerald-800 dark:text-emerald-200 bg-emerald-200/60 dark:bg-emerald-900/50 text-xs">-</td>
                 </tr>
               </tbody>
             </table>
