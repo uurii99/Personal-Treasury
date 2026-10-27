@@ -949,7 +949,7 @@ export function ExcelAnnualPage() {
                   <th className="excel-row-num excel-sticky-col bg-surface-200 dark:bg-surface-800 border-b border-surface-300 dark:border-surface-700">
                     #
                   </th>
-                  <th className="excel-col-header excel-sticky-concept min-w-[76px] sm:min-w-[110px] sm:max-w-[130px] text-left px-2 sm:px-3 truncate">
+                  <th className="excel-col-header excel-sticky-concept min-w-[60px] sm:min-w-[90px] sm:max-w-[105px] text-left px-1 sm:px-2 truncate">
                     {language === 'ca' ? 'A · CONCEPTE' : 'A · CONCEPTO'}
                   </th>
                   {MONTHS.map((m, idx) => {
@@ -1002,16 +1002,6 @@ export function ExcelAnnualPage() {
                       <span className="w-2 h-2 rounded-sm bg-emerald-300 inline-block" />
                       {language === 'ca' ? 'Ingressos 100%' : 'Ingresos 100%'}
                     </span>
-                    <button
-                      onClick={() => {
-                        setAddRowDefaultSection('income');
-                        setShowAddRowModal(true);
-                      }}
-                      className="h-5 w-5 rounded bg-white/20 hover:bg-white/35 active:scale-95 text-white flex items-center justify-center font-bold transition-all"
-                      title={language === 'ca' ? 'Afegir ingrés' : 'Añadir ingreso'}
-                    >
-                      <Plus className="h-3.5 w-3.5" />
-                    </button>
                   </td>
                 </tr>
 
@@ -1156,16 +1146,6 @@ export function ExcelAnnualPage() {
                       <span className="w-2 h-2 rounded-sm bg-blue-300 inline-block" />
                       {language === 'ca' ? `Fixos ${fp}%` : `Fijos ${fp}%`}
                     </span>
-                    <button
-                      onClick={() => {
-                        setAddRowDefaultSection('fixed');
-                        setShowAddRowModal(true);
-                      }}
-                      className="h-5 w-5 rounded bg-white/20 hover:bg-white/35 active:scale-95 text-white flex items-center justify-center font-bold transition-all"
-                      title={language === 'ca' ? 'Afegir despesa fixa' : 'Añadir gasto fijo'}
-                    >
-                      <Plus className="h-3.5 w-3.5" />
-                    </button>
                   </td>
                 </tr>
 
@@ -1365,16 +1345,6 @@ export function ExcelAnnualPage() {
                       <span className="w-2 h-2 rounded-sm bg-amber-200 inline-block" />
                       {language === 'ca' ? `Opcional ${lp}%` : `Ocio ${lp}%`}
                     </span>
-                    <button
-                      onClick={() => {
-                        setAddRowDefaultSection('leisure');
-                        setShowAddRowModal(true);
-                      }}
-                      className="h-5 w-5 rounded bg-white/20 hover:bg-white/35 active:scale-95 text-white flex items-center justify-center font-bold transition-all"
-                      title={language === 'ca' ? 'Afegir despesa opcional' : 'Añadir gasto ocio'}
-                    >
-                      <Plus className="h-3.5 w-3.5" />
-                    </button>
                   </td>
                 </tr>
 
@@ -1574,16 +1544,6 @@ export function ExcelAnnualPage() {
                       <span className="w-2 h-2 rounded-sm bg-purple-300 inline-block" />
                       {language === 'ca' ? `Estalvi ${sp}%` : `Ahorro ${sp}%`}
                     </span>
-                    <button
-                      onClick={() => {
-                        setAddRowDefaultSection('savings');
-                        setShowAddRowModal(true);
-                      }}
-                      className="h-5 w-5 rounded bg-white/20 hover:bg-white/35 active:scale-95 text-white flex items-center justify-center font-bold transition-all"
-                      title={language === 'ca' ? 'Afegir estalvi/inversió' : 'Añadir ahorro/inversión'}
-                    >
-                      <Plus className="h-3.5 w-3.5" />
-                    </button>
                   </td>
                 </tr>
 
