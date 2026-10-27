@@ -344,15 +344,15 @@ body {
   box-shadow: 3px 0 8px -2px rgba(0, 0, 0, 0.4);
 }
 
-/* Concept column: adaptive sticky positioning */
+/* Concept column: adaptive sticky positioning (fits the longest concept) */
 .excel-sticky-concept {
   position: sticky;
   left: 2.25rem;
   z-index: 10;
   box-shadow: 4px 0 8px -2px rgba(0, 0, 0, 0.07);
-  width: 160px;
-  min-width: 150px;
-  max-width: 170px;
+  width: max-content;
+  min-width: max-content;
+  white-space: nowrap;
 }
 
 .dark .excel-sticky-concept {
@@ -448,11 +448,10 @@ body {
 }
 
 .excel-density-compact .excel-sticky-concept {
-  width: 160px !important;
-  min-width: 150px !important;
-  max-width: 170px !important;
-  overflow: hidden !important;
-  padding: 0.35rem 0.45rem !important;
+  width: max-content !important;
+  min-width: max-content !important;
+  white-space: nowrap !important;
+  padding: 0.35rem 0.55rem !important;
   font-size: 0.74rem !important;
 }
 

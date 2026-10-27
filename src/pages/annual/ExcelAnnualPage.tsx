@@ -949,7 +949,7 @@ export function ExcelAnnualPage() {
                   <th className="excel-row-num excel-sticky-col bg-surface-200 dark:bg-surface-800 border-b border-surface-300 dark:border-surface-700">
                     #
                   </th>
-                  <th className="excel-col-header excel-sticky-concept min-w-[95px] sm:min-w-[150px] sm:max-w-[170px] text-left px-2 sm:px-2.5 truncate">
+                  <th className="excel-col-header excel-sticky-concept text-left px-2 sm:px-3 whitespace-nowrap">
                     {language === 'ca' ? 'A · CONCEPTE' : 'A · CONCEPTO'}
                   </th>
                   {MONTHS.map((m, idx) => {
@@ -1019,8 +1019,8 @@ export function ExcelAnnualPage() {
                       <tr key={concept} className="hover:bg-emerald-100/60 dark:hover:bg-emerald-950/40 group">
                         <td className="excel-row-num">{rowNum}</td>
                         <td className="excel-cell excel-sticky-concept bg-[#E2F0D9] dark:bg-emerald-950/70 font-semibold text-emerald-950 dark:text-emerald-100">
-                          <div className="flex items-center justify-between gap-1">
-                            <span className="truncate" title={concept}>{concept}</span>
+                          <div className="flex items-center justify-between gap-2.5">
+                            <span className="whitespace-nowrap font-medium" title={concept}>{concept}</span>
                             <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                               <button
                                 onClick={() => handleMoveIncome(concept, 'up')}
@@ -1164,8 +1164,8 @@ export function ExcelAnnualPage() {
                       <tr key={rowItem.catId || rowItem.name} className="hover:bg-blue-100/60 dark:hover:bg-blue-950/40 group">
                         <td className="excel-row-num">{rowNum}</td>
                         <td className="excel-cell excel-sticky-concept bg-[#D9E1F2] dark:bg-blue-950/70 font-semibold text-blue-950 dark:text-blue-100">
-                          <div className="flex items-center justify-between gap-1">
-                            <span className="truncate" title={rowItem.name}>{rowItem.name}</span>
+                          <div className="flex items-center justify-between gap-2.5">
+                            <span className="whitespace-nowrap font-medium" title={rowItem.name}>{rowItem.name}</span>
                             <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                               <button
                                 onClick={() => handleMoveCategory(rowItem.catId, 'up', 'fixed')}
@@ -1365,8 +1365,8 @@ export function ExcelAnnualPage() {
                       <tr key={rowItem.catId || rowItem.name} className="hover:bg-amber-100/60 dark:hover:bg-amber-950/40 group">
                         <td className="excel-row-num">{rowNum}</td>
                         <td className="excel-cell excel-sticky-concept bg-[#FFF2CC] dark:bg-amber-950/70 font-semibold text-amber-950 dark:text-amber-100">
-                          <div className="flex items-center justify-between gap-1">
-                            <span className="truncate" title={rowItem.name}>{rowItem.name}</span>
+                          <div className="flex items-center justify-between gap-2.5">
+                            <span className="whitespace-nowrap font-medium" title={rowItem.name}>{rowItem.name}</span>
                             <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                               <button
                                 onClick={() => handleMoveCategory(rowItem.catId, 'up', 'leisure')}
@@ -1566,8 +1566,8 @@ export function ExcelAnnualPage() {
                       <tr key={rowItem.catId || rowItem.name} className="hover:bg-purple-100/60 dark:hover:bg-purple-950/40 group">
                         <td className="excel-row-num">{rowNum}</td>
                         <td className="excel-cell excel-sticky-concept bg-[#EAD1DC] dark:bg-purple-950/70 font-semibold text-purple-950 dark:text-purple-100">
-                          <div className="flex items-center justify-between gap-1">
-                            <span className="truncate" title={rowItem.name}>{rowItem.name}</span>
+                          <div className="flex items-center justify-between gap-2.5">
+                            <span className="whitespace-nowrap font-medium" title={rowItem.name}>{rowItem.name}</span>
                             <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                               <button
                                 onClick={() => handleMoveCategory(rowItem.catId, 'up', 'savings')}
@@ -1756,21 +1756,14 @@ export function ExcelAnnualPage() {
                 </tr>
 
                 {/* ============================================================== */}
-                {/* RESUMEN GLOBAL: INGRESSOS, DESPESES I RESULTAT NET */}
+                {/* RESUMEN GENERAL */}
                 {/* ============================================================== */}
                 <tr className="bg-surface-900 text-white font-bold text-xs uppercase tracking-wider sticky top-[34px] z-10 shadow-sm">
                   <td className="excel-row-num text-surface-400 bg-black">★</td>
-                  <td colSpan={15} className="px-3 py-2 text-surface-100 bg-surface-900 flex items-center justify-between">
-                    <span>
-                      {language === 'ca'
-                        ? 'RESUM GENERAL I RESULTAT NET (INGRESSOS - DESPESES)'
-                        : 'RESUMEN GENERAL Y RESULTADO NETO (INGRESOS - GASTOS)'}
-                    </span>
-                    <span className="text-[10px] text-surface-300 font-normal lowercase tracking-normal">
-                      {language === 'ca'
-                        ? 'Càlcul pas a pas: Ingressos - (Fixos + Oci + Aportació Estalvi)'
-                        : 'Cálculo paso a paso: Ingresos - (Fijos + Ocio + Aportación Ahorro)'}
-                    </span>
+                  <td colSpan={15} className="px-3 py-2 text-surface-100 bg-surface-900">
+                    <div className="flex items-center">
+                      <span>{language === 'ca' ? 'RESUM GENERAL' : 'RESUMEN GENERAL'}</span>
+                    </div>
                   </td>
                 </tr>
 

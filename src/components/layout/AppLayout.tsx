@@ -15,6 +15,7 @@ import {
   User,
   FileSpreadsheet,
   Landmark,
+  Calendar,
   Target,
   PanelLeft,
 } from 'lucide-react';
@@ -133,6 +134,7 @@ export function AppLayout() {
   const mainNavItems: NavItem[] = [
     { to: '/dashboard', label: t.nav.excel, icon: <FileSpreadsheet className="h-4 w-4 text-[#107c41]" /> },
     { to: '/banks', label: t.nav.banks, icon: <Landmark className="h-4 w-4 text-brand-600 dark:text-brand-400" /> },
+    { to: '/vencimientos', label: t.nav.vencimientos, icon: <Calendar className="h-4 w-4 text-purple-600 dark:text-purple-400" /> },
     { to: '/goals', label: t.nav.goals, icon: <Target className="h-4 w-4 text-amber-500" /> },
   ];
 

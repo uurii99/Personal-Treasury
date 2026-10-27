@@ -93,6 +93,7 @@ export interface Translations {
   nav: {
     excel: string;
     banks: string;
+    vencimientos: string;
     goals: string;
     currentMonth: string;
     annualView: string;
@@ -214,6 +215,7 @@ const DICTIONARY: Record<Language, Translations> = {
     nav: {
       excel: 'Hoja Excel Anual',
       banks: 'Bancos y Cuentas',
+      vencimientos: 'Recibos y Vencimientos',
       goals: 'Metas Anuales',
       currentMonth: 'Mes actual',
       annualView: 'Vista anual',
@@ -333,6 +335,7 @@ const DICTIONARY: Record<Language, Translations> = {
     nav: {
       excel: 'Full Excel Anual',
       banks: 'Bancs i Comptes',
+      vencimientos: 'Rebuts i Venciments',
       goals: 'Metes Anuals',
       currentMonth: 'Mes actual',
       annualView: 'Vista anual',

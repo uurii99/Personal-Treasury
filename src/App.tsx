@@ -18,6 +18,7 @@ const OnboardingPage = lazy(() => import('@/pages/onboarding/OnboardingPage').th
 // App pages (lazy loaded)
 const DashboardPage = lazy(() => import('@/pages/dashboard/DashboardPage').then((m) => ({ default: m.DashboardPage })));
 const BanksPage = lazy(() => import('@/pages/banks/BanksPage').then((m) => ({ default: m.BanksPage })));
+const BillsCalendarPage = lazy(() => import('@/pages/calendar/BillsCalendarPage').then((m) => ({ default: m.BillsCalendarPage })));
 const GoalsPage = lazy(() => import('@/pages/goals/GoalsPage').then((m) => ({ default: m.GoalsPage })));
 const TreasuryPage = lazy(() => import('@/pages/treasury/TreasuryPage').then((m) => ({ default: m.TreasuryPage })));
 const SectionDetailPage = lazy(() => import('@/pages/treasury/SectionDetailPage').then((m) => ({ default: m.SectionDetailPage })));
@@ -60,6 +61,9 @@ export default function App() {
                     <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
                       <Route path="/dashboard" element={<DashboardPage />} />
                       <Route path="/banks" element={<BanksPage />} />
+                      <Route path="/vencimientos" element={<BillsCalendarPage />} />
+                      <Route path="/recibos" element={<Navigate to="/vencimientos" replace />} />
+                      <Route path="/calendar" element={<Navigate to="/vencimientos" replace />} />
                       <Route path="/goals" element={<GoalsPage />} />
                       <Route path="/treasury" element={<Navigate to="/dashboard" replace />} />
                       <Route path="/treasury/section/:section" element={<Navigate to="/dashboard" replace />} />

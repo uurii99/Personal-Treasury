@@ -1,9 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Plus,
-  Calendar,
-  AlertTriangle,
-  CheckCircle2,
   RefreshCw,
   Edit2,
   Trash2,
@@ -11,11 +8,6 @@ import {
   ShieldCheck,
   Banknote,
   Droplets,
-  Mail,
-  Send,
-  Bell,
-  Loader2,
-  ExternalLink,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
@@ -25,15 +17,10 @@ import { formatCurrency, eurosToCents, centsToEuros } from '@/lib/money';
 import {
   getBankAccounts,
   saveBankAccounts,
-  getScheduledDebits,
-  saveScheduledDebits,
   calculateBankLiquidity,
-  getEmailAlertSettings,
-  saveEmailAlertSettings,
-  type CalendarEmailAlertSettings,
 } from '@/lib/banks';
 import { BankLogo } from '@/components/banks/BankLogo';
-import type { BankAccount, BankScheduledDebit, BankAccountPurpose } from '@/types';
+import type { BankAccount, BankAccountPurpose } from '@/types';
 
 export function BanksPage() {
   const { user } = useAuth();
@@ -41,7 +28,6 @@ export function BanksPage() {
   const { t } = useLanguage();
 
   const [accounts, setAccounts] = useState<BankAccount[]>([]);
-  const [debits, setDebits] = useState<BankScheduledDebit[]>([]);
 
   // Account modal
   const [showAccountModal, setShowAccountModal] = useState(false);
@@ -52,14 +38,6 @@ export function BanksPage() {
   const [accountInterest, setAccountInterest] = useState('');
   const [accountNotes, setAccountNotes] = useState('');
 
-  // Debit modal
-  const [showDebitModal, setShowDebitModal] = useState(false);
-  const [debitTitle, setDebitTitle] = useState('');
-  const [debitAmount, setDebitAmount] = useState('');
-  const [debitBankId, setDebitBankId] = useState('');
-  const [debitDay, setDebitDay] = useState(15);
-  const [debitRecurrence, setDebitRecurrence] = useState<'monthly' | 'annual' | 'one_time'>('annual');
-
   // Quick balance inline edit
   const [inlineEditingId, setInlineEditingId] = useState<string | null>(null);
   const [inlineAmount, setInlineAmount] = useState('');
@@ -68,25 +46,11 @@ export function BanksPage() {
   const [editingNotesAccId, setEditingNotesAccId] = useState<string | null>(null);
   const [inlineNote, setInlineNote] = useState('');
 
-  // Email alert settings for calendar debits
-  const [emailAlerts, setEmailAlerts] = useState<CalendarEmailAlertSettings>({
-    enabled: true,
-    email: user?.email || '',
-    daysAdvance: 3,
-  });
-
   const loadData = useCallback(() => {
     if (!user) return;
     const b = getBankAccounts(user.id);
-    const d = getScheduledDebits(user.id);
-    const em = getEmailAlertSettings(user.id, user.email || '');
     setAccounts(b);
-    setDebits(d);
-    setEmailAlerts(em);
-    if (b.length > 0 && !debitBankId) {
-      setDebitBankId(b[0].id);
-    }
-  }, [user, debitBankId]);
+  }, [user]);
 
   useEffect(() => {
     loadData();
@@ -236,47 +200,6 @@ export function BanksPage() {
     success('Recuento registrado', 'Todos los saldos han quedado verificados a fecha de hoy.');
   };
 
-  // Save scheduled debit
-  const handleSaveDebit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user) return;
-    const trimmed = debitTitle.trim();
-    if (!trimmed) {
-      showError('Introduce el nombre del recibo o gasto previsto');
-      return;
-    }
-    const parsed = parseFloat(debitAmount.replace(',', '.'));
-    if (isNaN(parsed) || parsed <= 0) {
-      showError('Introduce un importe válido');
-      return;
-    }
-
-    const newDeb: BankScheduledDebit = {
-      id: 'deb_' + Date.now(),
-      bank_id: debitBankId,
-      title: trimmed,
-      amount: eurosToCents(parsed),
-      due_day: debitDay,
-      recurrence: debitRecurrence,
-    };
-
-    const updated = [...debits, newDeb];
-    saveScheduledDebits(user.id, updated);
-    setDebits(updated);
-    setShowDebitModal(false);
-    setDebitTitle('');
-    setDebitAmount('');
-    success('Aviso programado', `${trimmed} (${parsed.toFixed(2)} €)`);
-  };
-
-  const handleDeleteDebit = (id: string) => {
-    if (!user) return;
-    const updated = debits.filter((d) => d.id !== id);
-    saveScheduledDebits(user.id, updated);
-    setDebits(updated);
-    success('Aviso eliminado');
-  };
-
   const handleSaveInlineNote = (acc: BankAccount) => {
     if (!user) return;
     const updated = accounts.map((a) =>
@@ -292,123 +215,6 @@ export function BanksPage() {
     setAccounts(updated);
     setEditingNotesAccId(null);
     success('Finalidad del banco guardada');
-  };
-
-  const handleUpdateEmailAlerts = (patch: Partial<CalendarEmailAlertSettings>) => {
-    if (!user) return;
-    const updated = { ...emailAlerts, ...patch };
-    setEmailAlerts(updated);
-    saveEmailAlertSettings(user.id, updated);
-    if ('enabled' in patch) {
-      if (patch.enabled) {
-        success('Avisos por correo activados');
-      } else {
-        success('Avisos por correo desactivados');
-      }
-    }
-  };
-
-  const [sendingTestEmail, setSendingTestEmail] = useState(false);
-
-  const handleSendTestAlert = async (mode: 'direct' | 'client' = 'direct') => {
-    const destEmail = emailAlerts.email.trim();
-    if (!destEmail || !destEmail.includes('@')) {
-      showError('Introduce un correo electrónico válido');
-      return;
-    }
-    const sample: BankScheduledDebit = debits[0] || {
-      id: 'sample_debit',
-      bank_id: accounts[0]?.id || 'banc_sabadell',
-      title: 'Seguro moto',
-      amount: 5000,
-      due_day: 15,
-      recurrence: 'monthly',
-    };
-    const bAcc = accounts.find((a) => a.id === sample.bank_id) || accounts[0];
-    const amountStr = formatCurrency(sample.amount);
-    const bankName = bAcc?.name || 'Banc Sabadell';
-    const balanceStr = formatCurrency(bAcc?.balance || 0);
-
-    const hasSufficientBalance = (bAcc?.balance ?? 0) >= sample.amount;
-    const balanceStatusText = hasSufficientBalance
-      ? 'Fondos suficientes disponibles (Garantizado)'
-      : 'Atención requerida: Fondos insuficientes o ajustados';
-
-    const subject = `Personal Treasury | Aviso de Vencimiento: ${sample.title} (${amountStr})`;
-    const body = `Estimado/a usuario/a,
-
-Le notificamos la programación de un próximo cargo bancario domiciliado en su tesorería personal:
-
-══════════════════════════════════════════════════════════
-DETALLE DEL VENCIMIENTO PROGRAMADO
-══════════════════════════════════════════════════════════
-• Concepto / Recibo:        ${sample.title}
-• Importe previsto:         ${amountStr}
-• Cuenta de cargo:          ${bankName}
-• Saldo actual disponible:  ${balanceStr}
-• Día previsto de cobro:    Día ${sample.due_day} del mes
-• Antelación configurada:   ${emailAlerts.daysAdvance} días de antelación
-• Estado de cobertura:      ${balanceStatusText}
-══════════════════════════════════════════════════════════
-
-RECOMENDACIÓN DE TESORERÍA:
-Por favor, asegúrese de mantener la provisión de fondos en ${bankName} antes del día ${sample.due_day} para atender el adeudo sin incurrir en descubiertos bancarios ni recargos por impago.
-
-Este aviso ha sido emitido automáticamente por su sistema de gestión financiera Personal Treasury.
-Fecha de notificación: ${new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })}.
-
-Atentamente,
-Departamento de Alertas y Tesorería
-Personal Treasury · Sistema Integral de Gestión Financiera`;
-
-    if (mode === 'client') {
-      window.open(`mailto:${encodeURIComponent(destEmail)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
-      success(`Abierto en tu gestor de correo`, `Comprueba el borrador para enviar a ${destEmail}`);
-      return;
-    }
-
-    setSendingTestEmail(true);
-
-    try {
-      // Direct email dispatch using FormSubmit API
-      const res = await fetch(`https://formsubmit.co/ajax/${encodeURIComponent(destEmail)}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({
-          _subject: subject,
-          Sistema: 'Personal Treasury · Control de Tesorería',
-          Concepto_Recibo: sample.title,
-          Importe_Previsto: amountStr,
-          Entidad_Bancaria: bankName,
-          Saldo_Actual_Disponible: balanceStr,
-          Fecha_Estimada_Cobro: `Día ${sample.due_day} del mes`,
-          Antelacion_Configurada: `${emailAlerts.daysAdvance} días de antelación`,
-          Estado_de_Cobertura: balanceStatusText,
-          Recomendacion: `Verificar saldo disponible en ${bankName} antes del vencimiento.`,
-          Notificacion_Detallada: body,
-          _template: 'box',
-        }),
-      });
-
-      if (res.ok) {
-        success(
-          `¡Correo de prueba enviado con éxito a ${destEmail}!`,
-          `Revisa tu bandeja de entrada o carpeta de spam si es la primera vez que recibes un aviso.`
-        );
-      } else {
-        // Fallback to mail client
-        window.open(`mailto:${encodeURIComponent(destEmail)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
-        success(`Aviso preparado en tu cliente de correo para ${destEmail}`);
-      }
-    } catch {
-      window.open(`mailto:${encodeURIComponent(destEmail)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
-      success(`Aviso preparado en tu gestor de correo para ${destEmail}`);
-    } finally {
-      setSendingTestEmail(false);
-    }
   };
 
   // Helper purpose label
@@ -773,209 +579,7 @@ Personal Treasury · Sistema Integral de Gestión Financiera`;
         </div>
       </div>
 
-      {/* Calendar of Scheduled debits & Email alert notifications */}
-      <div className="bg-white dark:bg-surface-900 rounded-2xl border border-surface-200 dark:border-surface-800 p-5 shadow-sm space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <h2 className="text-base font-bold text-surface-900 dark:text-surface-100 flex items-center gap-2">
-              <Calendar className="h-5 w-5 text-brand-600" />
-              {t.banks.calendarAlerts}
-            </h2>
-            <p className="text-xs text-surface-500 mt-0.5">
-              Control de vencimientos con avisos por correo para asegurar que dispones del saldo mínimo en cada banco antes del cargo.
-            </p>
-          </div>
 
-          <Button size="sm" variant="outline" icon={<Plus className="h-4 w-4" />} onClick={() => setShowDebitModal(true)}>
-            + Añadir vencimiento
-          </Button>
-        </div>
-
-        {/* Email Alerts configuration card */}
-        <div className="bg-gradient-to-br from-brand-50/70 to-indigo-50/70 dark:from-surface-950 dark:to-surface-900 rounded-2xl border border-brand-200/80 dark:border-brand-900/60 p-4 sm:p-5 shadow-sm space-y-3">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="flex items-start gap-3">
-              <div className="p-2.5 rounded-xl bg-brand-600 text-white shrink-0 shadow-sm">
-                <Mail className="h-5 w-5" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="text-sm font-bold text-surface-900 dark:text-surface-100">
-                    Avisos por Correo Electrónico ante Vencimientos
-                  </h3>
-                  <span
-                    className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border shadow-sm ${
-                      emailAlerts.enabled
-                        ? 'bg-emerald-100 text-emerald-950 border-emerald-400 dark:bg-emerald-950 dark:text-emerald-200 dark:border-emerald-700'
-                        : 'bg-surface-200 text-surface-700 border-surface-300 dark:bg-surface-800 dark:text-surface-300 dark:border-surface-700'
-                    }`}
-                  >
-                    {emailAlerts.enabled ? '● Activo' : '○ Pausado'}
-                  </span>
-                </div>
-                <p className="text-xs text-surface-600 dark:text-surface-400 mt-0.5">
-                  El sistema te avisa por correo electrónico {emailAlerts.daysAdvance} días antes del vencimiento para evitar descubiertos.
-                </p>
-              </div>
-            </div>
-
-            {/* Enable/Disable Toggle */}
-            <div className="flex items-center gap-2 shrink-0">
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={emailAlerts.enabled}
-                  onChange={(e) => handleUpdateEmailAlerts({ enabled: e.target.checked })}
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-surface-300 peer-focus:outline-none rounded-full peer dark:bg-surface-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-surface-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-surface-600 peer-checked:bg-emerald-600"></div>
-              </label>
-              <span className={`text-xs font-bold ${emailAlerts.enabled ? 'text-emerald-700 dark:text-emerald-400' : 'text-surface-500'}`}>
-                {emailAlerts.enabled ? 'Activado' : 'Desactivado'}
-              </span>
-            </div>
-          </div>
-
-          {emailAlerts.enabled && (
-            <div className="pt-3 border-t border-brand-200/50 dark:border-surface-800 flex flex-col md:flex-row items-stretch md:items-end gap-3">
-              <div className="flex-1">
-                <label className="text-[11px] font-semibold text-surface-600 dark:text-surface-400 block mb-1">
-                  Dirección de correo para los avisos:
-                </label>
-                <Input
-                  type="email"
-                  value={emailAlerts.email}
-                  onChange={(e) => handleUpdateEmailAlerts({ email: e.target.value })}
-                  placeholder="tu-correo@ejemplo.com"
-                  className="h-8 text-xs bg-white dark:bg-surface-900"
-                />
-              </div>
-
-              <div className="w-full md:w-56">
-                <label className="text-[11px] font-semibold text-surface-600 dark:text-surface-400 block mb-1">
-                  Antelación de aviso:
-                </label>
-                <select
-                  value={emailAlerts.daysAdvance}
-                  onChange={(e) => handleUpdateEmailAlerts({ daysAdvance: parseInt(e.target.value) || 3 })}
-                  className="w-full h-8 text-xs px-2.5 rounded-lg border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-900 text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-1 focus:ring-brand-500"
-                >
-                  <option value={1}>1 día antes del vencimiento</option>
-                  <option value={3}>3 días antes del vencimiento (Recomendado)</option>
-                  <option value={5}>5 días antes del vencimiento</option>
-                  <option value={7}>7 días antes del vencimiento (1 semana)</option>
-                </select>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-2 shrink-0">
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={() => handleSendTestAlert('direct')}
-                  disabled={sendingTestEmail}
-                  className="h-8 text-xs font-medium"
-                  icon={
-                    sendingTestEmail ? (
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    ) : (
-                      <Send className="w-3.5 h-3.5" />
-                    )
-                  }
-                >
-                  {sendingTestEmail ? 'Enviando email...' : 'Enviar correo de prueba'}
-                </Button>
-
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => handleSendTestAlert('client')}
-                  className="h-8 text-xs font-medium"
-                  title="Abrir borrador en tu cliente de correo (Gmail, Outlook...)"
-                  icon={<ExternalLink className="w-3.5 h-3.5" />}
-                >
-                  Abrir en mi correo
-                </Button>
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {debits.map((deb) => {
-            const bankAcc = accounts.find((a) => a.id === deb.bank_id);
-            const bankBalance = bankAcc?.balance || 0;
-            const isSufficient = bankBalance >= deb.amount;
-            const diff = bankBalance - deb.amount;
-
-            return (
-              <div
-                key={deb.id}
-                className={`p-4 rounded-xl border transition-all ${
-                  isSufficient
-                    ? 'border-surface-200 dark:border-surface-800 bg-surface-50/50 dark:bg-surface-800/30'
-                    : 'border-red-300 dark:border-red-900/60 bg-red-50/40 dark:bg-red-950/20'
-                }`}
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <span className="text-xs font-semibold px-2 py-0.5 rounded bg-surface-200 dark:bg-surface-700 text-surface-700 dark:text-surface-300">
-                      Día {deb.due_day} de cada mes / año
-                    </span>
-                    <h3 className="text-sm font-bold text-surface-900 dark:text-surface-100 mt-1">{deb.title}</h3>
-                    <p className="text-xs text-surface-500 font-mono flex items-center gap-1.5 mt-1">
-                      <span>Cargo en:</span>
-                      {bankAcc && <BankLogo bankName={bankAcc.name} isCash={bankAcc.is_cash} size="sm" className="!w-4 !h-4 !rounded" />}
-                      <strong className="text-surface-800 dark:text-surface-200">{bankAcc?.name || 'Banco'}</strong>
-                    </p>
-                  </div>
-
-                  <div className="text-right">
-                    <span className="text-base font-bold font-mono text-danger-600 dark:text-danger-400 tabular-nums">
-                      -{formatCurrency(deb.amount)}
-                    </span>
-                    <div className="mt-1">
-                      <button
-                        onClick={() => handleDeleteDebit(deb.id)}
-                        className="text-xs text-surface-400 hover:text-danger-600"
-                        title="Eliminar aviso"
-                      >
-                        Eliminar
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Status Alert & Email Badge */}
-                <div className="mt-3 pt-2.5 border-t border-surface-200/60 dark:border-surface-700/60 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 text-xs">
-                  <div className="flex items-center gap-1.5">
-                    {isSufficient ? (
-                      <>
-                        <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
-                        <span className="text-emerald-700 dark:text-emerald-300 font-medium">
-                          Saldo suficiente (Margen: +{formatCurrency(diff)})
-                        </span>
-                      </>
-                    ) : (
-                      <>
-                        <AlertTriangle className="h-4 w-4 text-red-600 animate-pulse shrink-0" />
-                        <span className="text-red-700 dark:text-red-300 font-bold">
-                          ⚠️ Faltan {formatCurrency(Math.abs(diff))} en {bankAcc?.name} antes del día {deb.due_day}
-                        </span>
-                      </>
-                    )}
-                  </div>
-
-                  {emailAlerts.enabled && (
-                    <span className="inline-flex items-center gap-1 text-[10px] text-surface-500 font-medium bg-surface-100 dark:bg-surface-800 px-2 py-0.5 rounded-full shrink-0">
-                      <Bell className="w-3 h-3 text-brand-600" /> Aviso email: {emailAlerts.daysAdvance} días antes
-                    </span>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
 
       {/* Account Modal */}
       <Modal
@@ -1043,72 +647,6 @@ Personal Treasury · Sistema Integral de Gestión Financiera`;
               Cancelar
             </Button>
             <Button type="submit">Guardar Cuenta</Button>
-          </div>
-        </form>
-      </Modal>
-
-      {/* Scheduled Debit Modal */}
-      <Modal
-        open={showDebitModal}
-        onOpenChange={setShowDebitModal}
-        title="Programar Vencimiento / Aviso de Saldo Mínimo"
-        description="Te avisará con antelación para que la cuenta tenga el dinero mínimo necesario."
-        size="md"
-      >
-        <form onSubmit={handleSaveDebit} className="space-y-4">
-          <Input
-            label="Concepto del cobro"
-            placeholder="Ej: Seguro moto, Impuesto de circulación, Cuota Gimnasio..."
-            value={debitTitle}
-            onChange={(e) => setDebitTitle(e.target.value)}
-            required
-            autoFocus
-          />
-
-          <div className="grid grid-cols-2 gap-3">
-            <Input
-              label="Importe del recibo (€)"
-              placeholder="0,00"
-              suffix="€"
-              value={debitAmount}
-              onChange={(e) => setDebitAmount(e.target.value)}
-              required
-            />
-            <Select
-              label="Cuenta de cargo"
-              value={debitBankId}
-              onChange={(e) => setDebitBankId(e.target.value)}
-              options={accounts.map((a) => ({ value: a.id, label: a.name }))}
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <Input
-              label="Día del mes de cobro (1 - 31)"
-              type="number"
-              min={1}
-              max={31}
-              value={debitDay.toString()}
-              onChange={(e) => setDebitDay(parseInt(e.target.value) || 1)}
-              required
-            />
-            <Select
-              label="Frecuencia"
-              value={debitRecurrence}
-              onChange={(e) => setDebitRecurrence(e.target.value as any)}
-              options={[
-                { value: 'annual', label: 'Anual (una vez al año)' },
-                { value: 'monthly', label: 'Mensual' },
-                { value: 'one_time', label: 'Puntual' },
-              ]}
-            />
-          </div>
-
-          <div className="flex justify-end gap-2 pt-3 border-t border-surface-200 dark:border-surface-800">
-            <Button variant="ghost" type="button" onClick={() => setShowDebitModal(false)}>
-              Cancelar
-            </Button>
-            <Button type="submit">Programar Aviso</Button>
           </div>
         </form>
       </Modal>
