@@ -29,7 +29,7 @@ interface CellDetailModalProps {
 export function CellDetailModal({ target, onClose, onUpdated }: CellDetailModalProps) {
   const { user } = useAuth();
   const { success, error: showError } = useToast();
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
   const { triggerNominaCelebration } = useCelebration();
 
   const [loading, setLoading] = useState(false);
@@ -319,8 +319,8 @@ export function CellDetailModal({ target, onClose, onUpdated }: CellDetailModalP
     <Modal
       open={!!target}
       onOpenChange={(open) => !open && onClose()}
-      title={`Desglose: ${target.conceptName}`}
-      description={`${monthName} ${target.year} · Suma total del concepto`}
+      title={language === 'ca' ? `Desglossament: ${target.conceptName}` : `Desglose: ${target.conceptName}`}
+      description={`${monthName} ${target.year} · ${language === 'ca' ? 'Suma total del concepte' : 'Suma total del concepto'}`}
       size="lg"
     >
       <div className="space-y-6">
@@ -328,28 +328,32 @@ export function CellDetailModal({ target, onClose, onUpdated }: CellDetailModalP
         <div className="bg-gradient-to-r from-surface-100 via-surface-50 to-surface-100 dark:from-surface-800 dark:via-surface-850 dark:to-surface-800 p-4 rounded-2xl border border-surface-200 dark:border-surface-700 flex items-center justify-between">
           <div>
             <span className="text-xs uppercase tracking-wider font-semibold text-surface-500">
-              Total en celda ({monthName})
+              {language === 'ca' ? `Total a la cel·la (${monthName})` : `Total en celda (${monthName})`}
             </span>
             <p className="text-2xl font-bold font-mono tabular-nums text-surface-900 dark:text-surface-100">
               {formatCurrency(totalCents)}
             </p>
           </div>
           <span className="text-xs px-3 py-1.5 rounded-full bg-surface-200 dark:bg-surface-700 font-mono text-surface-700 dark:text-surface-300">
-            {items.length} {items.length === 1 ? 'movimiento' : 'movimientos'}
+            {items.length} {items.length === 1 ? (language === 'ca' ? 'moviment' : 'movimiento') : (language === 'ca' ? 'moviments' : 'movimientos')}
           </span>
         </div>
 
         {/* List of individual movements */}
         <div className="space-y-2">
           <label className="text-xs font-semibold uppercase tracking-wider text-surface-500 block">
-            Movimientos que componen este importe
+            {language === 'ca' ? 'Moviments que componen aquest import' : 'Movimientos que componen este importe'}
           </label>
 
           {loading ? (
-            <div className="p-8 text-center text-xs text-surface-400">Cargando desglose...</div>
+            <div className="p-8 text-center text-xs text-surface-400">
+              {language === 'ca' ? 'Carregant desglossament...' : 'Cargando desglose...'}
+            </div>
           ) : items.length === 0 ? (
             <div className="p-6 text-center rounded-xl border border-dashed border-surface-200 dark:border-surface-700 text-surface-400 text-xs">
-              No hay movimientos registrados para este mes todavía. Añade uno abajo.
+              {language === 'ca'
+                ? 'No hi ha moviments registrats per a aquest mes encara. Afegeix-ne un a sota.'
+                : 'No hay movimientos registrados para este mes todavía. Añade uno abajo.'}
             </div>
           ) : (
             <div className="max-h-60 overflow-y-auto divide-y divide-surface-100 dark:divide-surface-800 border border-surface-200 dark:border-surface-700 rounded-xl bg-white dark:bg-surface-900 overflow-hidden shadow-sm">
@@ -387,10 +391,10 @@ export function CellDetailModal({ target, onClose, onUpdated }: CellDetailModalP
                         />
                         <div className="flex gap-2">
                           <Button size="sm" variant="ghost" onClick={() => setEditingId(null)}>
-                            Cancelar
+                            {language === 'ca' ? 'Cancel·lar' : 'Cancelar'}
                           </Button>
                           <Button size="sm" onClick={() => handleSaveEdit(item.id)}>
-                            Guardar
+                            {language === 'ca' ? 'Guardar' : 'Guardar'}
                           </Button>
                         </div>
                       </div>
@@ -453,19 +457,27 @@ export function CellDetailModal({ target, onClose, onUpdated }: CellDetailModalP
         >
           <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-surface-700 dark:text-surface-300">
             <Plus className="h-3.5 w-3.5 text-emerald-600" />
-            <span>Añadir nuevo gasto a {target.conceptName}</span>
+            <span>
+              {language === 'ca'
+                ? `Afegir nou ${target.type === 'income' ? 'ingrés' : 'despesa'} a ${target.conceptName}`
+                : `Añadir nuevo ${target.type === 'income' ? 'ingreso' : 'gasto'} a ${target.conceptName}`}
+            </span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Input
-              label="Descripción detallada"
-              placeholder="Ej: sushi cena amor, desayuno ruta moto..."
+              label={language === 'ca' ? 'Descripció detallada' : 'Descripción detallada'}
+              placeholder={
+                language === 'ca'
+                  ? 'Ex: sopar sushi, esmorzar ruta moto...'
+                  : 'Ej: sushi cena amor, desayuno ruta moto...'
+              }
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               required
             />
             <Input
-              label="Importe (€)"
+              label={language === 'ca' ? 'Import (€)' : 'Importe (€)'}
               placeholder="0,00"
               suffix="€"
               value={amountStr}
@@ -476,7 +488,7 @@ export function CellDetailModal({ target, onClose, onUpdated }: CellDetailModalP
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Select
-              label="Banco de procedencia"
+              label={language === 'ca' ? 'Banc de procedència' : 'Banco de procedencia'}
               value={bank}
               onChange={(e) => setBank(e.target.value)}
               options={
@@ -487,12 +499,12 @@ export function CellDetailModal({ target, onClose, onUpdated }: CellDetailModalP
                       { value: 'Revolut', label: 'Revolut' },
                       { value: 'Trade Republic', label: 'Trade Republic' },
                       { value: 'MyInversor', label: 'MyInversor' },
-                      { value: 'Efectivo', label: 'Efectivo' },
+                      { value: 'Efectivo', label: language === 'ca' ? 'Efectiu' : 'Efectivo' },
                     ]
               }
             />
             <Input
-              label="Fecha"
+              label={language === 'ca' ? 'Data' : 'Fecha'}
               type="date"
               value={dateStr}
               onChange={(e) => setDateStr(e.target.value)}
@@ -501,14 +513,14 @@ export function CellDetailModal({ target, onClose, onUpdated }: CellDetailModalP
 
           <div className="flex justify-end pt-2">
             <Button type="submit" loading={savingSubItem} icon={<Plus className="h-4 w-4" />}>
-              Añadir a {target.conceptName}
+              {language === 'ca' ? `Afegir a ${target.conceptName}` : `Añadir a ${target.conceptName}`}
             </Button>
           </div>
         </form>
 
         <div className="flex justify-end pt-2 border-t border-surface-200 dark:border-surface-700">
           <Button variant="ghost" onClick={onClose}>
-            Cerrar desglose
+            {language === 'ca' ? 'Tancar desglossament' : 'Cerrar desglose'}
           </Button>
         </div>
       </div>

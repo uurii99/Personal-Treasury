@@ -17,6 +17,7 @@ export interface Translations {
     totalEarned: string;
     totalSpent: string;
     totalSavings: string;
+    totalExpenses: string;
     availableBudget: string;
     remaining: string;
     leftOver: string;
@@ -126,17 +127,18 @@ const DICTIONARY: Record<Language, Translations> = {
     ],
     monthsShort: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
     tables: {
-      incomeTitle: '1. PREVISIÓN DE INGRESOS (100%)',
-      incomeAdd: '+ Añadir ingreso',
-      fixedTitle: '2. PREVISIÓN DE GASTOS FIJOS (40%)',
-      fixedAdd: '+ Añadir gasto fijo',
-      leisureTitle: '3. PREVISIÓN DE GASTOS OCIO Y VARIABLES (30%)',
-      leisureAdd: '+ Añadir gasto ocio',
-      savingsTitle: '4. PREVISIÓN DE INVERSIONES Y AHORRO (30%)',
-      savingsAdd: '+ Añadir ahorro/inversión',
+      incomeTitle: 'Ingresos 100%',
+      incomeAdd: '+',
+      fixedTitle: 'Fijos 40%',
+      fixedAdd: '+',
+      leisureTitle: 'Ocio 30%',
+      leisureAdd: '+',
+      savingsTitle: 'Ahorro 30%',
+      savingsAdd: '+',
       totalEarned: 'TOTAL INGRESOS:',
       totalSpent: 'TOTAL GASTADO:',
       totalSavings: 'TOTAL INVERTIDO / AHORRO:',
+      totalExpenses: 'TOTAL GASTOS:',
       availableBudget: 'PRESUPUESTO DISPONIBLE:',
       remaining: 'RESTANTE:',
       leftOver: 'SOBRA',
@@ -244,17 +246,18 @@ const DICTIONARY: Record<Language, Translations> = {
     ],
     monthsShort: ['Gen', 'Feb', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Oct', 'Nov', 'Des'],
     tables: {
-      incomeTitle: "1. PREVISIÓ D'INGRESSOS (100%)",
-      incomeAdd: '+ Afegir ingrés',
-      fixedTitle: '2. PREVISIÓ DE DESPESES FIXES (40%)',
-      fixedAdd: '+ Afegir despesa fixa',
-      leisureTitle: '3. PREVISIÓ DE DESPESES OPCIONALS (30%)',
-      leisureAdd: '+ Afegir despesa opcional',
-      savingsTitle: '4. PREVISIÓ DE DESPESES PROVISIONALS/ESTALVI (30%)',
-      savingsAdd: '+ Afegir estalvi/inversió',
+      incomeTitle: 'Ingressos 100%',
+      incomeAdd: '+',
+      fixedTitle: 'Fixos 40%',
+      fixedAdd: '+',
+      leisureTitle: 'Opcional 30%',
+      leisureAdd: '+',
+      savingsTitle: 'Estalvi 30%',
+      savingsAdd: '+',
       totalEarned: 'TOTAL INGRESSOS:',
       totalSpent: 'TOTAL GASTAT:',
       totalSavings: 'TOTAL INVERTIT / ESTALVI:',
+      totalExpenses: 'TOTAL DESPESES:',
       availableBudget: 'PRESSUPOST DISPONIBLE:',
       remaining: 'RESTANT:',
       leftOver: 'SOBRA',

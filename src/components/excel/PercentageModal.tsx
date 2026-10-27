@@ -4,6 +4,7 @@ import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { validatePercentages } from '@/lib/money';
 
 interface PercentageModalProps {
@@ -15,6 +16,7 @@ interface PercentageModalProps {
 export function PercentageModal({ open, onOpenChange, onUpdated }: PercentageModalProps) {
   const { settings, updateSettings } = useAuth();
   const { success, error: showError } = useToast();
+  const { language } = useLanguage();
 
   const [fixed, setFixed] = useState(settings?.fixed_percentage ?? 40);
   const [leisure, setLeisure] = useState(settings?.leisure_percentage ?? 30);
@@ -53,14 +55,19 @@ export function PercentageModal({ open, onOpenChange, onUpdated }: PercentageMod
       });
 
       if (error) {
-        showError('Error al guardar los porcentajes');
+        showError(language === 'ca' ? 'Error en desar els percentatges' : 'Error al guardar los porcentajes');
       } else {
-        success('Porcentajes actualizados', `Fijos: ${fixed}% · Ocio: ${leisure}% · Ahorro: ${savings}%`);
+        success(
+          language === 'ca' ? 'Percentatges actualitzats' : 'Porcentajes actualizados',
+          language === 'ca'
+            ? `Fixos: ${fixed}% · Opcional: ${leisure}% · Estalvi: ${savings}%`
+            : `Fijos: ${fixed}% · Ocio: ${leisure}% · Ahorro: ${savings}%`
+        );
         onOpenChange(false);
         onUpdated?.();
       }
     } catch {
-      showError('Error inesperado al guardar');
+      showError(language === 'ca' ? 'Error inesperat en desar' : 'Error inesperado al guardar');
     } finally {
       setSaving(false);
     }
@@ -70,15 +77,19 @@ export function PercentageModal({ open, onOpenChange, onUpdated }: PercentageMod
     <Modal
       open={open}
       onOpenChange={onOpenChange}
-      title="Ajustar porcentajes de presupuesto"
-      description="Define cómo se calculan los objetivos de cada tabla en tu Excel anual."
+      title={language === 'ca' ? 'Ajustar percentatges de pressupost' : 'Ajustar porcentajes de presupuesto'}
+      description={
+        language === 'ca'
+          ? "Defineix com es calculen els objectius de cada taula al teu Excel anual."
+          : 'Define cómo se calculan los objetivos de cada tabla en tu Excel anual.'
+      }
       size="md"
     >
       <div className="space-y-5">
         {/* Presets */}
         <div>
           <label className="text-xs font-semibold uppercase tracking-wider text-surface-500 mb-2 block">
-            Plantillas rápidas
+            {language === 'ca' ? 'Plantilles ràpides' : 'Plantillas rápidas'}
           </label>
           <div className="grid grid-cols-2 gap-2">
             <button
@@ -92,13 +103,15 @@ export function PercentageModal({ open, onOpenChange, onUpdated }: PercentageMod
             >
               <div className="flex items-center justify-between mb-1">
                 <span className="text-xs font-bold text-surface-900 dark:text-surface-100 flex items-center gap-1">
-                  <Sparkles className="h-3 w-3 text-amber-500" /> Regla 50 / 30 / 20
+                  <Sparkles className="h-3 w-3 text-amber-500" /> {language === 'ca' ? 'Regla 50 / 30 / 20' : 'Regla 50 / 30 / 20'}
                 </span>
                 {fixed === 50 && leisure === 30 && savings === 20 && (
                   <Check className="h-3.5 w-3.5 text-brand-600" />
                 )}
               </div>
-              <p className="text-[11px] text-surface-500">50% Fijos · 30% Ocio · 20% Ahorro</p>
+              <p className="text-[11px] text-surface-500">
+                {language === 'ca' ? '50% Fixes · 30% Opcional · 20% Estalvi' : '50% Fijos · 30% Ocio · 20% Ahorro'}
+              </p>
             </button>
 
             <button
@@ -112,13 +125,15 @@ export function PercentageModal({ open, onOpenChange, onUpdated }: PercentageMod
             >
               <div className="flex items-center justify-between mb-1">
                 <span className="text-xs font-bold text-surface-900 dark:text-surface-100 flex items-center gap-1">
-                  <Percent className="h-3 w-3 text-brand-500" /> Enfoque Ahorro
+                  <Percent className="h-3 w-3 text-brand-500" /> {language === 'ca' ? 'Enfocament Estalvi' : 'Enfoque Ahorro'}
                 </span>
                 {fixed === 40 && leisure === 30 && savings === 30 && (
                   <Check className="h-3.5 w-3.5 text-brand-600" />
                 )}
               </div>
-              <p className="text-[11px] text-surface-500">40% Fijos · 30% Ocio · 30% Ahorro</p>
+              <p className="text-[11px] text-surface-500">
+                {language === 'ca' ? '40% Fixes · 30% Opcional · 30% Estalvi' : '40% Fijos · 30% Ocio · 30% Ahorro'}
+              </p>
             </button>
           </div>
         </div>
@@ -129,7 +144,7 @@ export function PercentageModal({ open, onOpenChange, onUpdated }: PercentageMod
           <div>
             <div className="flex items-center justify-between mb-1">
               <span className="text-xs font-semibold text-surface-700 dark:text-surface-300 flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-sm bg-slate-600 inline-block" /> Gastos Fijos
+                <span className="w-2.5 h-2.5 rounded-sm bg-slate-600 inline-block" /> {language === 'ca' ? 'Despeses Fixes' : 'Gastos Fijos'}
               </span>
               <span className="text-xs font-mono font-bold text-surface-900 dark:text-surface-100 tabular-nums">
                 {fixed}%
@@ -149,7 +164,7 @@ export function PercentageModal({ open, onOpenChange, onUpdated }: PercentageMod
           <div>
             <div className="flex items-center justify-between mb-1">
               <span className="text-xs font-semibold text-surface-700 dark:text-surface-300 flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-sm bg-amber-500 inline-block" /> Ocio y Variables
+                <span className="w-2.5 h-2.5 rounded-sm bg-amber-500 inline-block" /> {language === 'ca' ? 'Opcional i Variables' : 'Ocio y Variables'}
               </span>
               <span className="text-xs font-mono font-bold text-surface-900 dark:text-surface-100 tabular-nums">
                 {leisure}%
@@ -169,7 +184,7 @@ export function PercentageModal({ open, onOpenChange, onUpdated }: PercentageMod
           <div>
             <div className="flex items-center justify-between mb-1">
               <span className="text-xs font-semibold text-surface-700 dark:text-surface-300 flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-sm bg-indigo-500 inline-block" /> Inversiones y Ahorro
+                <span className="w-2.5 h-2.5 rounded-sm bg-indigo-500 inline-block" /> {language === 'ca' ? 'Inversions i Estalvi' : 'Inversiones y Ahorro'}
               </span>
               <span className="text-xs font-mono font-bold text-surface-900 dark:text-surface-100 tabular-nums">
                 {savings}%
@@ -193,7 +208,9 @@ export function PercentageModal({ open, onOpenChange, onUpdated }: PercentageMod
                 : 'bg-danger-50 border-danger-200 text-danger-700 dark:bg-danger-900/20 dark:border-danger-800/60 dark:text-danger-400'
             }`}
           >
-            <span className="font-medium">Total porcentajes asignados:</span>
+            <span className="font-medium">
+              {language === 'ca' ? 'Total percentatges assignats:' : 'Total porcentajes asignados:'}
+            </span>
             <span className="font-bold font-mono tabular-nums">{total}% / 100%</span>
           </div>
         </div>
@@ -201,10 +218,10 @@ export function PercentageModal({ open, onOpenChange, onUpdated }: PercentageMod
         {/* Buttons */}
         <div className="flex justify-end gap-2 pt-2">
           <Button variant="ghost" onClick={() => onOpenChange(false)}>
-            Cancelar
+            {language === 'ca' ? 'Cancel·lar' : 'Cancelar'}
           </Button>
           <Button onClick={handleSave} loading={saving} disabled={!validation.valid}>
-            Guardar porcentajes
+            {language === 'ca' ? 'Guardar percentatges' : 'Guardar porcentajes'}
           </Button>
         </div>
       </div>

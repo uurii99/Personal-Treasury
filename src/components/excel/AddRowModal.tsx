@@ -3,6 +3,7 @@ import { Modal } from '@/components/ui/Modal';
 import { Button, Input, Select } from '@/components/ui';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/lib/supabase';
 import { eurosToCents } from '@/lib/money';
 import type { BudgetSection } from '@/types';
@@ -18,6 +19,7 @@ interface AddRowModalProps {
 export function AddRowModal({ open, onOpenChange, defaultSection = 'fixed', year, onSaved }: AddRowModalProps) {
   const { user } = useAuth();
   const { success, error: showError } = useToast();
+  const { language } = useLanguage();
 
   const [targetTable, setTargetTable] = useState<'income' | BudgetSection>(defaultSection);
   const [name, setName] = useState('');
@@ -31,7 +33,7 @@ export function AddRowModal({ open, onOpenChange, defaultSection = 'fixed', year
 
     const trimmedName = name.trim();
     if (!trimmedName) {
-      showError('Introduce un nombre para el nuevo concepto');
+      showError(language === 'ca' ? 'Introdueix un nom per al nou concepte' : 'Introduce un nombre para el nuevo concepto');
       return;
     }
 
@@ -113,7 +115,10 @@ export function AddRowModal({ open, onOpenChange, defaultSection = 'fixed', year
         }
       }
 
-      success('Fila añadida al Excel', `Se ha creado "${trimmedName}"`);
+      success(
+        language === 'ca' ? "Fila afegida a l'Excel" : 'Fila añadida al Excel',
+        language === 'ca' ? `S'ha creat "${trimmedName}"` : `Se ha creado "${trimmedName}"`
+      );
       setName('');
       setDefaultAmount('');
       setFillAllMonths(false);
@@ -121,7 +126,7 @@ export function AddRowModal({ open, onOpenChange, defaultSection = 'fixed', year
       onSaved();
     } catch (e) {
       console.error(e);
-      showError('Error al guardar la nueva fila');
+      showError(language === 'ca' ? 'Error en desar la nova fila' : 'Error al guardar la nueva fila');
     } finally {
       setSaving(false);
     }
@@ -131,38 +136,50 @@ export function AddRowModal({ open, onOpenChange, defaultSection = 'fixed', year
     <Modal
       open={open}
       onOpenChange={onOpenChange}
-      title="Añadir nueva fila / concepto"
-      description="Crea un nuevo concepto para registrar importes en tu hoja Excel anual."
+      title={language === 'ca' ? 'Afegir nova fila / concepte' : 'Añadir nueva fila / concepto'}
+      description={
+        language === 'ca'
+          ? 'Crea un nou concepte per registrar imports a la teva fulla Excel anual.'
+          : 'Crea un nuevo concepto para registrar importes en tu hoja Excel anual.'
+      }
       size="md"
     >
       <form onSubmit={handleSave} className="space-y-4">
         <Select
-          label="¿En qué tabla quieres añadirlo?"
+          label={language === 'ca' ? 'A quina taula vols afegir-ho?' : '¿En qué tabla quieres añadirlo?'}
           value={targetTable}
           onChange={(e) => setTargetTable(e.target.value as 'income' | BudgetSection)}
           options={[
-            { value: 'income', label: '🟢 1. Ingresos' },
-            { value: 'fixed', label: '🔵 2. Gastos Fijos' },
-            { value: 'leisure', label: '🟡 3. Ocio y Gastos Variables' },
-            { value: 'savings', label: '🟣 4. Inversiones y Ahorro' },
+            { value: 'income', label: language === 'ca' ? '🟢 1. Ingressos' : '🟢 1. Ingresos' },
+            { value: 'fixed', label: language === 'ca' ? '🔵 2. Despeses Fixes' : '🔵 2. Gastos Fijos' },
+            { value: 'leisure', label: language === 'ca' ? '🟡 3. Opcional i Variables' : '🟡 3. Ocio y Gastos Variables' },
+            { value: 'savings', label: language === 'ca' ? '🟣 4. Inversions i Estalvi' : '🟣 4. Inversiones y Ahorro' },
           ]}
         />
 
         <Input
-          label="Nombre del concepto o categoría"
-          placeholder="Ej: Clases de inglés, Seguro de hogar, Fondos Indexados..."
+          label={language === 'ca' ? 'Nom del concepte o categoria' : 'Nombre del concepto o categoría'}
+          placeholder={
+            language === 'ca'
+              ? "Ex: Classes d'anglès, Assegurança de la llar, Fons Indexats..."
+              : 'Ej: Clases de inglés, Seguro de hogar, Fondos Indexados...'
+          }
           value={name}
           onChange={(e) => setName(e.target.value)}
           autoFocus
         />
 
         <Input
-          label="Importe mensual inicial (opcional)"
+          label={language === 'ca' ? 'Import mensual inicial (opcional)' : 'Importe mensual inicial (opcional)'}
           placeholder="0,00"
           suffix="€"
           value={defaultAmount}
           onChange={(e) => setDefaultAmount(e.target.value)}
-          hint="Puedes dejarlo en 0 y rellenar las celdas directamente en la tabla."
+          hint={
+            language === 'ca'
+              ? 'Pots deixar-ho a 0 i omplir les cel·les directament a la taula.'
+              : 'Puedes dejarlo en 0 y rellenar las celdas directamente en la tabla.'
+          }
         />
 
         {defaultAmount.trim() !== '' && parseFloat(defaultAmount.replace(',', '.')) > 0 && (
@@ -173,16 +190,20 @@ export function AddRowModal({ open, onOpenChange, defaultSection = 'fixed', year
               onChange={(e) => setFillAllMonths(e.target.checked)}
               className="rounded text-brand-600 focus:ring-brand-500"
             />
-            <span>Copiar este mismo importe en los 12 meses (de enero a diciembre)</span>
+            <span>
+              {language === 'ca'
+                ? 'Copiar aquest mateix import als 12 mesos (de gener a desembre)'
+                : 'Copiar este mismo importe en los 12 meses (de enero a diciembre)'}
+            </span>
           </label>
         )}
 
         <div className="flex justify-end gap-2 pt-3 border-t border-surface-200 dark:border-surface-800">
           <Button variant="ghost" type="button" onClick={() => onOpenChange(false)}>
-            Cancelar
+            {language === 'ca' ? 'Cancel·lar' : 'Cancelar'}
           </Button>
           <Button type="submit" loading={saving} disabled={!name.trim()}>
-            Crear fila
+            {language === 'ca' ? 'Crear fila' : 'Crear fila'}
           </Button>
         </div>
       </form>

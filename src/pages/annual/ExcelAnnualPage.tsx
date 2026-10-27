@@ -267,7 +267,10 @@ export function ExcelAnnualPage() {
     section?: BudgetSection
   ) => {
     if (!user) return;
-    if (!window.confirm(`¿Seguro que deseas eliminar "${name}" y todos sus movimientos asociados? Se actualizarán los saldos bancarios correspondientes.`)) {
+    const confirmMsg = language === 'ca'
+      ? `Segur que vols eliminar "${name}" i tots els seus moviments associats? S'actualitzaran els saldos bancaris corresponents.`
+      : `¿Seguro que deseas eliminar "${name}" y todos sus movimientos asociados? Se actualizarán los saldos bancarios correspondientes.`;
+    if (!window.confirm(confirmMsg)) {
       return;
     }
     try {
@@ -319,13 +322,13 @@ export function ExcelAnnualPage() {
         }
       }
 
-      success('Concepto y movimientos eliminados', name);
+      success(language === 'ca' ? 'Concepte i moviments eliminats' : 'Concepto y movimientos eliminados', name);
       window.dispatchEvent(new CustomEvent('excel-data-updated'));
       window.dispatchEvent(new CustomEvent('bank-accounts-updated'));
       loadYearData();
     } catch (err) {
       console.error(err);
-      showError('Error al eliminar el concepto');
+      showError(language === 'ca' ? 'Error en eliminar el concepte' : 'Error al eliminar el concepto');
     }
   };
 
@@ -738,34 +741,10 @@ export function ExcelAnnualPage() {
               <button
                 onClick={() => scrollToMonth(currentMY.month)}
                 className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-200 text-xs font-semibold hover:bg-emerald-200 transition-colors border border-emerald-300 dark:border-emerald-800"
-                title="Desplazarse al mes actual"
+                title={language === 'ca' ? 'Desplaçar-se al mes actual' : 'Desplazarse al mes actual'}
               >
                 <span>📍 {t.months[currentMY.month - 1]}</span>
               </button>
-
-              <div className="flex items-center bg-surface-200 dark:bg-surface-800 p-0.5 rounded-lg text-[10px] font-semibold text-surface-600 dark:text-surface-300">
-                <button
-                  onClick={() => setExcelDensity('normal')}
-                  className={`px-1.5 py-0.5 rounded ${excelDensity === 'normal' ? 'bg-white dark:bg-surface-700 shadow-xs text-surface-900 dark:text-surface-100 font-bold' : ''}`}
-                  title="Vista Normal"
-                >
-                  100%
-                </button>
-                <button
-                  onClick={() => setExcelDensity('compact')}
-                  className={`px-1.5 py-0.5 rounded ${excelDensity === 'compact' ? 'bg-white dark:bg-surface-700 shadow-xs text-surface-900 dark:text-surface-100 font-bold' : ''}`}
-                  title="Vista Compacta"
-                >
-                  85%
-                </button>
-                <button
-                  onClick={() => setExcelDensity('mini')}
-                  className={`px-1.5 py-0.5 rounded ${excelDensity === 'mini' ? 'bg-white dark:bg-surface-700 shadow-xs text-surface-900 dark:text-surface-100 font-bold' : ''}`}
-                  title="Vista Mini"
-                >
-                  70%
-                </button>
-              </div>
             </div>
           )}
 
@@ -811,7 +790,7 @@ export function ExcelAnnualPage() {
             <span className="font-serif italic font-bold text-surface-400 select-none">fx</span>
             <div className="font-mono text-surface-800 dark:text-surface-200 truncate bg-surface-50 dark:bg-surface-800/50 px-2.5 py-1 rounded flex-1 border border-surface-200/50 dark:border-surface-700/50">
               {activeCell?.formula ||
-                `=BALANCE_NETO(${t.tables.totalEarned} ${formatCurrency(yearTotalIncome)} - ${t.tables.totalSpent} ${formatCurrency(yearTotalExpenses)}) = ${formatCurrency(yearNetBalance)}`}
+                `=${language === 'ca' ? 'RESULTAT_NET' : 'BALANCE_NETO'}(${t.tables.totalEarned} ${formatCurrency(yearTotalIncome)} - ${t.tables.totalSpent} ${formatCurrency(yearTotalExpenses)}) = ${formatCurrency(yearNetBalance)}`}
             </div>
           </div>
 
@@ -938,8 +917,8 @@ export function ExcelAnnualPage() {
                   <th className="excel-row-num excel-sticky-col bg-surface-200 dark:bg-surface-800 border-b border-surface-300 dark:border-surface-700">
                     #
                   </th>
-                  <th className="excel-col-header excel-sticky-concept min-w-[130px] sm:min-w-[250px] text-left px-3">
-                    A · CONCEPTE
+                  <th className="excel-col-header excel-sticky-concept min-w-[88px] sm:min-w-[130px] sm:max-w-[155px] text-left px-2 sm:px-3 truncate">
+                    {language === 'ca' ? 'A · CONCEPTE' : 'A · CONCEPTO'}
                   </th>
                   {MONTHS.map((m, idx) => {
                     const isCurrent = m === currentMY.month && year === currentMY.year;
@@ -948,7 +927,7 @@ export function ExcelAnnualPage() {
                       <th
                         key={m}
                         id={`month-col-${m}`}
-                        className={`excel-col-header min-w-[80px] sm:min-w-[115px] ${
+                        className={`excel-col-header min-w-[52px] sm:min-w-[90px] ${
                           isCurrent
                             ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 font-bold'
                             : ''
@@ -956,9 +935,9 @@ export function ExcelAnnualPage() {
                       >
                         <div className="text-[10px] text-surface-400">{letter}</div>
                         <div className="flex items-center justify-center gap-1">
-                          <span>{MONTH_NAMES[m - 1]}</span>
+                          <span>{t.months[m - 1].toUpperCase()}</span>
                           {isCurrent && (
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" title="Mes actual" />
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" title={language === 'ca' ? 'Mes actual' : 'Mes actual'} />
                           )}
                         </div>
                       </th>
@@ -985,20 +964,21 @@ export function ExcelAnnualPage() {
                   </td>
                   <td
                     colSpan={15}
-                    className="px-3 py-2 flex items-center justify-between text-emerald-50 bg-[#38761D] dark:bg-emerald-900"
+                    className="px-2.5 py-1.5 flex items-center justify-between text-emerald-50 bg-[#38761D] dark:bg-emerald-900"
                   >
-                    <span className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-sm bg-emerald-300 inline-block" />
-                      {t.tables.incomeTitle}
+                    <span className="flex items-center gap-1.5 font-bold tracking-normal text-xs">
+                      <span className="w-2 h-2 rounded-sm bg-emerald-300 inline-block" />
+                      {language === 'ca' ? 'Ingressos 100%' : 'Ingresos 100%'}
                     </span>
                     <button
                       onClick={() => {
                         setAddRowDefaultSection('income');
                         setShowAddRowModal(true);
                       }}
-                      className="text-[11px] font-medium bg-white/20 hover:bg-white/30 text-white px-2 py-0.5 rounded transition-colors"
+                      className="h-5 w-5 rounded bg-white/20 hover:bg-white/35 active:scale-95 text-white flex items-center justify-center font-bold transition-all"
+                      title={language === 'ca' ? 'Afegir ingrés' : 'Añadir ingreso'}
                     >
-                      {t.tables.incomeAdd}
+                      <Plus className="h-3.5 w-3.5" />
                     </button>
                   </td>
                 </tr>
@@ -1028,14 +1008,14 @@ export function ExcelAnnualPage() {
                                   });
                                 }}
                                 className="p-0.5 rounded text-emerald-700 hover:text-emerald-950 dark:hover:text-emerald-100 transition-colors"
-                                title="Renombrar concepto"
+                                title={language === 'ca' ? 'Reanomenar concepte' : 'Renombrar concepto'}
                               >
                                 <Edit2 className="h-3 w-3" />
                               </button>
                               <button
                                 onClick={() => handleDeleteConceptRow('income', concept)}
                                 className="p-0.5 rounded text-danger-500 hover:text-danger-700 transition-colors"
-                                title="Eliminar concepto e ingresos"
+                                title={language === 'ca' ? 'Eliminar concepte i ingressos' : 'Eliminar concepto e ingresos'}
                               >
                                 <Trash2 className="h-3 w-3" />
                               </button>
@@ -1066,7 +1046,7 @@ export function ExcelAnnualPage() {
                                   ? 'text-emerald-950 dark:text-emerald-100 font-semibold'
                                   : 'text-emerald-700/60 dark:text-emerald-400/50'
                               }`}
-                              title="Fes doble clic per editar el valor"
+                              title={language === 'ca' ? 'Fes doble clic per editar el valor' : 'Haz doble clic para editar el valor'}
                             >
                               {amount > 0 ? formatCurrency(amount) : '-'}
                             </td>
@@ -1122,20 +1102,21 @@ export function ExcelAnnualPage() {
                   <td className="excel-row-num text-slate-300 bg-[#143263] dark:bg-slate-900 border-blue-900">9</td>
                   <td
                     colSpan={15}
-                    className="px-3 py-2 flex items-center justify-between text-blue-50 bg-[#1C4587] dark:bg-slate-800"
+                    className="px-2.5 py-1.5 flex items-center justify-between text-blue-50 bg-[#1C4587] dark:bg-slate-800"
                   >
-                    <span className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-sm bg-blue-300 inline-block" />
-                      {t.tables.fixedTitle}
+                    <span className="flex items-center gap-1.5 font-bold tracking-normal text-xs">
+                      <span className="w-2 h-2 rounded-sm bg-blue-300 inline-block" />
+                      {language === 'ca' ? `Fixos ${fp}%` : `Fijos ${fp}%`}
                     </span>
                     <button
                       onClick={() => {
                         setAddRowDefaultSection('fixed');
                         setShowAddRowModal(true);
                       }}
-                      className="text-[11px] font-medium bg-white/20 hover:bg-white/30 text-white px-2 py-0.5 rounded transition-colors"
+                      className="h-5 w-5 rounded bg-white/20 hover:bg-white/35 active:scale-95 text-white flex items-center justify-center font-bold transition-all"
+                      title={language === 'ca' ? 'Afegir despesa fixa' : 'Añadir gasto fijo'}
                     >
-                      {t.tables.fixedAdd}
+                      <Plus className="h-3.5 w-3.5" />
                     </button>
                   </td>
                 </tr>
@@ -1166,14 +1147,14 @@ export function ExcelAnnualPage() {
                                   });
                                 }}
                                 className="p-0.5 rounded text-blue-700 hover:text-blue-950 dark:hover:text-blue-100 transition-colors"
-                                title="Renombrar categoría"
+                                title={language === 'ca' ? 'Reanomenar categoria' : 'Renombrar categoría'}
                               >
                                 <Edit2 className="h-3 w-3" />
                               </button>
                               <button
                                 onClick={() => handleDeleteConceptRow('category', rowItem.name, rowItem.catId, 'fixed')}
                                 className="p-0.5 rounded text-danger-500 hover:text-danger-700 transition-colors"
-                                title="Eliminar categoría y gastos"
+                                title={language === 'ca' ? 'Eliminar categoria i despeses' : 'Eliminar categoría y gastos'}
                               >
                                 <Trash2 className="h-3 w-3" />
                               </button>
@@ -1208,7 +1189,7 @@ export function ExcelAnnualPage() {
                                   ? 'text-red-700 dark:text-red-300 font-semibold'
                                   : 'text-slate-400/60 dark:text-slate-500/50'
                               }`}
-                              title="Fes doble clic per editar el valor"
+                              title={language === 'ca' ? 'Fes doble clic per editar el valor' : 'Haz doble clic para editar el valor'}
                             >
                               {amount > 0 ? formatCurrency(amount) : '-'}
                             </td>
@@ -1314,20 +1295,21 @@ export function ExcelAnnualPage() {
                   <td className="excel-row-num text-amber-200 bg-[#8c6900] dark:bg-amber-950 border-amber-600">26</td>
                   <td
                     colSpan={15}
-                    className="px-3 py-2 flex items-center justify-between text-amber-50 bg-[#BF9000] dark:bg-amber-800"
+                    className="px-2.5 py-1.5 flex items-center justify-between text-amber-50 bg-[#BF9000] dark:bg-amber-800"
                   >
-                    <span className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-sm bg-amber-200 inline-block" />
-                      {t.tables.leisureTitle}
+                    <span className="flex items-center gap-1.5 font-bold tracking-normal text-xs">
+                      <span className="w-2 h-2 rounded-sm bg-amber-200 inline-block" />
+                      {language === 'ca' ? `Opcional ${lp}%` : `Ocio ${lp}%`}
                     </span>
                     <button
                       onClick={() => {
                         setAddRowDefaultSection('leisure');
                         setShowAddRowModal(true);
                       }}
-                      className="text-[11px] font-medium bg-white/20 hover:bg-white/30 text-white px-2 py-0.5 rounded transition-colors"
+                      className="h-5 w-5 rounded bg-white/20 hover:bg-white/35 active:scale-95 text-white flex items-center justify-center font-bold transition-all"
+                      title={language === 'ca' ? 'Afegir despesa opcional' : 'Añadir gasto ocio'}
                     >
-                      {t.tables.leisureAdd}
+                      <Plus className="h-3.5 w-3.5" />
                     </button>
                   </td>
                 </tr>
@@ -1358,14 +1340,14 @@ export function ExcelAnnualPage() {
                                   });
                                 }}
                                 className="p-0.5 rounded text-amber-700 hover:text-amber-950 dark:hover:text-amber-100 transition-colors"
-                                title="Renombrar categoría"
+                                title={language === 'ca' ? 'Reanomenar categoria' : 'Renombrar categoría'}
                               >
                                 <Edit2 className="h-3 w-3" />
                               </button>
                               <button
                                 onClick={() => handleDeleteConceptRow('category', rowItem.name, rowItem.catId, 'leisure')}
                                 className="p-0.5 rounded text-danger-500 hover:text-danger-700 transition-colors"
-                                title="Eliminar categoría y gastos"
+                                title={language === 'ca' ? 'Eliminar categoria i despeses' : 'Eliminar categoría y gastos'}
                               >
                                 <Trash2 className="h-3 w-3" />
                               </button>
@@ -1400,7 +1382,7 @@ export function ExcelAnnualPage() {
                                   ? 'text-amber-950 dark:text-amber-100 font-semibold'
                                   : 'text-amber-700/50 dark:text-amber-500/50'
                               }`}
-                              title="Fes doble clic per editar el valor"
+                              title={language === 'ca' ? 'Fes doble clic per editar el valor' : 'Haz doble clic para editar el valor'}
                             >
                               {amount > 0 ? formatCurrency(amount) : '-'}
                             </td>
@@ -1506,20 +1488,21 @@ export function ExcelAnnualPage() {
                   <td className="excel-row-num text-purple-200 bg-[#350d36] dark:bg-black border-purple-800">41</td>
                   <td
                     colSpan={15}
-                    className="px-3 py-2 flex items-center justify-between text-purple-100 bg-[#4A154B] dark:bg-purple-950"
+                    className="px-2.5 py-1.5 flex items-center justify-between text-purple-100 bg-[#4A154B] dark:bg-purple-950"
                   >
-                    <span className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-sm bg-purple-300 inline-block" />
-                      {t.tables.savingsTitle}
+                    <span className="flex items-center gap-1.5 font-bold tracking-normal text-xs">
+                      <span className="w-2 h-2 rounded-sm bg-purple-300 inline-block" />
+                      {language === 'ca' ? `Estalvi ${sp}%` : `Ahorro ${sp}%`}
                     </span>
                     <button
                       onClick={() => {
                         setAddRowDefaultSection('savings');
                         setShowAddRowModal(true);
                       }}
-                      className="text-[11px] font-medium bg-white/20 hover:bg-white/30 text-white px-2 py-0.5 rounded transition-colors"
+                      className="h-5 w-5 rounded bg-white/20 hover:bg-white/35 active:scale-95 text-white flex items-center justify-center font-bold transition-all"
+                      title={language === 'ca' ? 'Afegir estalvi/inversió' : 'Añadir ahorro/inversión'}
                     >
-                      {t.tables.savingsAdd}
+                      <Plus className="h-3.5 w-3.5" />
                     </button>
                   </td>
                 </tr>
@@ -1550,14 +1533,14 @@ export function ExcelAnnualPage() {
                                   });
                                 }}
                                 className="p-0.5 rounded text-purple-700 hover:text-purple-950 dark:hover:text-purple-100 transition-colors"
-                                title="Renombrar categoría"
+                                title={language === 'ca' ? 'Reanomenar categoria' : 'Renombrar categoría'}
                               >
                                 <Edit2 className="h-3 w-3" />
                               </button>
                               <button
                                 onClick={() => handleDeleteConceptRow('category', rowItem.name, rowItem.catId, 'savings')}
                                 className="p-0.5 rounded text-danger-500 hover:text-danger-700 transition-colors"
-                                title="Eliminar categoría y ahorros"
+                                title={language === 'ca' ? 'Eliminar categoria i estalvis' : 'Eliminar categoría y ahorros'}
                               >
                                 <Trash2 className="h-3 w-3" />
                               </button>
@@ -1592,7 +1575,7 @@ export function ExcelAnnualPage() {
                                   ? 'text-purple-950 dark:text-purple-100 font-semibold'
                                   : 'text-purple-700/50 dark:text-purple-400/50'
                               }`}
-                              title="Fes doble clic per editar el valor"
+                              title={language === 'ca' ? 'Fes doble clic per editar el valor' : 'Haz doble clic para editar el valor'}
                             >
                               {amount > 0 ? formatCurrency(amount) : '-'}
                             </td>
@@ -1697,7 +1680,9 @@ export function ExcelAnnualPage() {
                 <tr className="bg-surface-900 text-white font-bold text-xs uppercase tracking-wider sticky top-[34px] z-10 shadow-sm">
                   <td className="excel-row-num text-surface-400 bg-black">★</td>
                   <td colSpan={15} className="px-3 py-2 text-surface-100 bg-surface-900">
-                    RESUM GENERAL I RESULTAT NET (INGRESSOS - DESPESES)
+                    {language === 'ca'
+                      ? 'RESUM GENERAL I RESULTAT NET (INGRESSOS - DESPESES)'
+                      : 'RESUMEN GENERAL Y RESULTADO NETO (INGRESOS - GASTOS)'}
                   </td>
                 </tr>
 
@@ -1705,7 +1690,7 @@ export function ExcelAnnualPage() {
                 <tr className="bg-surface-100/70 dark:bg-surface-800/60 font-semibold">
                   <td className="excel-row-num">50</td>
                   <td className="excel-cell excel-sticky-concept bg-surface-100 dark:bg-surface-800 font-semibold text-surface-800 dark:text-surface-200 text-right pr-4">
-                    TOTAL DESPESES:
+                    {t.tables.totalExpenses}
                   </td>
                   {MONTHS.map((m) => (
                     <td key={m} className="excel-cell text-right font-mono font-semibold text-danger-600 dark:text-danger-400 tabular-nums">
@@ -1724,7 +1709,7 @@ export function ExcelAnnualPage() {
                 <tr className="bg-white dark:bg-surface-900 font-bold border-t-2 border-b-2 border-surface-300 dark:border-surface-700">
                   <td className="excel-row-num bg-surface-200 dark:bg-surface-800">51</td>
                   <td className="excel-cell excel-sticky-concept bg-white dark:bg-surface-900 font-bold text-surface-900 dark:text-surface-100 text-right pr-4">
-                    RESULTAT NET:
+                    {t.tables.netBalance}
                   </td>
                   {MONTHS.map((m) => {
                     const net = monthlyNetBalance[m];
@@ -1759,7 +1744,7 @@ export function ExcelAnnualPage() {
                 <tr className="bg-emerald-50/40 dark:bg-emerald-950/20 text-xs font-semibold">
                   <td className="excel-row-num bg-emerald-100 dark:bg-emerald-900/40">52</td>
                   <td className="excel-cell excel-sticky-concept bg-emerald-50 dark:bg-emerald-950/40 font-semibold text-emerald-950 dark:text-emerald-100 text-right pr-4">
-                    SALDO ACUMULAT:
+                    {language === 'ca' ? 'SALDO ACUMULAT:' : 'SALDO ACUMULADO:'}
                   </td>
                   {MONTHS.map((m) => {
                     const acc = monthlyAccumulatedBalance[m];
@@ -1906,8 +1891,16 @@ export function ExcelAnnualPage() {
       <Modal
         open={renameTarget.open}
         onOpenChange={(open) => setRenameTarget((prev) => ({ ...prev, open }))}
-        title={renameTarget.type === 'income' ? 'Renombrar Concepto de Ingreso' : 'Renombrar Categoría'}
-        description={`Modifica el nombre de "${renameTarget.oldName}" en tu hoja Excel.`}
+        title={
+          renameTarget.type === 'income'
+            ? (language === 'ca' ? "Reanomenar Concepte d'Ingrés" : 'Renombrar Concepto de Ingreso')
+            : (language === 'ca' ? 'Reanomenar Categoria' : 'Renombrar Categoría')
+        }
+        description={
+          language === 'ca'
+            ? `Modifica el nom de "${renameTarget.oldName}" a la teva fulla Excel.`
+            : `Modifica el nombre de "${renameTarget.oldName}" en tu hoja Excel.`
+        }
         size="sm"
       >
         <form
@@ -1918,7 +1911,7 @@ export function ExcelAnnualPage() {
           className="space-y-4"
         >
           <Input
-            label="Nuevo Nombre"
+            label={language === 'ca' ? 'Nou Nom' : 'Nuevo Nombre'}
             value={renameTarget.newName}
             onChange={(e) => setRenameTarget((prev) => ({ ...prev, newName: e.target.value }))}
             required
@@ -1930,9 +1923,9 @@ export function ExcelAnnualPage() {
               type="button"
               onClick={() => setRenameTarget((prev) => ({ ...prev, open: false }))}
             >
-              Cancelar
+              {language === 'ca' ? 'Cancel·lar' : 'Cancelar'}
             </Button>
-            <Button type="submit">Guardar</Button>
+            <Button type="submit">{language === 'ca' ? 'Guardar' : 'Guardar'}</Button>
           </div>
         </form>
       </Modal>

@@ -393,43 +393,43 @@ body {
   border: 1px solid white;
 }
 
-/* Mobile-specific adjustments for Excel Grid */
+/* Mobile-specific adjustments for Excel Grid (Ultra-compact to fit maximum columns) */
 @media (max-width: 640px) {
   .excel-table {
-    font-size: 0.73rem;
+    font-size: 0.62rem !important;
   }
 
   .excel-row-num {
-    width: 1.5rem !important;
-    min-width: 1.5rem !important;
-    font-size: 0.62rem !important;
-    padding: 0.25rem 0.1rem !important;
+    width: 1.25rem !important;
+    min-width: 1.25rem !important;
+    font-size: 0.58rem !important;
+    padding: 0.2rem 0.05rem !important;
   }
 
   .excel-sticky-concept {
-    left: 1.5rem !important;
-    min-width: 125px !important;
-    max-width: 140px !important;
-    font-size: 0.72rem !important;
-    padding: 0.35rem 0.45rem !important;
+    left: 1.25rem !important;
+    min-width: 88px !important;
+    max-width: 105px !important;
+    font-size: 0.62rem !important;
+    padding: 0.2rem 0.25rem !important;
     white-space: nowrap !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
   }
 
   .excel-cell {
-    padding: 0.35rem 0.4rem !important;
-    font-size: 0.72rem !important;
+    padding: 0.2rem 0.2rem !important;
+    font-size: 0.62rem !important;
   }
 
   .excel-col-header {
-    min-width: 78px !important;
-    padding: 0.35rem 0.25rem !important;
-    font-size: 0.68rem !important;
+    min-width: 52px !important;
+    padding: 0.2rem 0.1rem !important;
+    font-size: 0.58rem !important;
   }
 }
 
-/* Compact Density Mode */
+/* Compact Density Mode (Default on desktop: 85% scale) */
 .excel-density-compact .excel-table {
   font-size: 0.72rem;
 }
@@ -441,38 +441,15 @@ body {
 
 .excel-density-compact .excel-col-header {
   padding: 0.25rem 0.25rem !important;
-  min-width: 70px !important;
+  min-width: 68px !important;
   font-size: 0.65rem !important;
 }
 
 .excel-density-compact .excel-sticky-concept {
-  min-width: 115px !important;
-  max-width: 135px !important;
+  min-width: 130px !important;
+  max-width: 155px !important;
   padding: 0.25rem 0.35rem !important;
-  font-size: 0.68rem !important;
-}
-
-/* Mini Density Mode (Super Compact for Mobile) */
-.excel-density-mini .excel-table {
-  font-size: 0.65rem;
-}
-
-.excel-density-mini .excel-cell {
-  padding: 0.18rem 0.25rem !important;
-  font-size: 0.65rem !important;
-}
-
-.excel-density-mini .excel-col-header {
-  padding: 0.18rem 0.15rem !important;
-  min-width: 62px !important;
-  font-size: 0.6rem !important;
-}
-
-.excel-density-mini .excel-sticky-concept {
-  min-width: 100px !important;
-  max-width: 118px !important;
-  padding: 0.18rem 0.25rem !important;
-  font-size: 0.64rem !important;
+  font-size: 0.7rem !important;
 }
 
 

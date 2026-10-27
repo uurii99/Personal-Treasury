@@ -4,6 +4,7 @@ import { Button, Input } from '@/components/ui';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
 import { useCelebration } from '@/contexts/CelebrationContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/lib/supabase';
 import { eurosToCents, centsToEuros } from '@/lib/money';
 import { getMonthName } from '@/lib/dates';
@@ -38,6 +39,7 @@ function CellEditForm({
   const { user } = useAuth();
   const { success, error: showError } = useToast();
   const { triggerNominaCelebration } = useCelebration();
+  const { language } = useLanguage();
 
   const [amountStr, setAmountStr] = useState(() => {
     const euros = centsToEuros(data.currentAmountCents);
@@ -55,7 +57,7 @@ function CellEditForm({
         : 0;
 
       if (isNaN(parsedAmount) || parsedAmount < 0) {
-        showError('Introduce un importe válido mayor o igual a 0');
+        showError(language === 'ca' ? 'Introdueix un import vàlid major o igual a 0' : 'Introduce un importe válido mayor o igual a 0');
         setSaving(false);
         return;
       }
@@ -180,14 +182,18 @@ function CellEditForm({
   return (
     <form onSubmit={handleSave} className="space-y-4">
       <Input
-        label="Importe (€)"
+        label={language === 'ca' ? 'Import (€)' : 'Importe (€)'}
         type="text"
         placeholder="0,00"
         value={amountStr}
         onChange={(e) => setAmountStr(e.target.value)}
         suffix="€"
         autoFocus
-        hint="Si pones 0 o lo dejas vacío, se eliminará el valor de este mes."
+        hint={
+          language === 'ca'
+            ? "Si poses 0 o ho deixes buit, s'eliminarà el valor d'aquest mes."
+            : 'Si pones 0 o lo dejas vacío, se eliminará el valor de este mes.'
+        }
       />
 
       {/* Quick buttons */}
@@ -207,16 +213,16 @@ function CellEditForm({
           onClick={() => setAmountStr('0')}
           className="text-xs px-2.5 py-1 rounded-md bg-danger-50 dark:bg-danger-900/20 text-danger-600 dark:text-danger-400 hover:bg-danger-100 transition-colors"
         >
-          Borrar (0 €)
+          {language === 'ca' ? 'Esborrar (0 €)' : 'Borrar (0 €)'}
         </button>
       </div>
 
       <div className="flex justify-end gap-2 pt-3 border-t border-surface-200 dark:border-surface-800">
         <Button variant="ghost" type="button" onClick={onClose}>
-          Cancelar
+          {language === 'ca' ? 'Cancel·lar' : 'Cancelar'}
         </Button>
         <Button type="submit" loading={saving}>
-          Guardar en celda
+          {language === 'ca' ? 'Guardar a la cel·la' : 'Guardar en celda'}
         </Button>
       </div>
     </form>
@@ -224,14 +230,15 @@ function CellEditForm({
 }
 
 export function CellEditModal({ data, onClose, onSaved }: CellEditModalProps) {
+  const { language, t } = useLanguage();
   if (!data) return null;
 
   return (
     <Modal
       open={!!data}
       onOpenChange={(open) => !open && onClose()}
-      title={`Editar celda: ${data.conceptName}`}
-      description={`${getMonthName(data.month)} ${data.year} · ${data.type === 'income' ? 'Ingreso' : 'Gasto'}`}
+      title={language === 'ca' ? `Editar cel·la: ${data.conceptName}` : `Editar celda: ${data.conceptName}`}
+      description={`${t.months[data.month - 1]} ${data.year} · ${data.type === 'income' ? (language === 'ca' ? 'Ingrés' : 'Ingreso') : (language === 'ca' ? 'Despesa' : 'Gasto')}`}
       size="sm"
     >
       <CellEditForm key={`${data.conceptName}-${data.month}-${data.year}`} data={data} onClose={onClose} onSaved={onSaved} />
